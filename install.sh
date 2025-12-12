@@ -12,6 +12,18 @@ NC='\033[0m' # No Color
 
 echo -e "${GREEN}🚀 Starting Buroq Billing Installation...${NC}"
 
+# 0. Check for Repository
+if [ ! -f "package.json" ]; then
+    echo -e "${YELLOW}📂 No package.json found. Cloning repository...${NC}"
+    if ! command -v git &> /dev/null; then
+        echo -e "${RED}❌ Git is not installed.${NC}"
+        echo -e "${YELLOW}Please install Git first: sudo apt install -y git${NC}"
+        exit 1
+    fi
+    git clone https://github.com/nurwendi/mikrotikbilling.git
+    cd mikrotikbilling || exit
+fi
+
 # 1. Check Node.js
 if ! command -v node &> /dev/null; then
     echo -e "${RED}Node.js is not installed.${NC}"
@@ -41,5 +53,9 @@ npx prisma generate
 npx prisma db push
 
 echo -e "${GREEN}✅ Installation Complete!${NC}"
+if [ "$PWD" != "$OLDPWD" ] && [ -n "$OLDPWD" ]; then
+    echo -e "${YELLOW}👉 NOTE: Please enter the directory first:${NC}"
+    echo -e "   cd mikrotikbilling"
+fi
 echo -e "${GREEN}To start the application, run: npm run dev${NC}"
 echo -e "${YELLOW}For production deployment, see DEPLOYMENT.md${NC}"
