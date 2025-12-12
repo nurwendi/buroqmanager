@@ -75,7 +75,7 @@ apt install -y git
 ### 5. Install & Setup Buroq Billing
 **Method A: Automatic (Recommended)**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nurwendi/mikrotikbilling/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/nurwendi/mikrotikmanagement/master/install.sh | bash
 ```
 *Note: This script will auto-clone the repository if not present, install dependencies, and setup the database.*
 
@@ -83,7 +83,7 @@ curl -fsSL https://raw.githubusercontent.com/nurwendi/mikrotikbilling/master/ins
 ```bash
 # Clone Repository
 cd /opt
-git clone https://github.com/nurwendi/mikrotikbilling.git billing
+git clone https://github.com/nurwendi/mikrotikmanagement.git billing
 chown -R $USER:$USER /opt/billing
 cd /opt/billing
 

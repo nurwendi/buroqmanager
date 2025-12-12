@@ -20,8 +20,8 @@ if [ ! -f "package.json" ]; then
         echo -e "${YELLOW}Please install Git first: apt install -y git${NC}"
         exit 1
     fi
-    git clone https://github.com/nurwendi/mikrotikbilling.git
-    cd mikrotikbilling || exit
+    git clone https://github.com/nurwendi/mikrotikmanagement.git
+    cd mikrotikmanagement || exit
 fi
 
 # 1. Check Node.js
@@ -55,7 +55,7 @@ npx prisma db push
 echo -e "${GREEN}✅ Installation Complete!${NC}"
 if [ "$PWD" != "$OLDPWD" ] && [ -n "$OLDPWD" ]; then
     echo -e "${YELLOW}👉 NOTE: Please enter the directory first:${NC}"
-    echo -e "   cd mikrotikbilling"
+    echo -e "   cd mikrotikmanagement"
 fi
 echo -e "${GREEN}To start the application, run: npm run dev${NC}"
 echo -e "${YELLOW}For production deployment, see DEPLOYMENT.md${NC}"
