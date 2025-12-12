@@ -14,31 +14,31 @@ This guide explains how to deploy the Buroq Billing Management application on Ub
 
 ### 1. Update System
 ```bash
-sudo apt update && sudo apt upgrade -y
+apt update && apt upgrade -y
 ```
 
 ### 2. Install Node.js 20.x
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt-get install -y nodejs
 node -v  # Verify installation
 ```
 
 ### 3. Install PM2 (Process Manager)
 ```bash
-sudo npm install -g pm2
+npm install -g pm2
 ```
 
 ### 4. Install Git
 ```bash
-sudo apt install -y git
+apt install -y git
 ```
 
 ### 5. Clone Repository
 ```bash
 cd /opt
-sudo git clone https://github.com/nurwendi/mikrotikbilling.git billing
-sudo chown -R $USER:$USER /opt/billing
+git clone https://github.com/nurwendi/mikrotikbilling.git billing
+chown -R $USER:$USER /opt/billing
 cd /opt/billing
 ```
 

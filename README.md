@@ -44,14 +44,14 @@ Buroq Billing is a modern, full-stack web application designed to streamline bil
 ### 1. Verification & Prerequisites
 Update your system and install necessary compatible tools:
 ```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y curl git unzip
+apt update && apt upgrade -y
+apt install -y curl git unzip
 ```
 
 ### 2. Install Node.js (Version 20.x)
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt-get install -y nodejs
 ```
 
 ### 3. Install & Setup Buroq Billing
@@ -82,7 +82,7 @@ To run the application in the background and start automatically on boot:
 
 ```bash
 # 1. Install PM2
-sudo npm install -g pm2
+npm install -g pm2
 
 # 2. Build for Production
 npm run build

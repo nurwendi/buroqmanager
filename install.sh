@@ -17,7 +17,7 @@ if [ ! -f "package.json" ]; then
     echo -e "${YELLOW}📂 No package.json found. Cloning repository...${NC}"
     if ! command -v git &> /dev/null; then
         echo -e "${RED}❌ Git is not installed.${NC}"
-        echo -e "${YELLOW}Please install Git first: sudo apt install -y git${NC}"
+        echo -e "${YELLOW}Please install Git first: apt install -y git${NC}"
         exit 1
     fi
     git clone https://github.com/nurwendi/mikrotikbilling.git
@@ -28,8 +28,8 @@ fi
 if ! command -v node &> /dev/null; then
     echo -e "${RED}Node.js is not installed.${NC}"
     echo -e "${YELLOW}Please install Node.js 20.x or higher using:${NC}"
-    echo "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -"
-    echo "sudo apt-get install -y nodejs"
+    echo "curl -fsSL https://deb.nodesource.com/setup_20.x | bash -"
+    echo "apt-get install -y nodejs"
     exit 1
 fi
 
