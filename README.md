@@ -4,7 +4,7 @@ Buroq Billing is a modern, full-stack web application designed to streamline bil
 
 ## 🚀 Key Features
 
-### � Network Management
+### 📡 Network Management
 - **Mikrotik Integration**: Direct connection to Mikrotik routers via API.
 - **PPPoE Management**: Create, edit, and delete PPPoE users directly from the dashboard.
 - **Active Connections**: Real-time monitoring of online users and session duration.
@@ -39,65 +39,150 @@ Buroq Billing is a modern, full-stack web application designed to streamline bil
 - **Components**: [Lucide React](https://lucide.dev/), [Framer Motion](https://www.framer.com/motion/), [Recharts](https://recharts.org/)
 - **Authentication**: Custom session-based auth with bcrypt hashing.
 
-## 🐧 Installation for Debian/Ubuntu
+---
 
-### 1. Verification & Prerequisites
-Update your system and install necessary compatible tools:
+## 📦 Deployment & Installation
+
+### System Requirements
+- **OS**: Ubuntu 20.04+ / Debian 11+
+- **Node.js**: 20.x or higher
+- **RAM**: Minimum 1GB
+- **Storage**: Minimum 10GB
+- **Network**: Access to MikroTik Router via API
+
+### 1. Update System
 ```bash
 apt update && apt upgrade -y
-apt install -y curl git unzip
 ```
 
-### 2. Install Node.js (Version 20.x)
+### 2. Install Node.js 20.x
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
+node -v  # Verify installation
 ```
 
-### 3. Install & Setup Buroq Billing
+### 3. Install PM2 (Process Manager)
+```bash
+npm install -g pm2
+```
+
+### 4. Install Git
+```bash
+apt install -y git
+```
+
+### 5. Install & Setup Buroq Billing
 **Method A: Automatic (Recommended)**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/nurwendi/mikrotikbilling/master/install.sh | bash
 ```
+*Note: This script will auto-clone the repository if not present, install dependencies, and setup the database.*
 
 **Method B: Manual Step-by-Step**
 ```bash
-# 1. Clone Repository
-git clone https://github.com/nurwendi/mikrotikbilling.git
-cd mikrotikbilling
+# Clone Repository
+cd /opt
+git clone https://github.com/nurwendi/mikrotikbilling.git billing
+chown -R $USER:$USER /opt/billing
+cd /opt/billing
 
-# 2. Install Dependencies
+# Install Dependencies
 npm install
 
-# 3. Setup Database
+# Setup Database
 npx prisma generate
 npx prisma db push
 
-# 4. Run Application
+# Run Application
 npm run dev
 ```
 
-### 4. Setup Production (Optional using PM2)
-To run the application in the background and start automatically on boot:
-
+### 6. Start Application with PM2 (Production)
 ```bash
-# 1. Install PM2
-npm install -g pm2
-
-# 2. Build for Production
+cd /opt/billing
 npm run build
-
-# 3. Start with PM2
 pm2 start npm --name "billing" -- start
-
-# 4. Save Startup Selection
 pm2 save
 pm2 startup
 ```
 
----
+## ⚙️ Configuration
+
+### Default Login
+- **Username**: `admin`
+- **Password**: `admin123`
+> ⚠️ **Important**: Change the default password after first login!
+
+### Port Configuration
+The app runs on port **3000** by default. To run on port 80:
+
+**Option A: Use authbind (Recommended)**
+```bash
+apt install authbind
+touch /etc/authbind/byport/80
+chmod 500 /etc/authbind/byport/80
+chown $USER /etc/authbind/byport/80
+```
+*Then update your PM2 start command to use authbind.*
+
+**Option B: Use Nginx as Reverse Proxy**
+```bash
+apt install nginx
+nano /etc/nginx/sites-available/billing
+```
+Add configuration:
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+Enable site:
+```bash
+ln -s /etc/nginx/sites-available/billing /etc/nginx/sites-enabled/
+nginx -t
+systemctl restart nginx
+```
+
+### Mikrotik Connection
+Navigate to **Settings > Mikrotik Connections** to add your router credentials:
+- **Host**: IP address of your Mikrotik router.
+- **Port**: API port (default: 8728).
+- **Username/Password**: Router login with API permissions.
+    - Command: `/ip service set api address=YOUR_SERVER_IP enabled=yes port=8728`
+    - Command: `/user add name=billing password=YOUR_PASSWORD group=full`
+
+## 📂 Data Files Location
+
+| File | Description |
+|------|-------------|
+| `config.json` | Router connections and settings |
+| `app-settings.json` | Application name and logo |
+| `billing-settings.json` | Invoice settings |
+| `customer-data.json` | Customer information |
+| `data/users.json` | System users |
+| `backups/` | Automatic backups |
 
 ## 🔄 Maintenance & Tools
+
+### Scheduled Tasks
+| Task | Schedule | Description |
+|------|----------|-------------|
+| Daily Backup | 00:00 | Backs up all data to `backups/` folder |
+| Auto-Drop | 01:00 | Disconnects users with overdue payments |
+| Traffic Collection | Every minute | Collects bandwidth data |
+| Usage Sync | Every 5 minutes | Syncs user data usage |
 
 ### Auto Update
 To update the application to the latest version (code & database):
@@ -105,6 +190,7 @@ To update the application to the latest version (code & database):
 chmod +x update.sh
 ./update.sh
 ```
+*Alternatively, you can manually `git pull`, `npm install`, `npx prisma db push`, `npm run build`, and `pm2 restart billing`.*
 
 ### Auto Remove / Reset
 To uninstall or reset the application (clears database and node_modules):
@@ -112,31 +198,41 @@ To uninstall or reset the application (clears database and node_modules):
 chmod +x uninstall.sh
 ./uninstall.sh
 ```
-
----
-
-## 🪟 Windows Installation
-```powershell
-iwr -useb https://raw.githubusercontent.com/nurwendi/mikrotikbilling/master/install.ps1 | iex
+To reset ONLY data (keep config):
+```bash
+node scripts/reset-data.js
 ```
 
+### PM2 Commands
+```bash
+pm2 list              # Show all processes
+pm2 logs billing      # View logs
+pm2 restart billing   # Restart application
+pm2 stop billing      # Stop application
+```
 
-## ⚙️ Configuration
+## ❓ Troubleshooting
 
-### Mikrotik Connection
-Navigate to **Settings > Mikrotik Connections** to add your router credentials:
-- **Host**: IP address of your Mikrotik router.
-- **Port**: API port (default: 8728).
-- **Username/Password**: Router login with API permissions.
+### Port 3000 Already in Use
+```bash
+lsof -i :3000
+kill -9 <PID>
+```
 
-### System Settings
-- **Billing Config**: Set invoice prefixes, currencies, and due dates in **Settings > Billing**.
-- **Backup**: Download database backups from **Settings > Backup & Restore**.
+### PM2 Not Starting on Boot
+```bash
+pm2 unstartup
+pm2 startup
+pm2 save
+```
+
+### Verify Node.js Version
+```bash
+node -v  # Should be 20.x or higher
+```
 
 ## 🤝 Contributing
-
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
-
 This project is open-source and available under the [MIT License](LICENSE).
