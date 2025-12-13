@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, Bell } from 'lucide-react';
+import { Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, Bell, ShieldAlert, Activity, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function Navbar() {
@@ -64,6 +64,7 @@ export default function Navbar() {
         { href: '/users', icon: Users, label: 'Users' },
         { href: '/active', icon: Activity, label: 'Active Connections' },
         { href: '/profiles', icon: Settings, label: 'Profiles' },
+        { href: '/drop-users', icon: ShieldAlert, label: 'Drop / Isolir' },
     ];
 
     const settingsItems = [
