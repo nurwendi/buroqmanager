@@ -6,17 +6,27 @@ import Image from 'next/image';
 
 export default function IsolirPage() {
     const [contact, setContact] = useState(null);
+    const [settings, setSettings] = useState({ logoUrl: '/logo.png', appName: 'Buroq Billing' });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/isolir/contact')
-            .then(res => res.json())
-            .then(data => {
-                setContact(data);
+        Promise.all([
+            fetch('/api/isolir/contact').then(res => res.json()),
+            fetch('/api/app-settings').then(res => res.json())
+        ])
+            .then(([contactData, settingsData]) => {
+                setContact(contactData);
+                if (settingsData && !settingsData.error) {
+                    setSettings(prev => ({
+                        ...prev,
+                        ...settingsData,
+                        logoUrl: settingsData.logoUrl || '/logo.png'
+                    }));
+                }
                 setLoading(false);
             })
             .catch(err => {
-                console.error("Failed to fetch contact", err);
+                console.error("Failed to fetch data", err);
                 setLoading(false);
             });
     }, []);
@@ -32,7 +42,12 @@ export default function IsolirPage() {
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden border-t-4 border-red-600">
                 <div className="p-8 text-center">
                     <div className="flex justify-center mb-6">
-                        <Image src="/logo.png" alt="Logo" width={100} height={100} className="h-20 w-auto object-contain" priority />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={settings.logoUrl}
+                            alt={settings.appName || "Logo"}
+                            className="h-24 w-auto object-contain"
+                        />
                     </div>
                     <div className="bg-red-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
                         <WifiOff size={48} className="text-red-600" />
