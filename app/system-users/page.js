@@ -152,6 +152,7 @@ export default function SystemUsersPage() {
     const getRoleBadgeColor = (role) => {
         switch (role) {
             case 'admin': return 'bg-purple-100 text-purple-800';
+            case 'manager': return 'bg-teal-100 text-teal-800';
             case 'editor': return 'bg-blue-100 text-blue-800';
             case 'staff': return 'bg-orange-100 text-orange-800';
             default: return 'bg-gray-100 text-gray-800';
@@ -367,6 +368,7 @@ export default function SystemUsersPage() {
                                         className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                                     >
                                         <option value="admin">Admin (Full Access)</option>
+                                        <option value="manager">Manager (No System Users)</option>
                                         <option value="editor">Editor (Can Edit)</option>
                                         <option value="staff">Staff (Agent/Technician)</option>
                                         <option value="viewer">Viewer (Read Only)</option>

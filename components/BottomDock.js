@@ -31,17 +31,17 @@ export default function BottomDock() {
 
     // All navigation items
     const navItems = [
-        { href: '/', icon: Home, label: t('sidebar.dashboard'), roles: ['admin', 'partner', 'viewer', 'customer', 'staff', 'agent', 'technician'] },
-        { href: '/billing', icon: CreditCard, label: t('sidebar.billing'), roles: ['admin', 'partner', 'staff', 'agent', 'technician'] },
-        { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'partner', 'viewer', 'staff', 'agent', 'technician'] },
-        { href: '/active', icon: Activity, label: t('sidebar.activeConnections'), roles: ['admin', 'partner', 'viewer', 'staff', 'agent', 'technician'] },
-        { href: '/offline', icon: WifiOff, label: 'Offline', roles: ['admin', 'partner', 'viewer', 'staff', 'agent', 'technician'] },
-        { href: '/profiles', icon: Network, label: t('sidebar.profiles'), roles: ['admin'] },
+        { href: '/', icon: Home, label: t('sidebar.dashboard'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/billing', icon: CreditCard, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/active', icon: Activity, label: t('sidebar.activeConnections'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/offline', icon: WifiOff, label: 'Offline', roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/profiles', icon: Network, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
         { href: '/system-users', icon: Users, label: t('sidebar.systemUsers'), roles: ['admin'] },
-        { href: '/routers', icon: Server, label: 'Routers', roles: ['admin'] },
-        { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['admin'] },
-        { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['admin', 'partner', 'viewer', 'staff', 'agent', 'technician'] },
-        { href: '/notifications', icon: Bell, label: t('sidebar.notifications'), roles: ['admin', 'partner', 'viewer', 'customer', 'staff', 'agent', 'technician'] },
+        { href: '/routers', icon: Server, label: 'Routers', roles: ['admin', 'manager'] },
+        { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['admin', 'manager'] },
+        { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/notifications', icon: Bell, label: t('sidebar.notifications'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
     // Mobile navigation items (5 items only)

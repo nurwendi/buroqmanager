@@ -43,7 +43,7 @@ export async function middleware(request) {
     // Role: Editor
     // Allow everything EXCEPT: system-users, routers, app-settings
     if (user.role === 'editor') {
-        const restrictedForEditor = ['/system-users', '/routers', '/app-settings'];
+        const restrictedForEditor = ['/system-users', '/routers'];
         if (restrictedForEditor.some(path => pathname.startsWith(path))) {
             return NextResponse.redirect(new URL('/', request.url));
         }
@@ -61,8 +61,14 @@ export async function middleware(request) {
 
     // Other Roles (agent, technician, staff, viewer)
     // By default, prevent access to admin pages unless specified
-    const restrictedPaths = ['/settings', '/system-users', '/routers', '/app-settings'];
+    const restrictedPaths = ['/settings', '/system-users', '/routers'];
     if (restrictedPaths.some(path => pathname.startsWith(path))) {
+        return NextResponse.redirect(new URL('/', request.url));
+    }
+
+    // Role: Viewer
+    // Prevent access to app-settings
+    if (user.role === 'viewer' && pathname.startsWith('/app-settings')) {
         return NextResponse.redirect(new URL('/', request.url));
     }
 

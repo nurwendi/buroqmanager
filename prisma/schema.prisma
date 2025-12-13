@@ -23,6 +23,7 @@ model User {
   fullName       String   @default("")
   phone          String   @default("")
   address        String   @default("")
+  avatar         String   @default("")
   agentNumber    String   @default("")
   createdAt      DateTime @default(now())
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Upload, Save, User, Key, Image as ImageIcon, Palette, Clock, Gauge, Globe, LogOut, Bell, Shield, Moon, Sun, Monitor } from 'lucide-react';
+import { Upload, Save, User, Key, Image as ImageIcon, Palette, Clock, Gauge, Globe, LogOut, Bell, Shield, Moon, Sun, Monitor, Camera, MapPin, Phone, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDashboard } from '@/contexts/DashboardContext';
@@ -60,6 +60,16 @@ export default function AppSettingsPage() {
         }
     });
 
+    const [profile, setProfile] = useState({
+        username: '',
+        fullName: '',
+        phone: '',
+        address: '',
+        avatar: '',
+        password: '',
+        confirmPassword: ''
+    });
+
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -85,9 +95,28 @@ export default function AppSettingsPage() {
                 throw new Error('Failed to fetch user');
             })
             .then(data => setUserRole(data.user.role))
+            .then(data => setUserRole(data.user.role))
             .catch(() => setUserRole(null));
         fetchSettings();
+        fetchProfile();
     }, []);
+
+    const fetchProfile = async () => {
+        try {
+            const res = await fetch('/api/profile');
+            if (res.ok) {
+                const data = await res.json();
+                setProfile(prev => ({
+                    ...prev,
+                    ...data,
+                    password: '',
+                    confirmPassword: ''
+                }));
+            }
+        } catch (error) {
+            console.error('Failed to fetch profile', error);
+        }
+    };
 
     const fetchSettings = async () => {
         try {
@@ -106,6 +135,67 @@ export default function AppSettingsPage() {
     };
 
 
+
+    const handleSaveProfile = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setMessage({ type: '', text: '' });
+
+        if (profile.password && profile.password !== profile.confirmPassword) {
+            setMessage({ type: 'error', text: 'Passwords do not match!' });
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(profile),
+            });
+
+            if (res.ok) {
+                setMessage({ type: 'success', text: 'Profile updated successfully!' });
+                if (profile.password) {
+                    setProfile(prev => ({ ...prev, password: '', confirmPassword: '' }));
+                }
+                // Refresh profile data
+                fetchProfile();
+            } else {
+                const data = await res.json();
+                setMessage({ type: 'error', text: data.error || 'Failed to update profile' });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Error updating profile' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleProfileAvatarUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const data = new FormData();
+        data.append('file', file);
+
+        try {
+            const res = await fetch('/api/profile/upload', {
+                method: 'POST',
+                body: data,
+            });
+            if (res.ok) {
+                const result = await res.json();
+                setProfile(prev => ({ ...prev, avatar: result.avatarUrl }));
+                setMessage({ type: 'success', text: 'Avatar uploaded successfully!' });
+            } else {
+                const errorData = await res.json();
+                setMessage({ type: 'error', text: errorData.error || 'Failed to upload avatar' });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Error uploading avatar' });
+        }
+    };
 
     const handleSaveAppearance = async (e) => {
         e.preventDefault();
@@ -261,6 +351,126 @@ export default function AppSettingsPage() {
                     </button>
 
                 </div>
+            </div>
+
+            {/* User Profile Settings (New) */}
+            <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
+                <div className="flex items-center gap-3 mb-6">
+                    <User className="text-indigo-600 dark:text-indigo-400" size={24} />
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">User Profile</h2>
+                </div>
+
+                <form onSubmit={handleSaveProfile} className="space-y-6">
+                    {/* Avatar Upload */}
+                    <div className="flex items-center gap-6">
+                        <div className="relative group">
+                            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white dark:border-gray-700 shadow-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                {profile.avatar ? (
+                                    <img src={profile.avatar} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                    <User size={40} className="text-gray-400" />
+                                )}
+                            </div>
+                            <label className="absolute bottom-0 right-0 p-2 bg-blue-600 rounded-full text-white cursor-pointer shadow-lg hover:bg-blue-700 transition-colors">
+                                <Camera size={16} />
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleProfileAvatarUpload}
+                                />
+                            </label>
+                        </div>
+                        <div>
+                            <h3 className="font-medium text-gray-900 dark:text-white">Profile Picture</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Click the camera icon to update your avatar</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Username</label>
+                            <input
+                                type="text"
+                                value={profile.username}
+                                onChange={(e) => setProfile({ ...profile, username: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+                            <input
+                                type="text"
+                                value={profile.fullName}
+                                onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                placeholder="John Doe"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
+                            <div className="relative">
+                                <Phone size={18} className="absolute left-3 top-3 text-gray-400" />
+                                <input
+                                    type="text"
+                                    value={profile.phone}
+                                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    placeholder="0812..."
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Address</label>
+                            <div className="relative">
+                                <MapPin size={18} className="absolute left-3 top-3 text-gray-400" />
+                                <input
+                                    type="text"
+                                    value={profile.address}
+                                    onChange={(e) => setProfile({ ...profile, address: e.target.value })}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    placeholder="Street address..."
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Change Password (Optional)</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">New Password</label>
+                                <input
+                                    type="password"
+                                    value={profile.password}
+                                    onChange={(e) => setProfile({ ...profile, password: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    placeholder="Leave blank to keep current"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm Password</label>
+                                <input
+                                    type="password"
+                                    value={profile.confirmPassword}
+                                    onChange={(e) => setProfile({ ...profile, confirmPassword: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    placeholder="Confirm new password"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-all shadow-md"
+                    >
+                        <Save size={18} />
+                        {loading ? 'Saving Review...' : 'Save Profile Changes'}
+                    </button>
+                </form>
             </div>
 
             {/* Language Settings */}

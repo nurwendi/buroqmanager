@@ -50,3 +50,5 @@ generate-*.js
 
 /generated/prisma
 /node_portable
+
+public/uploads/
