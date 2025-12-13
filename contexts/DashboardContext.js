@@ -147,7 +147,8 @@ export function DashboardProvider({ children }) {
             loading,
             toggleWidget,
             setRefreshInterval,
-            resetDefaults
+            resetDefaults,
+            updatePreferences
         }}>
             {children}
         </DashboardContext.Provider>
