@@ -17,7 +17,14 @@ Buroq Billing is a modern, full-stack web application designed to streamline bil
 - **Financial Reports**: Visual charts for revenue, paid vs. unpaid users, and growth trends.
 
 ### 👥 User & Staff Management
-- **Staff System**: Comprehensive role-based access for Admins, Staff (formerly Partner), Agents, and Technicians.
+- **Role System**:
+  - **Admin**: Full access to all features.
+  - **Manager**: Full access except System Users management.
+  - **Editor**: Can manage PPPoE users (register/approve) but restricted from System Users and App Settings. Starts with Staff Dashboard.
+  - **Staff**: Can view Dashboard, manage assigned customers, and request changes (requires approval).
+  - **Agent**: Can view Dashboard and manage their own customers.
+  - **Technician**: Can view Dashboard and manage assigned tasks/customers.
+  - **Viewer**: Read-only access.
 - **Commission Tracking**: Automatic calculation of commissions for staff, agents, and technicians.
 - **Customer Portal**: Dedicated view for customers to check their package info and payment status.
 

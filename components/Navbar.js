@@ -70,7 +70,12 @@ export default function Navbar() {
     const settingsItems = [
         { href: '/app-settings', icon: Settings, label: 'App Settings' },
         { href: '/routers', icon: Server, label: 'Routers' },
-    ];
+    ].filter(item => {
+        if (userRole === 'editor') {
+            return !['/app-settings', '/routers'].includes(item.href);
+        }
+        return true;
+    });
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl border-b border-white/20 dark:border-white/5 shadow-sm">

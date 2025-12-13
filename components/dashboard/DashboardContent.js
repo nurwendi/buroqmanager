@@ -265,7 +265,7 @@ export default function DashboardContent() {
     }
 
     // Show Staff Dashboard for non-admin roles
-    if (userRole === 'staff' || userRole === 'agent' || userRole === 'technician') {
+    if (userRole === 'staff' || userRole === 'agent' || userRole === 'technician' || userRole === 'editor') {
         return <StaffBillingPage />;
     }
 

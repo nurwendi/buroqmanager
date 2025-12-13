@@ -35,13 +35,35 @@ export async function middleware(request) {
     }
 
     // Check for restricted roles
-    // If user is NOT admin context, prevent access to admin pages
-    if (user.role !== 'admin') {
-        // Allow /app-settings for all users (for logout/language)
-        const restrictedPaths = ['/settings', '/system-users'];
-        if (restrictedPaths.some(path => pathname.startsWith(path))) {
+    // If user is admin, allow everything
+    if (user.role === 'admin') {
+        return NextResponse.next();
+    }
+
+    // Role: Editor
+    // Allow everything EXCEPT: system-users, routers, app-settings
+    if (user.role === 'editor') {
+        const restrictedForEditor = ['/system-users', '/routers', '/app-settings'];
+        if (restrictedForEditor.some(path => pathname.startsWith(path))) {
             return NextResponse.redirect(new URL('/', request.url));
         }
+        return NextResponse.next();
+    }
+
+    // Role: Manager
+    // Allow everything EXCEPT: system-users
+    if (user.role === 'manager') {
+        if (pathname.startsWith('/system-users')) {
+            return NextResponse.redirect(new URL('/', request.url));
+        }
+        return NextResponse.next();
+    }
+
+    // Other Roles (agent, technician, staff, viewer)
+    // By default, prevent access to admin pages unless specified
+    const restrictedPaths = ['/settings', '/system-users', '/routers', '/app-settings'];
+    if (restrictedPaths.some(path => pathname.startsWith(path))) {
+        return NextResponse.redirect(new URL('/', request.url));
     }
 
     return NextResponse.next();

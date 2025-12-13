@@ -596,7 +596,7 @@ export default function UsersPage() {
             </div>
 
             {/* Pending Registrations (Admin & Staff) */}
-            {((userRole === 'admin' || userRole === 'staff') && pendingRegistrations.length > 0) && (
+            {((userRole === 'admin' || userRole === 'editor' || userRole === 'staff') && pendingRegistrations.length > 0) && (
                 <div className="bg-yellow-50/30 dark:bg-yellow-900/30 backdrop-blur-xl border border-yellow-200/50 dark:border-yellow-800/50 rounded-lg p-6 shadow-lg">
                     <h2 className="text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-4 flex items-center gap-2">
                         <Clock className="text-yellow-600 dark:text-yellow-400" /> Pending Registrations
@@ -617,7 +617,7 @@ export default function UsersPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                 {pendingRegistrations
-                                    .filter(reg => userRole === 'admin' || (userRole === 'staff' && reg.agentId === currentUserId))
+                                    .filter(reg => userRole === 'admin' || userRole === 'editor' || (userRole === 'staff' && reg.agentId === currentUserId))
                                     .map((reg) => (
                                         <tr key={reg.username}>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{reg.targetUsername || reg.username}</td>
@@ -636,7 +636,7 @@ export default function UsersPage() {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-yellow-600 dark:text-yellow-400 font-medium">
                                                 Pending Review
                                             </td>
-                                            {userRole === 'admin' && (
+                                            {(userRole === 'admin' || userRole === 'editor') && (
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                                     <button
                                                         onClick={() => handleReview(reg)}

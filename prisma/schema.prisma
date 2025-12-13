@@ -14,7 +14,7 @@ model User {
   id             String   @id @default(cuid())
   username       String   @unique
   passwordHash   String
-  role           String   @default("viewer") // admin, agent, technician, staff, viewer
+  role           String   @default("viewer") // admin, manager, editor, agent, technician, staff, viewer
   isTechnician   Boolean  @default(false)
   isAgent        Boolean  @default(false) // Added for consistency with code usage
   agentRate      Float    @default(0)

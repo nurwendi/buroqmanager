@@ -82,7 +82,7 @@ sudo timedatectl set-timezone Asia/Jakarta
 > ⚠️ **Important**: Change the default password after first login!
 
 ### Port Configuration
-The app runs on port **3000** by default. To run on port 80:
+The app runs on port **2000** by default. To run on port 80:
 
 **Option A: Use authbind (Recommended)**
 ```bash
@@ -109,7 +109,7 @@ server {
     server_name your-domain.com;
 
     location / {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://localhost:2000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -185,6 +185,18 @@ npm run build
 pm2 restart billing
 ```
 
+## Jika Anda ingin memaksa update dan menimpa semua perubahan di server dengan versi terbaru dari GitHub, jalankan perintah ini di server:
+
+```bash
+cd /opt/billing
+git fetch --all
+git reset --hard origin/master
+npm install
+npm run build
+pm2 restart billing
+```
+Peringatan: Perintah git reset --hard akan menghapus semua perubahan lokal (jika ada) yang Anda buat langsung di server. Pastikan Anda tidak mengubah kode penting langsung di server.
+
 ## Resetting Data
 
 To reset all data to fresh state:
@@ -200,9 +212,9 @@ This will:
 
 ## Troubleshooting
 
-### Port 3000 Already in Use
+### Port 2000 Already in Use
 ```bash
-sudo lsof -i :3000
+sudo lsof -i :2000
 sudo kill -9 <PID>
 ```
 
