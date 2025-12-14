@@ -90,10 +90,9 @@ export default function BillingPage() {
             if (statsRes.ok) setStats(await statsRes.json());
             if (agentStatsRes.ok) {
                 const agentData = await agentStatsRes.json();
-                console.log('Agent Stats Response:', agentData);
                 setAgentStats(agentData);
             } else {
-                console.log('Agent Stats Error:', agentStatsRes.status);
+                // Handle error siliently
             }
         } catch (error) {
             console.error('Failed to fetch billing data', error);
@@ -537,30 +536,30 @@ Terima Kasih
     /*
         const _unused_handleSendWhatsApp = (payment) => {
             console.log('handleSendWhatsApp called for:', payment);
-    
+     
             const customer = customersData[payment.username];
             console.log('Customer lookup:', { username: payment.username, found: !!customer, data: customer });
-    
+     
             if (!customer) {
                 alert(`Data pelanggan tidak ditemukan untuk username: ${payment.username}. Hubungi admin.`);
                 return;
             }
-    
+     
             if (!customer.phone) {
                 alert(`Nomor HP pelanggan belum diisi untuk ${customer.name || payment.username}. Silakan lengkapi data pelanggan terlebih dahulu.`);
                 return;
             }
-    
+     
             let phone = customer.phone.replace(/\D/g, '');
             const formattedPhone = phone.startsWith('0') ? '62' + phone.slice(1) : phone;
             console.log('Formatted phone:', formattedPhone);
-    
+     
             const invoiceLink = `${window.location.origin}/invoice/${payment.id}`;
             const periode = new Date(payment.date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
             const tanggal = new Date(payment.date).toLocaleDateString('id-ID');
             const amount = formatCurrency(payment.amount);
             const companyName = invoiceSettings.companyName || 'ISP';
-    
+     
             // Thermal printer style receipt (Simple Text)
             const message = `*INVOICE PEMBAYARAN*
     ${companyName.toUpperCase()}
@@ -574,13 +573,13 @@ Terima Kasih
     Status      : LUNAS
     ================================
     Terima Kasih
-    
+     
     Link Invoice PDF:
     ${invoiceLink}`;
-    
+     
             const url = `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`;
             console.log('Opening WhatsApp URL:', url);
-    
+     
             window.open(url, '_blank');
         };
     */
