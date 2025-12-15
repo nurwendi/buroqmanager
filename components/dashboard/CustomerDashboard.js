@@ -13,7 +13,7 @@ export default function CustomerDashboard() {
         name: '',
         usage: { download: 0, upload: 0 },
         billing: { status: 'loading', amount: 0, invoice: '' },
-        session: { id: null, uptime: '', active: false, ipAddress: null }
+        session: { id: null, uptime: '', active: false, ipAddress: null, rateLimit: null }
     });
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -150,10 +150,30 @@ export default function CustomerDashboard() {
                     </div>
 
                     <div className="space-y-4">
-                        <div className="flex justify-between items-center py-2">
+                        <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700/50">
                             <span className="text-gray-500 dark:text-gray-400">Total Penggunaan Bulan Ini</span>
                             <span className="font-semibold text-gray-900 dark:text-white">{formatBytes((stats.usage.download || 0) + (stats.usage.upload || 0))}</span>
                         </div>
+
+                        {stats.session.rateLimit && (
+                            <div className="py-2">
+                                <span className="text-gray-500 dark:text-gray-400 text-sm block mb-2">Kecepatan Paket</span>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg text-center">
+                                        <div className="text-xs text-blue-600 dark:text-blue-400 mb-1">Download</div>
+                                        <div className="font-bold text-gray-800 dark:text-white">
+                                            {stats.session.rateLimit.split('/')[1] || '-'}
+                                        </div>
+                                    </div>
+                                    <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded-lg text-center">
+                                        <div className="text-xs text-green-600 dark:text-green-400 mb-1">Upload</div>
+                                        <div className="font-bold text-gray-800 dark:text-white">
+                                            {stats.session.rateLimit.split('/')[0] || '-'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="mt-6 space-y-3">

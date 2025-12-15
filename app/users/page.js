@@ -27,7 +27,7 @@ export default function UsersPage() {
         name: '',
         password: '',
         profile: 'default',
-        service: '',
+        service: 'pppoe',
         customerNumber: '',
         customerName: '',
         customerAddress: '',
@@ -415,7 +415,7 @@ export default function UsersPage() {
                 name: user.name,
                 password: '',
                 profile: user.profile || 'default',
-                service: user.service || '',
+                service: user.service || 'pppoe',
                 customerNumber: customerData.customerNumber || '',
                 customerName: customerData.name || '',
                 customerAddress: customerData.address || '',
@@ -430,7 +430,7 @@ export default function UsersPage() {
                 name: user.name,
                 password: '',
                 profile: user.profile || 'default',
-                service: user.service || '',
+                service: user.service || 'pppoe',
                 customerNumber: '',
                 customerName: '',
                 customerAddress: '',
@@ -1052,12 +1052,18 @@ export default function UsersPage() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Service</label>
-                                            <input
-                                                type="text"
+                                            <select
                                                 value={formData.service}
                                                 onChange={(e) => setFormData({ ...formData, service: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                                            />
+                                            >
+                                                <option value="any">any</option>
+                                                <option value="pppoe">pppoe</option>
+                                                <option value="pptp">pptp</option>
+                                                <option value="l2tp">l2tp</option>
+                                                <option value="ovpn">ovpn</option>
+                                                <option value="sstp">sstp</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>

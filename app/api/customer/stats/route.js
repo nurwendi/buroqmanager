@@ -41,6 +41,12 @@ export async function GET(request) {
                 session.uptime = active.uptime;
                 session.active = true;
                 session.ipAddress = active['address'];
+
+                // Extract Rate Limit (e.g. "10M/10M")
+                // Format: rx-rate/tx-rate [burst...]
+                if (active['limit-bytes-in'] || active['rate-limit']) {
+                    session.rateLimit = active['rate-limit'];
+                }
             }
         } catch (e) {
             console.error('Mikrotik error:', e);
