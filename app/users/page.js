@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Plus, Edit2, Trash2, Users as UsersIcon, Shield, Globe, User, MapPin, Phone, Building, Search, Wifi, WifiOff, ArrowUpDown, Server, RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle, Mail } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDashboard } from '@/contexts/DashboardContext';
@@ -225,18 +225,24 @@ export default function UsersPage() {
         }
     };
 
+    const onlineUserSet = useMemo(() => {
+        return new Set(activeConnections.map(conn => conn.name));
+    }, [activeConnections]);
+
     const isUserOnline = (username) => {
-        return activeConnections.some(conn => conn.name === username);
+        return onlineUserSet.has(username);
     };
 
-    const filteredUsers = users.filter(user => {
-        const searchLower = searchTerm.toLowerCase();
-        const customerName = customersData[user.name]?.name || '';
-        return user.name.toLowerCase().includes(searchLower) ||
-            user.profile?.toLowerCase().includes(searchLower) ||
-            user.service?.toLowerCase().includes(searchLower) ||
-            customerName.toLowerCase().includes(searchLower);
-    });
+    const filteredUsers = useMemo(() => {
+        return users.filter(user => {
+            const searchLower = searchTerm.toLowerCase();
+            const customerName = customersData[user.name]?.name || '';
+            return user.name.toLowerCase().includes(searchLower) ||
+                (user.profile && user.profile.toLowerCase().includes(searchLower)) ||
+                (user.service && user.service.toLowerCase().includes(searchLower)) ||
+                customerName.toLowerCase().includes(searchLower);
+        });
+    }, [users, searchTerm, customersData]);
 
     const sortData = (key) => {
         let direction = 'asc';
@@ -246,7 +252,7 @@ export default function UsersPage() {
         setSortConfig({ key, direction });
     };
 
-    const getSortedUsers = () => {
+    const sortedUsers = useMemo(() => {
         const filtered = filteredUsers;
         if (!sortConfig.key) return filtered;
 
@@ -290,7 +296,20 @@ export default function UsersPage() {
         });
 
         return sorted;
-    };
+    }, [filteredUsers, sortConfig, onlineUserSet, customersData, systemUsers]); // dependencies including lookups
+
+    // Pagination Logic
+    const paginatedUsers = useMemo(() => {
+        if (rowsPerPage === 'All') return sortedUsers;
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        return sortedUsers.slice(startIndex, startIndex + rowsPerPage);
+    }, [sortedUsers, currentPage, rowsPerPage]);
+
+    // Helpers need to be wrapped or stable if used in useMemo dependencies, 
+    // but here we just used them inside useMemo which is fine since they depend on state.
+    // However, getCustomerName and getPartnerName depend on current state.
+    // If they change, sortedUsers should recalculate. Added to deps.
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -572,7 +591,9 @@ export default function UsersPage() {
 
     const handleSelectAll = (e) => {
         if (e.target.checked) {
-            const allUsernames = getSortedUsers().map(u => u.name);
+            // Select all visible (filtered) users, not just paginated, or maybe just page?
+            // Usually 'Select All' implies all filtered items.
+            const allUsernames = sortedUsers.map(u => u.name);
             setSelectedUsers(new Set(allUsernames));
         } else {
             setSelectedUsers(new Set());
@@ -786,7 +807,7 @@ export default function UsersPage() {
                                     <input
                                         type="checkbox"
                                         onChange={handleSelectAll}
-                                        checked={selectedUsers.size > 0 && selectedUsers.size === getSortedUsers().length}
+                                        checked={selectedUsers.size > 0 && selectedUsers.size === sortedUsers.length}
                                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                     />
                                 </th>
@@ -855,87 +876,82 @@ export default function UsersPage() {
                                 <tr>
                                     <td colSpan="7" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">Loading...</td>
                                 </tr>
-                            ) : getSortedUsers().length === 0 ? (
+                            ) : sortedUsers.length === 0 ? (
                                 <tr>
                                     <td colSpan="7" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No users found</td>
                                 </tr>
                             ) : (
-                                getSortedUsers()
-                                    .slice(
-                                        (currentPage - 1) * (rowsPerPage === 'All' ? filteredUsers.length : rowsPerPage),
-                                        rowsPerPage === 'All' ? filteredUsers.length : currentPage * rowsPerPage
-                                    )
-                                    .map((user) => (
-                                        <tr key={user['.id']} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedUsers.has(user.name)}
-                                                    onChange={() => handleSelectUser(user.name)}
-                                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                                />
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {isUserOnline(user.name) ? (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300 border border-green-200 dark:border-green-500/30">
-                                                        <Wifi size={14} /> Online
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 border border-gray-200 dark:border-gray-600">
-                                                        <WifiOff size={14} /> Offline
-                                                    </span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                                {user.name}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                {getCustomerName(user.name)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                {customersData[user.name]?.customerNumber || '-'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs font-medium border border-blue-100 dark:border-blue-800/50">
-                                                    {user.profile || '-'}
+                                paginatedUsers.map((user) => (
+                                    <tr key={user['.id']} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedUsers.has(user.name)}
+                                                onChange={() => handleSelectUser(user.name)}
+                                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            />
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {isUserOnline(user.name) ? (
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300 border border-green-200 dark:border-green-500/30">
+                                                    <Wifi size={14} /> Online
                                                 </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                <div className="flex flex-col text-xs">
-                                                    {getPartnerName(user.name)}
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 border border-gray-200 dark:border-gray-600">
+                                                    <WifiOff size={14} /> Offline
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                            {user.name}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            {getCustomerName(user.name)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            {customersData[user.name]?.customerNumber || '-'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs font-medium border border-blue-100 dark:border-blue-800/50">
+                                                {user.profile || '-'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            <div className="flex flex-col text-xs">
+                                                {getPartnerName(user.name)}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            <div className="flex flex-col gap-1">
+                                                <div className="font-bold text-gray-800 dark:text-white text-sm">
+                                                    {formatBytes((user.usage?.rx || 0) + (user.usage?.tx || 0))}
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                <div className="flex flex-col gap-1">
-                                                    <div className="font-bold text-gray-800 dark:text-white text-sm">
-                                                        {formatBytes((user.usage?.rx || 0) + (user.usage?.tx || 0))}
-                                                    </div>
-                                                    <div className="flex items-center gap-3 text-xs">
-                                                        <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium" title="Download">
-                                                            <ArrowUpDown size={10} className="rotate-180" /> {formatBytes(user.usage?.tx || 0)}
-                                                        </span>
-                                                        <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium" title="Upload">
-                                                            <ArrowUpDown size={10} /> {formatBytes(user.usage?.rx || 0)}
-                                                        </span>
-                                                    </div>
+                                                <div className="flex items-center gap-3 text-xs">
+                                                    <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium" title="Download">
+                                                        <ArrowUpDown size={10} className="rotate-180" /> {formatBytes(user.usage?.tx || 0)}
+                                                    </span>
+                                                    <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium" title="Upload">
+                                                        <ArrowUpDown size={10} /> {formatBytes(user.usage?.rx || 0)}
+                                                    </span>
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                                <button
-                                                    onClick={() => handleEdit(user)}
-                                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
-                                                >
-                                                    <Edit2 size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(user)}
-                                                    className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                            <button
+                                                onClick={() => handleEdit(user)}
+                                                className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                                            >
+                                                <Edit2 size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(user)}
+                                                className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
                             )}
                         </tbody>
                     </table>

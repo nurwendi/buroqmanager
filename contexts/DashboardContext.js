@@ -10,8 +10,6 @@ export function DashboardProvider({ children }) {
             visibleWidgets: {
                 financial: true,
                 pppoe: true, // system default
-                realtime: true,
-                system: true,
 
                 tempChart: true,
                 cpuChart: true,
@@ -119,8 +117,6 @@ export function DashboardProvider({ children }) {
                 visibleWidgets: {
                     financial: true,
                     pppoe: true,
-                    realtime: true,
-                    system: true,
 
                     tempChart: true,
                     cpuChart: true,

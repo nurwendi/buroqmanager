@@ -11,8 +11,8 @@ import StaffBillingPage from '@/app/billing/staff/page';
 // Widgets
 import FinancialStats from './FinancialStats';
 import PppoeStats from './PppoeStats';
-import RealtimeTraffic from './RealtimeTraffic';
-import SystemHealth from './SystemHealth';
+
+
 
 
 
@@ -41,15 +41,6 @@ export default function DashboardContent() {
         },
         agentStats: null
     });
-    const [trafficData, setTrafficData] = useState([]);
-    const [realtimeTraffic, setRealtimeTraffic] = useState({
-        downloadRate: 0,
-        uploadRate: 0,
-        downloadBytes: 0,
-        uploadBytes: 0
-    });
-    const [temperatureHistory, setTemperatureHistory] = useState([]);
-    const [cpuHistory, setCpuHistory] = useState([]);
     const [userRole, setUserRole] = useState(null);
     const [username, setUsername] = useState('');
     const [loading, setLoading] = useState(true);
@@ -129,61 +120,6 @@ export default function DashboardContent() {
                     }
                 }).catch(e => console.warn('Dashboard stats fetch error:', e));
 
-                // Traffic History
-                fetch('/api/traffic').then(async (res) => {
-                    if (res.ok) {
-                        const data = await res.json();
-                        const processedData = [];
-                        for (let i = 1; i < data.length; i++) {
-                            const prev = data[i - 1];
-                            const curr = data[i];
-                            const timeDiffSeconds = (curr.timestamp - prev.timestamp) / 1000;
-
-                            if (timeDiffSeconds > 0) {
-                                const downloadBytesPerSec = (curr.rx - prev.rx) / timeDiffSeconds;
-                                const uploadBytesPerSec = (curr.tx - prev.tx) / timeDiffSeconds;
-                                const downloadMbps = Math.max(0, (downloadBytesPerSec * 8) / 1000000);
-                                const uploadMbps = Math.max(0, (uploadBytesPerSec * 8) / 1000000);
-
-                                processedData.push({
-                                    timestamp: curr.timestamp,
-                                    date: new Date(curr.timestamp).toLocaleString(),
-                                    download: parseFloat(downloadMbps.toFixed(2)),
-                                    upload: parseFloat(uploadMbps.toFixed(2))
-                                });
-                            }
-                        }
-                        setTrafficData(processedData);
-                    }
-                }).catch(e => console.warn('Traffic fetch error:', e));
-
-                // Realtime Traffic
-                fetch('/api/traffic/realtime').then(async (res) => {
-                    if (res.ok) {
-                        const data = await res.json();
-                        setRealtimeTraffic({
-                            downloadRate: data.downloadRate || 0,
-                            uploadRate: data.uploadRate || 0,
-                            downloadBytes: data.downloadBytes || 0,
-                            uploadBytes: data.uploadBytes || 0
-                        });
-                    }
-                }).catch(e => console.warn('Realtime traffic fetch error:', e));
-
-                // Sensor History
-                fetch('/api/dashboard/temperature').then(async (res) => {
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.history && data.history.length > 0) setTemperatureHistory(data.history);
-                    }
-                }).catch(e => console.warn('Temp fetch error:', e));
-
-                fetch('/api/dashboard/cpu').then(async (res) => {
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.history && data.history.length > 0) setCpuHistory(data.history);
-                    }
-                }).catch(e => console.warn('CPU fetch error:', e));
             };
 
             // Execute
@@ -209,34 +145,8 @@ export default function DashboardContent() {
         }
     }, [refreshInterval, fetchStats]);
 
-    // Monitoring & Notifications
-    const [lastAlerts, setLastAlerts] = useState({ cpu: 0, sfp: 0, voltage: 0 });
 
-    useEffect(() => {
-        if (!notifications?.enabled) return;
-        const { highCpu, cpuThreshold, sfpCritical, voltageLow } = notifications;
-        const now = Date.now();
-        const COOLDOWN = 5 * 60 * 1000; // 5 minutes cooldown
 
-        // Check CPU
-        if (highCpu && stats.cpuLoad > (cpuThreshold || 80)) {
-            if (now - lastAlerts.cpu > COOLDOWN) {
-                sendNotification('High CPU Warning', `CPU Usage is at ${stats.cpuLoad}%`);
-                setLastAlerts(prev => ({ ...prev, cpu: now }));
-            }
-        }
-
-        // SFP check removed
-
-        // Check Voltage (assuming 12V/24V system, alert if drops below logical threshold, say 11V)
-        if (voltageLow && stats.voltage && parseFloat(stats.voltage) < 11 && parseFloat(stats.voltage) > 0) {
-            if (now - lastAlerts.voltage > COOLDOWN) {
-                sendNotification('System Voltage Low', `Input voltage dropped to ${stats.voltage}V`);
-                setLastAlerts(prev => ({ ...prev, voltage: now }));
-            }
-        }
-
-    }, [stats, notifications, lastAlerts]);
 
 
     // Helpers
@@ -356,19 +266,8 @@ export default function DashboardContent() {
                     <PppoeStats key="pppoe" stats={stats} />
                 )}
 
-                {visibleWidgets.realtime && (
-                    <RealtimeTraffic
-                        key="realtime"
-                        realtimeTraffic={realtimeTraffic}
-                        formatBitsPerSecond={formatBitsPerSecond}
-                        formatBytes={formatBytes}
-                    />
-                )}
 
-                {/* System Health */}
-                {visibleWidgets.system && (
-                    <SystemHealth key="system" stats={stats} formatBytes={formatBytes} t={t} />
-                )}
+
 
 
 

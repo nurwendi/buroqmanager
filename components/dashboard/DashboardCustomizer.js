@@ -12,8 +12,8 @@ export default function DashboardCustomizer() {
     const widgets = [
         { id: 'financial', label: 'Financial Overview', icon: '💰' },
         { id: 'pppoe', label: 'PPPoE Stats', icon: '👥' },
-        { id: 'realtime', label: 'Real-time Traffic', icon: '⚡' },
-        { id: 'system', label: 'System Health', icon: '🖥️' },
+
+
 
     ];
 

@@ -11,11 +11,17 @@ export async function GET() {
             client.write('/interface/print')
         ]);
 
+        // Create a Map for faster interface lookup
+        const interfaceMap = new Map();
+        interfaces.forEach(i => {
+            interfaceMap.set(i.name, i);
+        });
+
         // Map interface stats to connections
         const connectionsWithStats = activeConnections.map(conn => {
             // Find corresponding interface (usually <pppoe-username>)
             const interfaceName = `<pppoe-${conn.name}>`;
-            const userInterface = interfaces.find(i => i.name === interfaceName) || interfaces.find(i => i.name === conn.name);
+            const userInterface = interfaceMap.get(interfaceName) || interfaceMap.get(conn.name);
 
             if (userInterface) {
                 return {

@@ -41,11 +41,22 @@ export async function GET(request) {
         }
 
         // Attach monthly usage data
-        const { getMonthlyUsage } = await import('@/lib/usage-tracker');
-        const usersWithUsage = await Promise.all(users.map(async (u) => {
-            const usage = await getMonthlyUsage(u.name);
+        const { getAllMonthlyUsage } = await import('@/lib/usage-tracker');
+        const allUsageData = await getAllMonthlyUsage();
+        const currentMonth = new Date().toISOString().slice(0, 7);
+
+        const usersWithUsage = users.map(u => {
+            const userData = allUsageData[u.name];
+            let usage = { rx: 0, tx: 0 };
+
+            if (userData && userData.month === currentMonth) {
+                usage = {
+                    rx: userData.accumulated_rx + userData.last_session_rx,
+                    tx: userData.accumulated_tx + userData.last_session_tx
+                };
+            }
             return { ...u, usage };
-        }));
+        });
 
         return NextResponse.json(usersWithUsage);
     } catch (error) {
