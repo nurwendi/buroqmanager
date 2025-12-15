@@ -68,95 +68,128 @@ export default function DashboardContent() {
 
     const fetchStats = useCallback(async () => {
         try {
-            // Fetch critical stats first to unblock UI
-            const [dashboardRes, billingRes, agentStatsRes, trafficRes, realtimeRes, tempRes, cpuRes] = await Promise.all([
-                fetch('/api/dashboard/stats'),
-                fetch('/api/billing/stats'),
-                fetch(`/api/billing/stats/agent?month=${new Date().getMonth()}&year=${new Date().getFullYear()}`),
-                fetch('/api/traffic'),
-                fetch('/api/traffic/realtime'),
-                fetch('/api/dashboard/temperature'),
-                fetch('/api/dashboard/cpu')
-            ]);
+            // 1. Fetch Fast/Local Data (Billing, Agents) - Unblock UI ASAP
+            const fetchLocalData = async () => {
+                try {
+                    const [billingRes, agentStatsRes] = await Promise.all([
+                        fetch('/api/billing/stats'),
+                        fetch(`/api/billing/stats/agent?month=${new Date().getMonth()}&year=${new Date().getFullYear()}`)
+                    ]);
 
-            const newStats = { ...stats };
+                    const newStats = {};
 
-            if (trafficRes.ok) {
-                const data = await trafficRes.json();
-                const processedData = [];
-                for (let i = 1; i < data.length; i++) {
-                    const prev = data[i - 1];
-                    const curr = data[i];
-                    const timeDiffSeconds = (curr.timestamp - prev.timestamp) / 1000;
+                    if (billingRes.ok) {
+                        const data = await billingRes.json();
+                        newStats.billing = data;
+                    }
 
-                    if (timeDiffSeconds > 0) {
-                        const downloadBytesPerSec = (curr.rx - prev.rx) / timeDiffSeconds;
-                        const uploadBytesPerSec = (curr.tx - prev.tx) / timeDiffSeconds;
-                        const downloadMbps = Math.max(0, (downloadBytesPerSec * 8) / 1000000);
-                        const uploadMbps = Math.max(0, (uploadBytesPerSec * 8) / 1000000);
+                    if (agentStatsRes.ok) {
+                        const data = await agentStatsRes.json();
+                        if (data.role === 'staff') {
+                            newStats.agentStats = data.stats;
+                        }
+                    }
 
-                        processedData.push({
-                            timestamp: curr.timestamp,
-                            date: new Date(curr.timestamp).toLocaleString(),
-                            download: parseFloat(downloadMbps.toFixed(2)),
-                            upload: parseFloat(uploadMbps.toFixed(2))
+                    setStats(prev => ({ ...prev, ...newStats }));
+                } catch (e) {
+                    console.error('Failed to fetch local stats', e);
+                } finally {
+                    setLoading(false); // Unblock UI immediately after local data
+                }
+            };
+
+            // 2. Fetch Slow/External Data (Mikrotik, Traffic) - in parallel but doesn't block UI
+            const fetchExternalData = async () => {
+                const fetchWithTimeout = (url, timeout = 10000) => {
+                    return Promise.race([
+                        fetch(url),
+                        new Promise((_, reject) =>
+                            setTimeout(() => reject(new Error(`Timeout fetching ${url}`)), timeout)
+                        )
+                    ]);
+                };
+
+                // Individual fetches so one failure doesn't stop others
+
+                // Dashboard System Stats (CPU, PPPoE Active)
+                fetchWithTimeout('/api/dashboard/stats').then(async (res) => {
+                    if (res.ok) {
+                        const data = await res.json();
+                        setStats(prev => ({
+                            ...prev,
+                            pppoeActive: data.pppoeActive,
+                            pppoeOffline: data.pppoeOffline,
+                            cpuLoad: data.cpuLoad,
+                            memoryUsed: data.memoryUsed,
+                            memoryTotal: data.memoryTotal,
+                            temperature: data.temperature,
+                            voltage: data.voltage,
+                            interfaces: data.interfaces
+                        }));
+                    }
+                }).catch(e => console.warn('Dashboard stats fetch error:', e));
+
+                // Traffic History
+                fetch('/api/traffic').then(async (res) => {
+                    if (res.ok) {
+                        const data = await res.json();
+                        const processedData = [];
+                        for (let i = 1; i < data.length; i++) {
+                            const prev = data[i - 1];
+                            const curr = data[i];
+                            const timeDiffSeconds = (curr.timestamp - prev.timestamp) / 1000;
+
+                            if (timeDiffSeconds > 0) {
+                                const downloadBytesPerSec = (curr.rx - prev.rx) / timeDiffSeconds;
+                                const uploadBytesPerSec = (curr.tx - prev.tx) / timeDiffSeconds;
+                                const downloadMbps = Math.max(0, (downloadBytesPerSec * 8) / 1000000);
+                                const uploadMbps = Math.max(0, (uploadBytesPerSec * 8) / 1000000);
+
+                                processedData.push({
+                                    timestamp: curr.timestamp,
+                                    date: new Date(curr.timestamp).toLocaleString(),
+                                    download: parseFloat(downloadMbps.toFixed(2)),
+                                    upload: parseFloat(uploadMbps.toFixed(2))
+                                });
+                            }
+                        }
+                        setTrafficData(processedData);
+                    }
+                }).catch(e => console.warn('Traffic fetch error:', e));
+
+                // Realtime Traffic
+                fetch('/api/traffic/realtime').then(async (res) => {
+                    if (res.ok) {
+                        const data = await res.json();
+                        setRealtimeTraffic({
+                            downloadRate: data.downloadRate || 0,
+                            uploadRate: data.uploadRate || 0,
+                            downloadBytes: data.downloadBytes || 0,
+                            uploadBytes: data.uploadBytes || 0
                         });
                     }
-                }
-                setTrafficData(processedData);
-            }
+                }).catch(e => console.warn('Realtime traffic fetch error:', e));
 
-            if (dashboardRes.ok) {
-                const data = await dashboardRes.json();
-                newStats.pppoeActive = data.pppoeActive;
-                newStats.pppoeOffline = data.pppoeOffline;
-                newStats.cpuLoad = data.cpuLoad;
-                newStats.memoryUsed = data.memoryUsed;
-                newStats.memoryTotal = data.memoryTotal;
-                newStats.temperature = data.temperature;
-                newStats.voltage = data.voltage;
-                // sfpData is not here anymore
-                newStats.interfaces = data.interfaces;
-            }
+                // Sensor History
+                fetch('/api/dashboard/temperature').then(async (res) => {
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.history && data.history.length > 0) setTemperatureHistory(data.history);
+                    }
+                }).catch(e => console.warn('Temp fetch error:', e));
 
-            if (billingRes.ok) {
-                const data = await billingRes.json();
-                newStats.billing = data;
-            }
+                fetch('/api/dashboard/cpu').then(async (res) => {
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.history && data.history.length > 0) setCpuHistory(data.history);
+                    }
+                }).catch(e => console.warn('CPU fetch error:', e));
+            };
 
-            if (agentStatsRes.ok) {
-                const data = await agentStatsRes.json();
-                if (data.role === 'staff') {
-                    newStats.agentStats = data.stats;
-                }
-            }
-
-            if (realtimeRes.ok) {
-                const data = await realtimeRes.json();
-                setRealtimeTraffic({
-                    downloadRate: data.downloadRate || 0,
-                    uploadRate: data.uploadRate || 0,
-                    downloadBytes: data.downloadBytes || 0,
-                    uploadBytes: data.uploadBytes || 0
-                });
-            }
-
-            if (tempRes.ok) {
-                const data = await tempRes.json();
-                if (data.history && data.history.length > 0) setTemperatureHistory(data.history);
-            }
-
-            if (cpuRes.ok) {
-                const data = await cpuRes.json();
-                if (data.history && data.history.length > 0) setCpuHistory(data.history);
-            }
-
-            // Update state with critical data first
-            setStats(newStats);
+            // Execute
+            await fetchLocalData(); // Wait for local data
+            fetchExternalData(); // Fire and forget external data
             setLastUpdate(new Date());
-            setLoading(false); // Unblock UI here
-
-            // SFP fetching removed
 
         } catch (error) {
             console.error('Failed to fetch stats', error);
