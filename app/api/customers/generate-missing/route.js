@@ -10,14 +10,14 @@ export async function POST(request) {
         // Get max customer number from DB
         // Since customerNumber is string, we need to fetch all and parse, or just fetch all
         const customers = await db.customer.findMany({
-            select: { username: true, customerNumber: true }
+            select: { username: true, customerId: true }
         });
         const customerMap = new Map(customers.map(c => [c.username, c]));
 
         let maxId = 10000;
         for (const c of customers) {
-            if (c.customerNumber) {
-                const numPart = parseInt(c.customerNumber);
+            if (c.customerId) {
+                const numPart = parseInt(c.customerId);
                 if (!isNaN(numPart) && numPart > maxId) {
                     maxId = numPart;
                 }
@@ -30,18 +30,18 @@ export async function POST(request) {
             const username = user.name;
             const existing = customerMap.get(username);
 
-            if (!existing || !existing.customerNumber) {
+            if (!existing || !existing.customerId) {
                 maxId++;
-                const newCustomerNumber = String(maxId);
+                const newCustomerId = String(maxId);
 
                 // Upsert customer
                 await db.customer.upsert({
                     where: { username },
-                    update: { customerNumber: newCustomerNumber },
+                    update: { customerId: newCustomerId },
                     create: {
                         username,
                         name: '',
-                        customerNumber: newCustomerNumber,
+                        customerId: newCustomerId,
                         agentId: null
                     }
                 });
@@ -61,3 +61,5 @@ export async function POST(request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+

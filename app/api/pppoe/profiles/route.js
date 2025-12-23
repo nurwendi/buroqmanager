@@ -1,9 +1,36 @@
 import { NextResponse } from 'next/server';
 import { getMikrotikClient } from '@/lib/mikrotik';
+import { getUserFromRequest } from '@/lib/api-auth';
+import { getConfig, getUserConnectionId } from '@/lib/config';
 
-export async function GET() {
+async function getClientForUser(request) {
+    const user = await getUserFromRequest(request);
+    if (!user) {
+        throw new Error('Unauthorized');
+    }
+    const config = await getConfig();
+    let connectionId = getUserConnectionId(user, config);
+
+    // Fallback: If no connection ID for staff/user, try owner's connection
+    if (!connectionId && user.ownerId) {
+        const ownerConn = config.connections?.find(c => c.ownerId === user.ownerId);
+        if (ownerConn) connectionId = ownerConn.id;
+    }
+
+    // If no connection found for this user (and not superadmin), DO NOT fallback to global.
+    // Return null to signal "no client available".
+    if (!connectionId && user.role !== 'superadmin') {
+        return null;
+    }
+
+    return getMikrotikClient(connectionId);
+}
+
+export async function GET(request) {
     try {
-        const client = await getMikrotikClient();
+        const client = await getClientForUser(request);
+        if (!client) return NextResponse.json([]); // Return empty if no router
+
         const profiles = await client.write('/ppp/profile/print');
 
         // Parse price from comment
@@ -25,7 +52,12 @@ export async function GET() {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const client = await getMikrotikClient();
+        const client = await getClientForUser(request);
+
+        if (!client) {
+            return NextResponse.json({ error: "No router configured. Please add a router first." }, { status: 400 });
+        }
+
         const { name, localAddress, remoteAddress, rateLimit, price } = body;
 
         if (!name) {
@@ -45,3 +77,5 @@ export async function POST(request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+

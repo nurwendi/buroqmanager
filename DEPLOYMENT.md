@@ -6,6 +6,7 @@ This guide explains how to deploy the Buroq Billing Management application on Ub
 
 - **OS**: Ubuntu 20.04+ / Debian 11+
 - **Node.js**: 20.x or higher
+- **Database**: PostgreSQL 14+
 - **RAM**: Minimum 1GB
 - **Storage**: Minimum 10GB
 - **Network**: Access to MikroTik Router via API
@@ -17,24 +18,42 @@ This guide explains how to deploy the Buroq Billing Management application on Ub
 apt update && apt upgrade -y
 ```
 
-### 2. Install Node.js 20.x
+### 2. Install PostgreSQL
+```bash
+sudo apt install postgresql postgresql-contrib -y
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+```
+
+### 3. Create Database & User
+```bash
+sudo -u postgres psql
+# In psql prompt:
+CREATE DATABASE mikrotik_billing;
+CREATE USER billing_user WITH ENCRYPTED PASSWORD 'your_secure_password';
+GRANT ALL PRIVILEGES ON DATABASE mikrotik_billing TO billing_user;
+ALTER DATABASE mikrotik_billing OWNER TO billing_user;
+\q
+```
+
+### 4. Install Node.js 20.x
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
 node -v  # Verify installation
 ```
 
-### 3. Install PM2 (Process Manager)
+### 5. Install PM2 (Process Manager)
 ```bash
 npm install -g pm2
 ```
 
-### 4. Install Git
+### 6. Install Git
 ```bash
 apt install -y git
 ```
 
-### 5. Clone Repository
+### 7. Clone Repository
 ```bash
 cd /opt
 git clone https://github.com/nurwendi/mikrotikbilling.git billing
@@ -42,33 +61,33 @@ chown -R $USER:$USER /opt/billing
 cd /opt/billing
 ```
 
-### 6. Install & Setup (Using Script)
-We recommend using the automated script:
+### 8. Configure Environment
 ```bash
-chmod +x install.sh
-./install.sh
+cp .env.local.example .env
+nano .env
+# Set DATABASE_URL="postgresql://billing_user:your_secure_password@localhost:5432/mikrotik_billing?schema=public"
 ```
 
-Or manually:
+### 9. Install & Setup
 ```bash
 npm install
 npx prisma generate
 npx prisma db push
 ```
 
-### 7. Build Application
+### 10. Build Application
 ```bash
 npm run build
 ```
 
-### 8. Start Application with PM2
+### 11. Start Application with PM2
 ```bash
 pm2 start npm --name "billing" -- start
 pm2 save
 pm2 startup  # Follow the instructions to enable auto-start
 ```
 
-### 9. Set Timezone
+### 12. Set Timezone
 ```bash
 sudo timedatectl set-timezone Asia/Jakarta
 ```

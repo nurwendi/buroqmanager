@@ -1,9 +1,36 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { verifyToken } from '@/lib/security';
 
-export async function GET() {
+async function getCurrentUser(request) {
+    const token = request.cookies.get('auth_token')?.value;
+    if (!token) return null;
+    return await verifyToken(token);
+}
+
+export async function GET(request) {
     try {
-        const payments = await db.payment.findMany();
+        const currentUser = await getCurrentUser(request);
+        if (!currentUser) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        let where = {};
+        if (currentUser.role === 'admin') {
+            where = { ownerId: currentUser.id };
+        } else if (currentUser.role === 'superadmin') {
+            // Superadmin sees all
+        } else {
+            // Staff?
+            if (currentUser.ownerId) {
+                where = { ownerId: currentUser.ownerId };
+            } else {
+                // Fallback
+                where = { ownerId: 'nothing' }; // block access or show empty
+            }
+        }
+
+        const payments = await db.payment.findMany({ where });
 
         const totalRevenue = payments
             .filter(p => p.status === 'completed')

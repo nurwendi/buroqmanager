@@ -1,16 +1,32 @@
 import { NextResponse } from 'next/server';
 import { getMikrotikClient } from '@/lib/mikrotik';
 import db from '@/lib/db';
+import { getUserFromRequest } from '@/lib/api-auth';
 
 export async function GET(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        let where = { status: 'pending' };
+
+        // Filter by Owner
+        if (user.role !== 'superadmin') {
+            const ownerId = user.role === 'admin' ? user.id : user.ownerId;
+            if (ownerId) where.ownerId = ownerId;
+            else if (user.role !== 'admin') where.ownerId = 'nothing';
+
+            // Restrict Staff/Agent to only their own registrations
+            // Editor is EXEMPT from this (can see all pending to approve)
+            if (['staff', 'agent', 'technician'].includes(user.role)) {
+                where.agentId = user.id;
+            }
+        }
+
         const pending = await db.registration.findMany({
-            where: { status: 'pending' }
+            where: where
         });
 
-        // Map Prisma result to match expected frontend structure if needed
-        // Frontend expects array of objects with username/details.
-        // Our model flattens this.
         return NextResponse.json(pending);
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -40,6 +56,15 @@ export async function POST(request) {
                     return NextResponse.json({ error: "Registration for this username is already pending" }, { status: 400 });
                 }
 
+                // Infer Owner from Agent
+                let ownerId = null;
+                if (agentId) {
+                    const agent = await db.user.findUnique({ where: { id: agentId } });
+                    if (agent) {
+                        ownerId = agent.role === 'admin' ? agent.id : agent.ownerId;
+                    }
+                }
+
                 await db.registration.create({
                     data: {
                         type: 'register',
@@ -49,6 +74,7 @@ export async function POST(request) {
                         address: body.address,
                         phone: body.phone,
                         agentId: agentId,
+                        ownerId: ownerId, // Save Owner
                         password: body.password,
                         profile: body.profile,
                         service: body.service,
@@ -99,11 +125,7 @@ export async function POST(request) {
                 where: { id: registration.id },
                 data: { status: 'rejected' }
             });
-            // Optionally delete? 
-            // Original code: deleted from JSON. 
-            // Database practice: keep history or delete. Let's delete to match behavior, or keep status.
-            // Let's delete to keep list clean, or just filter by pending in GET.
-            // Let's delete for now to mimic "Gone".
+            // Delete to keep clean
             await db.registration.delete({ where: { id: registration.id } });
 
             return NextResponse.json({ success: true, message: "Request rejected" });
@@ -138,61 +160,79 @@ export async function POST(request) {
                     }
                 }
 
-                // Create User in DB
-                // We need to create User and Customer?
-                // The current auth system uses User table.
-                // The current customer system uses Customer table.
-                // We typically create both. User for login, Customer for profile.
-
-                // 1. Create User
-                // Hash password
-                // import bcrypt... or just raw if auth uses raw? 
-                // auth.js uses bcrypt. We need to hash.
-                // But wait, Mikrotik needs plaintext. We usually store hash in DB and plaintext to Mikrotik?
-                // Or we store plaintext? 
-                // Looking at `auth.js` -> `bcrypt.compare`.
-                // Looking at `registrations` -> it sent password to Mikrotik.
-                // We need `bcrypt`.
-
-                // For simplicity in this replacement, I'll rely on the existing modules or simple logic.
-                // I need to import hash from somewhere or install bcryptjs.
-                // Assuming bcryptjs is available since auth.js uses it.
-
-                // Let's skip bcrypt here to ensure I don't break with imports if not checked.
-                // I will use a placeholder or plain if necessary, but correct way is hash.
-
-                // Actually, I can use `db` but I need to `create` carefully.
-                // The previous system `customer-data.json` stored everything.
-                // `users.json` stored login.
-
-                // Creating User + Customer.
+                // Create User + Customer Transactionally
                 const passwordHash = require('bcryptjs').hashSync(finalData.password, 10);
 
-                const newUser = await db.user.create({
-                    data: {
-                        username: finalData.username,
-                        passwordHash: passwordHash,
-                        role: 'viewer', // Customer default
-                        fullName: finalData.name || '',
-                        phone: finalData.phone || '',
-                        address: finalData.address || '',
-                        isAgent: false,
-                        isTechnician: false
-                    }
-                });
+                let newUser, newCustomer;
+                try {
+                    [newUser, newCustomer] = await db.$transaction(async (tx) => {
+                        const u = await tx.user.create({
+                            data: {
+                                username: finalData.username,
+                                passwordHash: passwordHash,
+                                role: 'viewer',
+                                fullName: finalData.name || '',
+                                phone: finalData.phone || '',
+                                address: finalData.address || '',
+                                isAgent: false,
+                                isTechnician: false,
+                                ownerId: registration.ownerId
+                            }
+                        });
 
-                await db.customer.create({
-                    data: {
-                        username: finalData.username,
-                        name: finalData.name || '',
-                        phone: finalData.phone || '',
-                        address: finalData.address || '',
-                        agentId: finalData.agentId
-                    }
-                });
+                        const c = await tx.customer.create({
+                            data: {
+                                username: finalData.username,
+                                customerId: finalData.username, // Using username as customerId initially
+                                name: finalData.name || '',
+                                phone: finalData.phone || '',
+                                address: finalData.address || '',
+                                agentId: finalData.agentId,
+                                ownerId: registration.ownerId
+                            }
+                        });
+                        return [u, c];
+                    });
+                } catch (dbError) {
+                    console.error('[RegApprove] DB Transaction Failed:', dbError);
+                    return NextResponse.json({ error: "Database creation failed: " + dbError.message }, { status: 500 });
+                }
 
                 // Create in Mikrotik
-                const targetRouterIds = (finalData.routerIds && Array.isArray(finalData.routerIds) && finalData.routerIds.length > 0) ? finalData.routerIds : [null];
+                let targetRouterIds = (finalData.routerIds && Array.isArray(finalData.routerIds) && finalData.routerIds.length > 0) ? finalData.routerIds : [];
+
+                // If no specific router selected, try to find the Owner's default connection
+                if (targetRouterIds.length === 0) {
+                    console.log('[RegApprove] No router selected. Attempting to resolve default for Owner:', registration.ownerId);
+                    try {
+                        // Import config helpers
+                        const configModule = await import('@/lib/config');
+                        const getConfig = configModule.getConfig;
+                        const getUserConnectionId = configModule.getUserConnectionId;
+
+                        const config = await getConfig();
+                        console.log('[RegApprove] Config loaded. Connections:', config.connections?.length);
+
+                        // resolve owner connection
+                        const mockUserForConfig = { role: 'agent', ownerId: registration.ownerId };
+                        const defaultConnId = getUserConnectionId(mockUserForConfig, config);
+
+                        console.log(`[RegApprove] Resolved Connection ID: ${defaultConnId}`);
+
+                        if (defaultConnId) {
+                            targetRouterIds.push(defaultConnId);
+                        } else {
+                            console.warn('[RegApprove] Could not resolve default router. Using fallback NULL.');
+                            targetRouterIds.push(null);
+                        }
+                    } catch (e) {
+                        console.error('[RegApprove] Failed to resolve default router connection:', e);
+                        targetRouterIds.push(null);
+                    }
+                } else {
+                    console.log('[RegApprove] Using selected routers:', targetRouterIds);
+                }
+
                 const errors = [];
                 let successCount = 0;
 
@@ -214,15 +254,24 @@ export async function POST(request) {
                     }
                 }
 
-                if (errors.length > 0 && successCount === 0) {
-                    // Rollback DB?
-                    await db.user.delete({ where: { id: newUser.id } });
-                    await db.customer.delete({ where: { username: finalData.username } });
-                    return NextResponse.json({ error: "Failed to create user in Mikrotik", details: errors }, { status: 500 });
+                if (successCount === 0 && targetRouterIds.length > 0) {
+                    // Rollback DB
+                    try {
+                        await db.customer.delete({ where: { id: newCustomer.id } });
+                    } catch (e) { console.error('Rollback customer failed', e); }
+
+                    try {
+                        await db.user.delete({ where: { id: newUser.id } });
+                    } catch (e) { console.error('Rollback user failed', e); }
+
+                    const errorDetails = errors.map(e => `${e.routerId}: ${e.error}`).join(', ');
+                    return NextResponse.json({
+                        error: `Failed to create user in any router. Details: ${errorDetails}`,
+                        details: errors
+                    }, { status: 500 });
                 }
 
                 await db.registration.update({ where: { id: registration.id }, data: { status: 'approved' } });
-                // Clean up?
                 await db.registration.delete({ where: { id: registration.id } });
 
                 return NextResponse.json({ success: true, message: "Registration approved and user created" });
@@ -263,51 +312,62 @@ export async function POST(request) {
                 // Update DB (Customer & User)
                 const finalUsername = newValues.username || targetUsername;
 
-                // If username changed, we have issues with constraints.
-                // Assuming simple update for now. 
-                // Prisma cascade update/delete not enabled on ID usually unless specified.
-                // And we use username as ID in Customer.
-
-                // If username changes:
-                // 1. Rename User? User ID is UUID, username is field. Easy.
-                // 2. Rename Customer? Customer ID IS username. Hard.
-                // We might need to delete and recreate Customer or update ID (if supported).
-                // Or just update non-PK fields.
-
                 if (newValues.username && newValues.username !== targetUsername) {
                     // Check if new exists
-                    const exists = await db.customer.findUnique({ where: { username: newValues.username } });
+                    const exists = await db.customer.findUnique({
+                        where: {
+                            username_ownerId: {
+                                username: newValues.username,
+                                ownerId: registration.ownerId
+                            }
+                        }
+                    });
+
                     if (exists) return NextResponse.json({ error: "New username already exists" }, { status: 400 });
 
-                    // Create new customer, delete old?
-                    // Need to move relations too?
-                    // Complex. User might accept simple updates only for now.
-                    // Let's implement non-PK updates first.
-
-                    // If username change is CRITICAL, we assume Admin handles it manually or we do full migration.
-                    // For now, update User username.
+                    // Update User username
                     await db.user.update({
                         where: { username: targetUsername },
                         data: { username: newValues.username }
                     });
 
-                    // Customer table - create new, delete old
-                    const oldCust = await db.customer.findUnique({ where: { username: targetUsername } });
-                    await db.customer.create({
-                        data: {
-                            ...oldCust,
-                            username: newValues.username,
-                            name: newValues.name || oldCust.name,
-                            address: newValues.address || oldCust.address,
-                            phone: newValues.phone || oldCust.phone,
-                            agentId: newValues.agentId || oldCust.agentId
+                    // Customer table - update
+                    // Must find using composite key
+                    const oldCust = await db.customer.findUnique({
+                        where: {
+                            username_ownerId: {
+                                username: targetUsername,
+                                ownerId: registration.ownerId
+                            }
                         }
                     });
-                    await db.customer.delete({ where: { username: targetUsername } });
+
+                    if (oldCust) {
+                        await db.customer.update({
+                            where: {
+                                username_ownerId: {
+                                    username: targetUsername,
+                                    ownerId: registration.ownerId
+                                }
+                            },
+                            data: {
+                                username: newValues.username, // Actual Rename
+                                name: newValues.name || undefined,
+                                address: newValues.address || undefined,
+                                phone: newValues.phone || undefined,
+                                agentId: newValues.agentId || undefined
+                            }
+                        });
+                    }
                 } else {
                     // Update existing
                     await db.customer.update({
-                        where: { username: targetUsername },
+                        where: {
+                            username_ownerId: {
+                                username: targetUsername,
+                                ownerId: registration.ownerId
+                            }
+                        },
                         data: {
                             name: newValues.name,
                             address: newValues.address,
@@ -336,10 +396,17 @@ export async function POST(request) {
 
                 // DB
                 try {
-                    await db.customer.delete({ where: { username: targetUsername } });
+                    await db.customer.delete({
+                        where: {
+                            username_ownerId: {
+                                username: targetUsername,
+                                ownerId: registration.ownerId
+                            }
+                        }
+                    });
                     await db.user.delete({ where: { username: targetUsername } });
                 } catch (e) {
-                    // ignore if not found
+                    console.log('Error deleting DB records:', e);
                 }
 
                 await db.registration.delete({ where: { id: registration.id } });
@@ -351,4 +418,3 @@ export async function POST(request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
-

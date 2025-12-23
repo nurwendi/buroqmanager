@@ -11,6 +11,7 @@ import StaffBillingPage from '@/app/billing/staff/page';
 // Widgets
 import FinancialStats from './FinancialStats';
 import PppoeStats from './PppoeStats';
+import SuperadminStats from './SuperadminStats';
 
 
 
@@ -31,6 +32,8 @@ export default function DashboardContent() {
         memoryTotal: 0,
         temperature: 0,
         voltage: 0, // Add initial state
+        adminCount: 0,
+        totalCustomers: 0,
         interfaces: [],
         billing: {
             totalRevenue: 0,
@@ -52,7 +55,7 @@ export default function DashboardContent() {
             .then(res => res.json())
             .then(data => {
                 setUserRole(data.user.role);
-                setUsername(data.user.username);
+                setUsername(data.user.fullName || data.user.username);
             })
             .catch(err => console.error('Failed to fetch user role', err));
     }, []);
@@ -115,7 +118,12 @@ export default function DashboardContent() {
                             memoryTotal: data.memoryTotal,
                             temperature: data.temperature,
                             voltage: data.voltage,
-                            interfaces: data.interfaces
+                            interfaces: data.interfaces,
+                            adminCount: data.adminCount,
+                            totalCustomers: data.totalCustomers,
+                            serverCpuLoad: data.serverCpuLoad,
+                            serverMemoryUsed: data.serverMemoryUsed,
+                            serverMemoryTotal: data.serverMemoryTotal
                         }));
                     }
                 }).catch(e => console.warn('Dashboard stats fetch error:', e));
@@ -229,20 +237,23 @@ export default function DashboardContent() {
 
     return (
         <motion.div
-            className="space-y-8"
+            className="space-y-4 md:space-y-8"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
         >
             {/* Header */}
-            <motion.div variants={itemVariants} className="flex items-center justify-between">
+            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{t('dashboard.title')}</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('dashboard.title')}</h1>
                     <p className="text-lg text-gray-600 dark:text-gray-300 mt-1">
                         Selamat datang <span className="font-semibold text-blue-600 dark:text-blue-400 capitalize">{username}</span>
                     </p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-4">
+                    <span className="text-sm text-gray-500 dark:text-gray-400 sm:hidden">
+                        Updated: {lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
                     <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
                         Last update: {lastUpdate.toLocaleTimeString()}
                     </span>
@@ -258,20 +269,19 @@ export default function DashboardContent() {
 
             {/* Widgets */}
             <AnimatePresence>
-                {visibleWidgets.financial && userRole !== 'staff' && (
-                    <FinancialStats key="financial" stats={stats} formatCurrency={formatCurrency} />
+                {userRole === 'superadmin' ? (
+                    <SuperadminStats key="superadmin" stats={stats} />
+                ) : (
+                    <>
+                        {visibleWidgets.financial && userRole !== 'staff' && (
+                            <FinancialStats key="financial" stats={stats} formatCurrency={formatCurrency} />
+                        )}
+
+                        {visibleWidgets.pppoe && (
+                            <PppoeStats key="pppoe" stats={stats} />
+                        )}
+                    </>
                 )}
-
-                {visibleWidgets.pppoe && (
-                    <PppoeStats key="pppoe" stats={stats} />
-                )}
-
-
-
-
-
-
-
             </AnimatePresence>
         </motion.div>
     );

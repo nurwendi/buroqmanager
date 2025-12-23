@@ -40,10 +40,9 @@ export default function BillingPage() {
         notes: '',
         status: 'completed'
     });
-    const [baseAmount, setBaseAmount] = useState(0);
-    const [isNextMonthIncluded, setIsNextMonthIncluded] = useState(false);
+
     const [origin, setOrigin] = useState('');
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(25);
     const [currentPage, setCurrentPage] = useState(1);
 
     // Searchable dropdown state
@@ -219,8 +218,7 @@ export default function BillingPage() {
                 // Don't close modal, show success state
                 setLastRecordedPayment(data.payment);
                 setFormData({ username: '', amount: '', method: 'cash', notes: '', status: 'completed' });
-                setBaseAmount(0);
-                setIsNextMonthIncluded(false);
+
                 fetchData();
             } else {
                 alert('Failed to record payment: ' + (data.error || 'Unknown error'));
@@ -608,11 +606,7 @@ Terima Kasih
                     <div className="flex flex-col gap-2 md:flex-row md:gap-2">
                         {userRole === 'admin' && (
                             <>
-                                <Link href="/billing/settings">
-                                    <button className="w-full md:w-auto bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700 transition-colors shadow-sm">
-                                        <Settings size={20} /> Settings
-                                    </button>
-                                </Link>
+
                                 <button
                                     onClick={handleGenerateInvoices}
                                     className="w-full md:w-auto bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors shadow-sm"
@@ -643,7 +637,7 @@ Terima Kasih
                 {agentStats && agentStats.role === 'admin' && (
                     <div className="space-y-4">
                         {/* Grand Totals - Smaller on mobile */}
-                        <div className="grid grid-cols-3 gap-2 md:gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
                             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-3 md:p-5 text-white shadow-md">
                                 <p className="text-blue-100 font-medium text-xs md:text-sm mb-1">Total Gross</p>
                                 <h3 className="text-lg md:text-2xl font-bold">{formatCurrency(agentStats.grandTotal.revenue)}</h3>
@@ -677,8 +671,8 @@ Terima Kasih
 
                 {/* Stats Cards - Admin Only */}
                 {userRole === 'admin' && (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg p-6 shadow-xl border-l-4 border-green-500 border-y border-r border-white/20 dark:border-white/5">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-6">
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg p-4 md:p-6 shadow-xl border-l-4 border-green-500 border-y border-r border-white/20 dark:border-white/5">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
                                     <DollarSign size={24} />
@@ -690,7 +684,7 @@ Terima Kasih
                             </div>
                         </div>
 
-                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg p-6 shadow-xl border-l-4 border-blue-500 border-y border-r border-white/20 dark:border-white/5">
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg p-4 md:p-6 shadow-xl border-l-4 border-blue-500 border-y border-r border-white/20 dark:border-white/5">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
                                     <Calendar size={24} />
@@ -702,7 +696,7 @@ Terima Kasih
                             </div>
                         </div>
 
-                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg p-6 shadow-xl border-l-4 border-purple-500 border-y border-r border-white/20 dark:border-white/5">
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg p-4 md:p-6 shadow-xl border-l-4 border-purple-500 border-y border-r border-white/20 dark:border-white/5">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full text-purple-600 dark:text-purple-400">
                                     <FileText size={24} />
@@ -714,7 +708,7 @@ Terima Kasih
                             </div>
                         </div>
 
-                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg p-6 shadow-xl border-l-4 border-red-500 border-y border-r border-white/20 dark:border-white/5">
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg p-4 md:p-6 shadow-xl border-l-4 border-red-500 border-y border-r border-white/20 dark:border-white/5">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full text-red-600 dark:text-red-400">
                                     <CreditCard size={24} />
@@ -732,85 +726,90 @@ Terima Kasih
                 {/* Partner Earnings Section */}
                 {userRole === 'admin' && (
                     <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
-                        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Staff Earnings - {getMonthName(selectedMonth)} {selectedYear}</h2>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                <thead className="bg-black/5 dark:bg-white/5">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Staff</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rate</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Paid</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unpaid</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total Revenue</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Commission</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Net Revenue</th>
-                                    </tr>
-                                </thead>
 
-                                <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
-                                    {(!agentStats || !agentStats.agents || agentStats.agents.length === 0) ? (
+
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
+                            <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
+                                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Staff Earnings - {getMonthName(selectedMonth)} {selectedYear}</h2>
+                            </div>
+                            <div className="overflow-x-auto">
+
+                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead className="bg-black/5 dark:bg-white/5">
                                         <tr>
-                                            <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
-                                                No partners with transactions this month
-                                            </td>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Staff</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rate</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Paid</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unpaid</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total Revenue</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Commission</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Net Revenue</th>
                                         </tr>
-                                    ) : (
-                                        <>
-                                            {agentStats.agents.map((agent) => (
-                                                <tr key={agent.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <div className="flex items-center">
-                                                            <div>
-                                                                <div className="text-sm font-medium text-gray-900">{agent.name}</div>
-                                                                <div className="text-xs text-gray-500">{agent.role}</div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                        {agent.rate}%
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                                            {agent.paidCount}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap">
-                                                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                                                            {agent.unpaidCount}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        {formatCurrency(agent.totalRevenue)}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                                                        {formatCurrency(agent.commission)}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                                                        {formatCurrency(agent.totalRevenue - agent.commission)}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            {/* Total Row */}
-                                            <tr className="bg-gray-100 dark:bg-gray-700/50 font-semibold">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" colSpan="4">
-                                                    Total
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {formatCurrency(agentStats.grandTotal?.revenue || 0)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                                                    {formatCurrency(agentStats.grandTotal?.commission || 0)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                                                    {formatCurrency(agentStats.grandTotal?.netRevenue || 0)}
+                                    </thead>
+
+                                    <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
+                                        {(!agentStats || !agentStats.agents || agentStats.agents.length === 0) ? (
+                                            <tr>
+                                                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                                                    No partners with transactions this month
                                                 </td>
                                             </tr>
-                                        </>
-                                    )}
-                                </tbody>
-                            </table>
+                                        ) : (
+                                            <>
+                                                {agentStats.agents.map((agent) => (
+                                                    <tr key={agent.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <div className="flex items-center">
+                                                                <div>
+                                                                    <div className="text-sm font-medium text-gray-900">{agent.name}</div>
+                                                                    <div className="text-xs text-gray-500">{agent.role}</div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            {agent.rate}%
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                                {agent.paidCount}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap">
+                                                            <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                                                {agent.unpaidCount}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                            {formatCurrency(agent.totalRevenue)}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                                            {formatCurrency(agent.commission)}
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
+                                                            {formatCurrency(agent.totalRevenue - agent.commission)}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                {/* Total Row */}
+                                                <tr className="bg-gray-100 dark:bg-gray-700/50 font-semibold">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" colSpan="4">
+                                                        Total
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                        {formatCurrency(agentStats.grandTotal?.revenue || 0)}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                                        {formatCurrency(agentStats.grandTotal?.commission || 0)}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
+                                                        {formatCurrency(agentStats.grandTotal?.netRevenue || 0)}
+                                                    </td>
+                                                </tr>
+                                            </>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -840,7 +839,7 @@ Terima Kasih
 
                 {/* Payment List */}
                 <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
-                    <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                    <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Payment History</h2>
 
                         <div className="relative">
@@ -1101,6 +1100,17 @@ Terima Kasih
                                         </button>
                                         <button
                                             onClick={() => {
+                                                setSelectedInvoice(lastRecordedPayment);
+                                                setPrintFormat('thermal');
+                                                fetchCustomerDetails(lastRecordedPayment.username);
+                                                setShowInvoiceModal(true);
+                                            }}
+                                            className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 font-medium transition-colors"
+                                        >
+                                            <Printer size={20} /> Cetak
+                                        </button>
+                                        <button
+                                            onClick={() => {
                                                 setLastRecordedPayment(null);
                                                 setShowModal(false);
                                             }}
@@ -1170,8 +1180,7 @@ Terima Kasih
                                                                         }
                                                                     }
 
-                                                                    setBaseAmount(amount);
-                                                                    setIsNextMonthIncluded(false);
+
                                                                     setFormData({
                                                                         ...formData,
                                                                         username: selectedUser.name,
@@ -1200,46 +1209,7 @@ Terima Kasih
                                     </div>
 
                                     {/* Advance Payment Checkbox */}
-                                    {formData.username && baseAmount > 0 && (
-                                        <div className="bg-blue-50/30 dark:bg-blue-900/30 backdrop-blur-xl p-3 rounded-lg border border-blue-100/50 dark:border-blue-800/50 shadow-lg">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={isNextMonthIncluded}
-                                                    onChange={(e) => {
-                                                        const checked = e.target.checked;
-                                                        setIsNextMonthIncluded(checked);
 
-                                                        const currentMonth = new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-                                                        const nextMonthDate = new Date();
-                                                        nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
-                                                        const nextMonth = nextMonthDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-
-                                                        if (checked) {
-                                                            setFormData(prev => ({
-                                                                ...prev,
-                                                                amount: baseAmount * 2,
-                                                                notes: `Pembayaran ${currentMonth} & ${nextMonth}`
-                                                            }));
-                                                        } else {
-                                                            setFormData(prev => ({
-                                                                ...prev,
-                                                                amount: baseAmount,
-                                                                notes: ''
-                                                            }));
-                                                        }
-                                                    }}
-                                                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                                />
-                                                <span className="text-sm font-medium text-blue-800">Bayar Bulan Depan Juga (+{formatCurrency(baseAmount)})</span>
-                                            </label>
-                                            {isNextMonthIncluded && (
-                                                <p className="text-xs text-blue-600 mt-1 ml-6">
-                                                    Total menjadi {formatCurrency(baseAmount * 2)}. Invoice akan mencakup tagihan bulan ini dan bulan depan.
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Amount (IDR)</label>
@@ -1345,192 +1315,194 @@ Terima Kasih
             {/* Invoice Modal */}
             {
                 showInvoiceModal && selectedInvoice && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm print:p-0 print:bg-white print:static print:block">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className={`bg-white rounded-lg shadow-xl w-full max-w-2xl print:shadow-none print:w-full print:max-w-none print:rounded-none ${printFormat === 'thermal' ? 'max-w-[350px] mx-auto print:max-w-[80mm] print:mx-0' : 'p-8'}`}
-                        >
-                            {/* Print Controls */}
-                            <div className="flex justify-between items-center mb-6 print:hidden p-6 pb-0">
-                                <h2 className="text-xl font-bold text-gray-800">Invoice Preview</h2>
-                                <div className="flex bg-gray-100 rounded-lg p-1">
-                                    <button
-                                        onClick={() => setPrintFormat('a4')}
-                                        className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${printFormat === 'a4' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
-                                    >
-                                        A4
-                                    </button>
-                                    <button
-                                        onClick={() => setPrintFormat('thermal')}
-                                        className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${printFormat === 'thermal' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
-                                    >
-                                        Thermal (Mini)
-                                    </button>
+                    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm print:p-0 print:bg-white print:static print:block">
+                        <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className={`bg-white rounded-lg shadow-xl w-full max-w-2xl print:shadow-none print:w-full print:max-w-none print:rounded-none ${printFormat === 'thermal' ? 'max-w-[350px] mx-auto print:max-w-[80mm] print:mx-0' : 'p-8'}`}
+                            >
+                                {/* Print Controls */}
+                                <div className="flex justify-between items-center mb-6 print:hidden p-6 pb-0">
+                                    <h2 className="text-xl font-bold text-gray-800">Invoice Preview</h2>
+                                    <div className="flex bg-gray-100 rounded-lg p-1">
+                                        <button
+                                            onClick={() => setPrintFormat('a4')}
+                                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${printFormat === 'a4' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                                        >
+                                            A4
+                                        </button>
+                                        <button
+                                            onClick={() => setPrintFormat('thermal')}
+                                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${printFormat === 'thermal' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                                        >
+                                            Thermal (Mini)
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Invoice Content */}
-                            <div className={`print:p-0 ${printFormat === 'thermal' ? 'p-6 text-sm' : ''}`}>
-                                {/* Header */}
-                                <div className={`flex ${printFormat === 'thermal' ? 'flex-col text-center' : 'justify-between items-start'} mb-8 border-b border-gray-200 pb-6`}>
-                                    <div className={`flex ${printFormat === 'thermal' ? 'flex-col justify-center' : 'items-center gap-4'}`}>
-                                        <div>
-                                            <h2 className={`${printFormat === 'thermal' ? 'text-xl' : 'text-3xl'} font-bold text-gray-900`}>TAGIHAN</h2>
-                                            <p className="text-gray-500">#{selectedInvoice.id}</p>
+                                {/* Invoice Content */}
+                                <div className={`print:p-0 ${printFormat === 'thermal' ? 'p-6 text-sm' : ''}`}>
+                                    {/* Header */}
+                                    <div className={`flex ${printFormat === 'thermal' ? 'flex-col text-center' : 'justify-between items-start'} mb-8 border-b border-gray-200 pb-6`}>
+                                        <div className={`flex ${printFormat === 'thermal' ? 'flex-col justify-center' : 'items-center gap-4'}`}>
+                                            <div>
+                                                <h2 className={`${printFormat === 'thermal' ? 'text-xl' : 'text-3xl'} font-bold text-gray-900`}>TAGIHAN</h2>
+                                                <p className="text-gray-500">#{selectedInvoice.id}</p>
+                                            </div>
+                                        </div>
+                                        <div className={`${printFormat === 'thermal' ? 'mt-4 text-center' : 'text-right'}`}>
+                                            {invoiceSettings.logoUrl && (
+                                                <div className={`flex ${printFormat === 'thermal' ? 'justify-center' : 'justify-end'} mb-3`}>
+                                                    <img src={invoiceSettings.logoUrl} alt="Company Logo" className="h-16 object-contain" />
+                                                </div>
+                                            )}
+                                            <h3 className="font-bold text-xl text-gray-800">{invoiceSettings.companyName}</h3>
+                                            <p className="text-sm text-gray-500 whitespace-pre-line">{invoiceSettings.companyAddress}</p>
+                                            {invoiceSettings.companyContact && <p className="text-sm text-gray-500">{invoiceSettings.companyContact}</p>}
                                         </div>
                                     </div>
-                                    <div className={`${printFormat === 'thermal' ? 'mt-4 text-center' : 'text-right'}`}>
-                                        {printFormat !== 'thermal' && invoiceSettings.logoUrl && (
-                                            <div className="flex justify-end mb-3">
-                                                <img src={invoiceSettings.logoUrl} alt="Company Logo" className="h-16 object-contain" />
-                                            </div>
-                                        )}
-                                        <h3 className="font-bold text-xl text-gray-800">{invoiceSettings.companyName}</h3>
-                                        <p className="text-sm text-gray-500 whitespace-pre-line">{invoiceSettings.companyAddress}</p>
-                                        {invoiceSettings.companyContact && <p className="text-sm text-gray-500">{invoiceSettings.companyContact}</p>}
+
+                                    {/* Details */}
+                                    <div className={`${printFormat === 'thermal' ? 'space-y-4' : 'grid grid-cols-2 gap-8'} mb-8`}>
+                                        <div className={printFormat === 'thermal' ? 'text-center' : ''}>
+                                            <p className="text-sm font-medium text-gray-500 mb-1">Tagihan Kepada:</p>
+                                            <p className="text-lg font-bold text-gray-900">
+                                                {customersData[selectedInvoice.username]?.name || selectedInvoice.username}
+                                            </p>
+                                            {customersData[selectedInvoice.username]?.address && (
+                                                <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">{customersData[selectedInvoice.username].address}</p>
+                                            )}
+                                            {customersData[selectedInvoice.username]?.phone && (
+                                                <p className="text-sm text-gray-600 mt-1">{customersData[selectedInvoice.username].phone}</p>
+                                            )}
+                                            <p className="text-xs text-gray-400 mt-2">ID: {selectedInvoice.username}</p>
+                                        </div>
+                                        <div className={printFormat === 'thermal' ? 'text-center' : 'text-right'}>
+                                            <p className="text-sm font-medium text-gray-500 mb-1">Tanggal:</p>
+                                            <p className="text-gray-900">{formatDate(selectedInvoice.date)}</p>
+                                            <p className="text-sm font-medium text-gray-500 mt-2 mb-1">Status:</p>
+                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${selectedInvoice.status === 'completed' ? 'bg-green-100 text-green-800 print:bg-transparent print:text-black print:border print:border-black' :
+                                                selectedInvoice.status === 'postponed' ? 'bg-orange-100 text-orange-800 print:bg-transparent print:text-black print:border print:border-black' :
+                                                    selectedInvoice.status === 'merged' ? 'bg-gray-100 text-gray-500 print:bg-transparent print:text-black print:border print:border-black' :
+                                                        'bg-red-100 text-red-800 print:bg-transparent print:text-black print:border print:border-black'
+                                                }`}>
+                                                {selectedInvoice.status === 'completed' ? 'LUNAS' :
+                                                    selectedInvoice.status === 'postponed' ? 'DITUNDA' :
+                                                        selectedInvoice.status === 'merged' ? 'DIGABUNG' :
+                                                            'BELUM BAYAR'}
+                                            </span>
+                                        </div>
                                     </div>
+
+                                    {/* Items */}
+                                    <div className={`${printFormat === 'thermal' ? 'border-t border-b border-dashed py-4' : 'bg-gray-50 rounded-lg p-6 print:bg-transparent print:border print:border-gray-200'} mb-8`}>
+                                        <div className="flex justify-between items-center mb-4">
+                                            <span className="text-gray-600">Deskripsi</span>
+                                            <span className="text-gray-600 font-medium">Jumlah</span>
+                                        </div>
+                                        <div className="flex justify-between items-center py-4 border-t border-gray-200">
+                                            <span className="text-gray-900 font-medium">Pembayaran Layanan Internet</span>
+                                            <span className="text-gray-900 font-bold">{formatCurrency(selectedInvoice.amount)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                                            <span className="text-lg font-bold text-gray-900">Total</span>
+                                            <span className="text-lg font-bold text-blue-600 print:text-black">{formatCurrency(selectedInvoice.amount)}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Footer */}
+                                    {invoiceSettings.invoiceFooter && (
+                                        <div className="text-center text-sm text-gray-500 mt-8 pt-4 border-t border-gray-100">
+                                            <p>{invoiceSettings.invoiceFooter}</p>
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Details */}
-                                <div className={`${printFormat === 'thermal' ? 'space-y-4' : 'grid grid-cols-2 gap-8'} mb-8`}>
-                                    <div className={printFormat === 'thermal' ? 'text-center' : ''}>
-                                        <p className="text-sm font-medium text-gray-500 mb-1">Tagihan Kepada:</p>
-                                        <p className="text-lg font-bold text-gray-900">
-                                            {customersData[selectedInvoice.username]?.name || selectedInvoice.username}
-                                        </p>
-                                        {customersData[selectedInvoice.username]?.address && (
-                                            <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">{customersData[selectedInvoice.username].address}</p>
-                                        )}
-                                        {customersData[selectedInvoice.username]?.phone && (
-                                            <p className="text-sm text-gray-600 mt-1">{customersData[selectedInvoice.username].phone}</p>
-                                        )}
-                                        <p className="text-xs text-gray-400 mt-2">ID: {selectedInvoice.username}</p>
-                                    </div>
-                                    <div className={printFormat === 'thermal' ? 'text-center' : 'text-right'}>
-                                        <p className="text-sm font-medium text-gray-500 mb-1">Tanggal:</p>
-                                        <p className="text-gray-900">{formatDate(selectedInvoice.date)}</p>
-                                        <p className="text-sm font-medium text-gray-500 mt-2 mb-1">Status:</p>
-                                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${selectedInvoice.status === 'completed' ? 'bg-green-100 text-green-800 print:bg-transparent print:text-black print:border print:border-black' :
-                                            selectedInvoice.status === 'postponed' ? 'bg-orange-100 text-orange-800 print:bg-transparent print:text-black print:border print:border-black' :
-                                                selectedInvoice.status === 'merged' ? 'bg-gray-100 text-gray-500 print:bg-transparent print:text-black print:border print:border-black' :
-                                                    'bg-red-100 text-red-800 print:bg-transparent print:text-black print:border print:border-black'
-                                            }`}>
-                                            {selectedInvoice.status === 'completed' ? 'LUNAS' :
-                                                selectedInvoice.status === 'postponed' ? 'DITUNDA' :
-                                                    selectedInvoice.status === 'merged' ? 'DIGABUNG' :
-                                                        'BELUM BAYAR'}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Items */}
-                                <div className={`${printFormat === 'thermal' ? 'border-t border-b border-dashed py-4' : 'bg-gray-50 rounded-lg p-6 print:bg-transparent print:border print:border-gray-200'} mb-8`}>
-                                    <div className="flex justify-between items-center mb-4">
-                                        <span className="text-gray-600">Deskripsi</span>
-                                        <span className="text-gray-600 font-medium">Jumlah</span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-4 border-t border-gray-200">
-                                        <span className="text-gray-900 font-medium">Pembayaran Layanan Internet</span>
-                                        <span className="text-gray-900 font-bold">{formatCurrency(selectedInvoice.amount)}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                                        <span className="text-lg font-bold text-gray-900">Total</span>
-                                        <span className="text-lg font-bold text-blue-600 print:text-black">{formatCurrency(selectedInvoice.amount)}</span>
-                                    </div>
-                                </div>
-
-                                {/* Footer */}
-                                {invoiceSettings.invoiceFooter && (
-                                    <div className="text-center text-sm text-gray-500 mt-8 pt-4 border-t border-gray-100">
-                                        <p>{invoiceSettings.invoiceFooter}</p>
-                                    </div>
-                                )}
-                            </div>
 
 
+                                {/* Actions */}
+                                <div className={`flex ${printFormat === 'thermal' ? 'flex-col gap-2 pb-24' : 'flex-col md:flex-row flex-wrap justify-center w-full gap-3'} print:hidden p-6 pt-0`}>
 
-                            {/* Actions */}
-                            <div className={`flex ${printFormat === 'thermal' ? 'flex-col gap-2' : 'justify-end gap-3'} print:hidden p-6 pt-0`}>
-                                <button
-                                    onClick={() => setShowInvoiceModal(false)}
-                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <X size={18} /> Tutup
-                                </button>
-                                <button
-                                    onClick={() => window.print()}
-                                    className="px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 flex items-center justify-center gap-2"
-                                >
-                                    <Printer size={18} /> Cetak Tagihan
-                                </button>
-                                {selectedInvoice.status !== 'completed' && (
-                                    <>
-                                        <button
-                                            onClick={() => {
-                                                setFormData({
-                                                    ...formData,
-                                                    username: selectedInvoice.username,
-                                                    amount: selectedInvoice.amount,
-                                                    method: 'cash',
-                                                    notes: selectedInvoice.notes || ''
-                                                });
-                                                setBaseAmount(selectedInvoice.amount);
-                                                setIsNextMonthIncluded(false);
-                                                setShowInvoiceModal(false);
-                                                setShowModal(true);
-                                            }}
-                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
-                                        >
-                                            <DollarSign size={18} /> Bayar Sekarang
-                                        </button>
-                                        <button
-                                            onClick={async () => {
-                                                if (!confirm('Tunda tagihan ini ke bulan depan?')) return;
-                                                try {
-                                                    const res = await fetch(`/api/billing/payments/${selectedInvoice.id}`, {
-                                                        method: 'PUT',
-                                                        headers: { 'Content-Type': 'application/json' },
-                                                        body: JSON.stringify({ status: 'postponed' }),
+                                    <button
+                                        onClick={() => window.print()}
+                                        className={`px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 flex items-center justify-center gap-2 ${printFormat !== 'thermal' ? 'w-full md:w-auto' : ''}`}
+                                    >
+                                        <Printer size={18} /> Cetak Tagihan
+                                    </button>
+                                    {selectedInvoice.status !== 'completed' && (
+                                        <>
+                                            <button
+                                                onClick={() => {
+                                                    setFormData({
+                                                        ...formData,
+                                                        username: selectedInvoice.username,
+                                                        amount: selectedInvoice.amount,
+                                                        method: 'cash',
+                                                        notes: selectedInvoice.notes || ''
                                                     });
-                                                    const data = await res.json();
-                                                    if (res.ok) {
-                                                        alert('Tagihan berhasil ditunda');
-                                                        setShowInvoiceModal(false);
-                                                        fetchData();
-                                                    } else {
-                                                        alert('Gagal menunda tagihan: ' + (data.error || 'Unknown error'));
+
+                                                    setShowInvoiceModal(false);
+                                                    setShowModal(true);
+                                                }}
+                                                className={`px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 ${printFormat !== 'thermal' ? 'w-full md:w-auto' : ''}`}
+                                            >
+                                                <DollarSign size={18} /> Bayar Sekarang
+                                            </button>
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm('Tunda tagihan ini ke bulan depan?')) return;
+                                                    try {
+                                                        const res = await fetch(`/api/billing/payments/${selectedInvoice.id}`, {
+                                                            method: 'PUT',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ status: 'postponed' }),
+                                                        });
+                                                        const data = await res.json();
+                                                        if (res.ok) {
+                                                            alert('Tagihan berhasil ditunda');
+                                                            setShowInvoiceModal(false);
+                                                            fetchData();
+                                                        } else {
+                                                            alert('Gagal menunda tagihan: ' + (data.error || 'Unknown error'));
+                                                        }
+                                                    } catch (error) {
+                                                        console.error('Failed to postpone payment', error);
+                                                        alert('Error: ' + error.message);
                                                     }
-                                                } catch (error) {
-                                                    console.error('Failed to postpone payment', error);
-                                                    alert('Error: ' + error.message);
+                                                }}
+                                                className={`px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center justify-center gap-2 ${printFormat !== 'thermal' ? 'w-full md:w-auto' : ''}`}
+                                            >
+                                                <Calendar size={18} /> Tunda Bayar
+                                            </button>
+                                        </>
+                                    )}
+                                    {selectedInvoice.status === 'completed' && (
+                                        <a
+                                            href={getWhatsAppFormattedUrl(selectedInvoice).url || '#'}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => {
+                                                const res = getWhatsAppFormattedUrl(selectedInvoice);
+                                                if (res.error) {
+                                                    e.preventDefault();
+                                                    alert(res.error);
                                                 }
                                             }}
-                                            className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center justify-center gap-2"
+                                            className={`px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 cursor-pointer ${printFormat !== 'thermal' ? 'w-full md:w-auto' : ''}`}
                                         >
-                                            <Calendar size={18} /> Tunda Bayar
-                                        </button>
-                                    </>
-                                )}
-                                {selectedInvoice.status === 'completed' && (
-                                    <a
-                                        href={getWhatsAppFormattedUrl(selectedInvoice).url || '#'}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={(e) => {
-                                            const res = getWhatsAppFormattedUrl(selectedInvoice);
-                                            if (res.error) {
-                                                e.preventDefault();
-                                                alert(res.error);
-                                            }
-                                        }}
-                                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 cursor-pointer"
+                                            <MessageCircle size={18} /> Kirim WhatsApp
+                                        </a>
+                                    )}
+                                    <button
+                                        onClick={() => setShowInvoiceModal(false)}
+                                        className={`px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2 ${printFormat !== 'thermal' ? 'w-full md:w-auto' : ''}`}
                                     >
-                                        <MessageCircle size={18} /> Kirim WhatsApp
-                                    </a>
-                                )}
-                            </div>
-                        </motion.div>
+                                        <X size={18} /> Tutup
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
                     </div >
                 )
             }

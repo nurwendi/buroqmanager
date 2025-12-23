@@ -13,9 +13,27 @@ export async function PUT(request, { params }) {
             return NextResponse.json({ error: "User ID is required" }, { status: 400 });
         }
 
+        // Determine Connection ID
+        const { getUserFromRequest } = await import('@/lib/api-auth');
+        const { getConfig, getUserConnectionId } = await import('@/lib/config');
+
+        const user = await getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const config = await getConfig();
+        let connectionId = getUserConnectionId(user, config);
+
+        // Fallback Logic (Same as POST)
+        if (!connectionId && user?.ownerId) {
+            const ownerConn = config.connections?.find(c => c.ownerId === user.ownerId);
+            if (ownerConn) connectionId = ownerConn.id;
+        }
+        if (!connectionId && user?.role === 'superadmin' && config.connections?.length > 0) {
+            connectionId = config.connections[0].id;
+        }
+
         let client;
         try {
-            client = await getMikrotikClient();
+            client = await getMikrotikClient(connectionId);
         } catch (connError) {
             console.error('Connection error:', connError);
             // Handle timeout or connection errors
@@ -87,8 +105,27 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
     try {
-        const client = await getMikrotikClient();
         const { id } = await params;
+
+        // Determine Connection ID
+        const { getUserFromRequest } = await import('@/lib/api-auth');
+        const { getConfig, getUserConnectionId } = await import('@/lib/config');
+
+        const user = await getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const config = await getConfig();
+        let connectionId = getUserConnectionId(user, config);
+
+        // Fallback Logic (Same as POST)
+        if (!connectionId && user?.ownerId) {
+            const ownerConn = config.connections?.find(c => c.ownerId === user.ownerId);
+            if (ownerConn) connectionId = ownerConn.id;
+        }
+        if (!connectionId && user?.role === 'superadmin' && config.connections?.length > 0) {
+            connectionId = config.connections[0].id;
+        }
+
+        const client = await getMikrotikClient(connectionId);
 
         console.log(`Attempting to delete user with ID: ${id}`);
 

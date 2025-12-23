@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getMikrotikClient } from '@/lib/mikrotik';
-
 export async function GET() {
     try {
         const client = await getMikrotikClient();
@@ -19,3 +18,5 @@ export async function GET() {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+

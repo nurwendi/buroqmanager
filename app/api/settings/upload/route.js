@@ -3,7 +3,7 @@ import { writeFile } from 'fs/promises';
 import path from 'path';
 import db from '@/lib/db';
 
-const SETTING_KEY = 'app_config';
+const SETTING_KEY = 'app_settings';
 
 export async function POST(request) {
     try {

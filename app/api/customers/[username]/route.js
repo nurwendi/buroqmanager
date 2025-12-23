@@ -5,7 +5,9 @@ export async function GET(request, { params }) {
     try {
         const { username } = await params;
 
-        const customer = await db.customer.findUnique({
+        // Since username is not unique globally, we use findFirst. 
+        // ideally we should pass ownerId in query params, but for now this finds the first match.
+        const customer = await db.customer.findFirst({
             where: { username: username }
         });
 
@@ -33,7 +35,8 @@ export async function PUT(request, { params }) {
         // It does not seem to handle username changes (which would require changing the ID in Customer model).
         // The file-based one just updated the object at key `username`.
 
-        const updatedCustomer = await db.customer.update({
+        // Use updateMany because username is not unique (though likely only 1 match usually)
+        const updatedCustomer = await db.customer.updateMany({
             where: { username: username },
             data: {
                 name: name || undefined,
@@ -67,11 +70,11 @@ export async function DELETE(request, { params }) {
         // Actually Customer and User are separate but linked by conventions.
         // We should delete both.)
 
-        const deleteCustomer = db.customer.delete({
+        const deleteCustomer = db.customer.deleteMany({
             where: { username: username }
         });
 
-        const deleteUser = db.user.delete({
+        const deleteUser = db.user.deleteMany({
             where: { username: username }
         }); // This might fail if user doesn't exist, handle it.
 

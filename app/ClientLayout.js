@@ -11,7 +11,7 @@ import { DashboardProvider } from '@/contexts/DashboardContext';
 export default function ClientLayout({ children }) {
     const pathname = usePathname();
     const isLoginPage = pathname === '/login';
-    const isInvoicePage = pathname.startsWith('/invoice');
+    const isInvoicePage = pathname.startsWith('/invoice') && !pathname.startsWith('/invoice-settings');
     const isIsolirPage = pathname.startsWith('/isolir');
     const isPublicPage = isLoginPage || isInvoicePage || isIsolirPage;
 
@@ -41,7 +41,7 @@ export default function ClientLayout({ children }) {
                             animate="enter"
                             exit="exit"
                             transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-                            className={`min-h-screen ${!isPublicPage ? 'pt-4 px-4 md:pt-8 md:px-8 pb-32' : ''}`}
+                            className={`min-h-screen ${!isPublicPage ? 'pt-2 px-2 md:pt-8 md:px-8 pb-24 md:pb-32' : ''}`}
                         >
                             {children}
                         </motion.div>

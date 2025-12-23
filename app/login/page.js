@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -14,6 +14,17 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const { t } = useLanguage();
+
+    const [logoUrl, setLogoUrl] = useState('/logo.png');
+
+    useEffect(() => {
+        fetch('/api/app-settings')
+            .then(res => res.json())
+            .then(data => {
+                if (data.logoUrl) setLogoUrl(data.logoUrl);
+            })
+            .catch(err => console.error('Failed to load logo', err));
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -45,11 +56,9 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-black transition-colors">
             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-96 border border-white/20 dark:border-white/10">
 
-
-
                 <div className="flex justify-center mb-2">
                     <img
-                        src="/logo.png"
+                        src={logoUrl}
                         alt="Company Logo"
                         className="w-64 h-40 object-contain"
                     />
@@ -57,7 +66,7 @@ export default function LoginPage() {
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('login.username')}</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('login.username')} / Customer ID</label>
                         <input
                             type="text"
                             required
@@ -87,7 +96,7 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-accent text-white py-2 rounded-md hover:opacity-90 transition-all disabled:opacity-50"
+                        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-all disabled:opacity-50 shadow-lg"
                     >
                         {loading ? t('common.loading') : t('login.loginButton')}
                     </button>

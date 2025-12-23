@@ -10,7 +10,8 @@ export async function POST(request) {
         // Or maybe staff can if they are assigning to themselves?
         // For now, let's assume general permission logic handled by UI, 
         // but strict check here:
-        if (!user || (user.role !== 'admin' && user.role !== 'editor')) {
+        // Only admin or superadmin can do this.
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
@@ -23,36 +24,59 @@ export async function POST(request) {
 
         console.log(`[API] Bulk updating ${usernames.length} customers. Agent: ${agentId}, Tech: ${technicianId}`);
 
-        // Update many not supported for upsert, so we might need a transaction or loop.
-        // But since we want to CREATE customer entries if they don't exist, 'updateMany' won't work perfectly if they are missing.
-        // However, usually these 'usernames' come from PPPoE users list.
+        // 1. Fetch current ownerId
+        const ownerId = user.role === 'admin' ? user.id : user.ownerId; // Should be admin's ID
 
-        // Strategy:
-        // 1. Find existing customers.
-        // 2. Identify missing ones.
-        // 3. Create missing ones (with minimal data).
-        // 4. Update all.
-
-        // Actually simpler: iterate and upsert. Performance hit acceptable for typical bulk size (<100).
-        // OR use `updateMany` for existing and then `createMany` for missing?
-        // `upsert` in a transaction is safest.
-
-        const operations = usernames.map(username =>
-            db.customer.upsert({
-                where: { username },
-                update: {
-                    agentId: agentId === undefined ? undefined : agentId, // undefined = no change, null = remove
-                    technicianId: technicianId === undefined ? undefined : technicianId
-                },
-                create: {
-                    username,
-                    agentId: agentId || null,
-                    technicianId: technicianId || null
+        const results = [];
+        for (const username of usernames) {
+            // Check if customer exists for this owner
+            const existing = await db.customer.findFirst({
+                where: {
+                    username: username,
+                    ownerId: ownerId
                 }
-            })
-        );
+            });
 
-        await db.$transaction(operations);
+            if (existing) {
+                // Update
+                await db.customer.update({
+                    where: { id: existing.id },
+                    data: {
+                        agentId: agentId === undefined ? undefined : (agentId || null),
+                        technicianId: technicianId === undefined ? undefined : (technicianId || null)
+                    }
+                });
+                results.push({ username, status: 'updated' });
+            } else {
+                // Create
+                // Generate a customerId if possible, or leave it to default if DB handles it? 
+                // Schema says customerId is String @unique. We usually generate it.
+                // Let's use a simple generator or timestamp if not provided.
+                // Actually, let's try to query max or just random for now if not strictly sequential.
+                // In app/api/customers/route.js we generated it. Let's do a simple one.
+
+                // For bulk causing collisions, maybe just Random? 
+                // Better: username + timestamp? No, customerId is visible.
+                // Let's rely on cuid() if schema allows or just a timestamp suffix.
+
+                // WAIT: If we create here, we might miss other data. 
+                // But this is bulk assignment. 
+                // Let's try to match existing logic: 
+                const newCustomerId = `CUST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+                await db.customer.create({
+                    data: {
+                        username,
+                        ownerId: ownerId,
+                        customerId: newCustomerId, // Ensure this exists
+                        agentId: agentId || null,
+                        technicianId: technicianId || null,
+                        name: username // Default name to username
+                    }
+                });
+                results.push({ username, status: 'created' });
+            }
+        }
 
         return NextResponse.json({
             success: true,

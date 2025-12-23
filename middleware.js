@@ -40,11 +40,19 @@ export async function middleware(request) {
     }
 
     // Check for restricted roles
-    // If user is admin, allow everything
-    if (user.role === 'admin') {
+    // If user is superadmin, allow everything
+    if (user.role === 'superadmin') {
         return NextResponse.next();
     }
 
+    // If user is admin, allow everything
+    if (user.role === 'admin') {
+        // Enforce admin-specific logic if needed later (e.g., cannot see other admins' users)
+        return NextResponse.next();
+    }
+
+    // Role: Editor
+    // Allow everything EXCEPT: system-users, routers, app-settings
     // Role: Editor
     // Allow everything EXCEPT: system-users, routers, app-settings
     if (user.role === 'editor') {
@@ -71,11 +79,6 @@ export async function middleware(request) {
         return NextResponse.redirect(new URL('/', request.url));
     }
 
-    // Role: Viewer
-    // Prevent access to app-settings
-    if (user.role === 'viewer' && pathname.startsWith('/app-settings')) {
-        return NextResponse.redirect(new URL('/', request.url));
-    }
 
     return NextResponse.next();
 }

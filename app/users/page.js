@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Edit2, Trash2, Users as UsersIcon, Shield, Globe, User, MapPin, Phone, Building, Search, Wifi, WifiOff, ArrowUpDown, Server, RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle, Mail } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users as UsersIcon, Shield, Globe, User, MapPin, Phone, Building, Search, Wifi, WifiOff, ArrowUpDown, Server, RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle, Mail, Loader2 } from 'lucide-react';
+
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDashboard } from '@/contexts/DashboardContext';
 
@@ -28,13 +29,14 @@ export default function UsersPage() {
         password: '',
         profile: 'default',
         service: 'pppoe',
-        customerNumber: '',
+        customerId: '',
         customerName: '',
         customerAddress: '',
         customerPhone: '',
         customerEmail: '',
         agentId: '',
-        technicianId: ''
+        technicianId: '',
+        ownerId: ''
     });
 
     const [connections, setConnections] = useState([]);
@@ -45,10 +47,11 @@ export default function UsersPage() {
     const [showBulkEditModal, setShowBulkEditModal] = useState(false);
     const [bulkEditData, setBulkEditData] = useState({ agentId: '', technicianId: '' });
 
+
     // Pagination
     const { preferences } = useDashboard();
-    // Default to 10 if not set, allow changing via UI
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    // Default to 25 if not set, allow changing via UI
+    const [rowsPerPage, setRowsPerPage] = useState(25);
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
@@ -186,7 +189,8 @@ export default function UsersPage() {
                 name: reg.name || '',
                 address: reg.address || '',
                 phone: reg.phone || '',
-                agentId: reg.agentId || ''
+                agentId: reg.agentId || '',
+                routerIds: reg.routerIds ? (typeof reg.routerIds === 'string' ? JSON.parse(reg.routerIds) : reg.routerIds) : []
             });
         }
         setShowReviewModal(true);
@@ -217,11 +221,11 @@ export default function UsersPage() {
                     fetchCustomersData();
                 }
             } else {
-                alert('Failed: ' + data.error);
+                prompt('Failed to ' + action + ' registration (Copy this error):', data.error || 'Unknown error');
             }
         } catch (error) {
             console.error('Action failed', error);
-            alert('Action failed');
+            prompt('Action failed (Copy this error):', error.message || error);
         }
     };
 
@@ -234,13 +238,17 @@ export default function UsersPage() {
     };
 
     const filteredUsers = useMemo(() => {
+        const searchLower = searchTerm.toLowerCase();
+
         return users.filter(user => {
-            const searchLower = searchTerm.toLowerCase();
             const customerName = customersData[user.name]?.name || '';
+            const customerId = customersData[user.name]?.customerId || '';
+
             return user.name.toLowerCase().includes(searchLower) ||
                 (user.profile && user.profile.toLowerCase().includes(searchLower)) ||
                 (user.service && user.service.toLowerCase().includes(searchLower)) ||
-                customerName.toLowerCase().includes(searchLower);
+                customerName.toLowerCase().includes(searchLower) ||
+                customerId.toLowerCase().includes(searchLower);
         });
     }, [users, searchTerm, customersData]);
 
@@ -314,8 +322,8 @@ export default function UsersPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Staff Edit Request
-        if (userRole === 'staff' && editMode) {
+        // Staff/Editor Edit Request (Downgrade Editor to Request flow for active users)
+        if ((userRole === 'staff' || userRole === 'editor') && editMode) {
             try {
                 const res = await fetch('/api/registrations', {
                     method: 'POST',
@@ -395,20 +403,27 @@ export default function UsersPage() {
                 }
 
                 // Save customer details
-                await fetch('/api/customers', {
+                const custRes = await fetch('/api/customers', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         username: formData.name,
-                        customerNumber: formData.customerNumber,
+                        customerId: formData.customerId,
                         name: formData.customerName,
                         address: formData.customerAddress,
                         phone: formData.customerPhone,
                         email: formData.customerEmail,
                         agentId: formData.agentId,
-                        technicianId: formData.technicianId
+                        technicianId: formData.technicianId,
+                        ownerId: formData.ownerId
                     })
                 });
+
+                if (!custRes.ok) {
+                    const custData = await custRes.json();
+                    console.error('Failed to save customer data:', custData);
+                    alert('User saved to router, but failed to save database details: ' + (custData.error || 'Unknown error'));
+                }
 
                 handleCloseModal();
                 fetchUsers();
@@ -442,13 +457,14 @@ export default function UsersPage() {
                 password: '',
                 profile: user.profile || 'default',
                 service: user.service || 'pppoe',
-                customerNumber: customerData.customerNumber || '',
+                customerId: customerData.customerId || '',
                 customerName: customerData.name || '',
                 customerAddress: customerData.address || '',
                 customerPhone: customerData.phone || '',
                 customerEmail: customerData.email || '',
                 agentId: customerData.agentId || '',
-                technicianId: customerData.technicianId || ''
+                technicianId: customerData.technicianId || '',
+                ownerId: customerData.ownerId || ''
             });
         } catch (error) {
             setFormData({
@@ -457,13 +473,14 @@ export default function UsersPage() {
                 password: '',
                 profile: user.profile || 'default',
                 service: user.service || 'pppoe',
-                customerNumber: '',
+                customerId: '',
                 customerName: '',
                 customerAddress: '',
                 customerPhone: '',
                 customerEmail: '',
                 agentId: '',
-                technicianId: ''
+                technicianId: '',
+                ownerId: ''
             });
         }
 
@@ -473,8 +490,8 @@ export default function UsersPage() {
     const handleDelete = async (user) => {
         if (!confirm(`Are you sure you want to delete user ${user.name}?`)) return;
 
-        // Staff Delete Request
-        if (userRole === 'staff') {
+        // Staff/Editor Delete Request
+        if (userRole === 'staff' || userRole === 'editor') {
             try {
                 const res = await fetch('/api/registrations', {
                     method: 'POST',
@@ -538,12 +555,13 @@ export default function UsersPage() {
             password: '',
             profile: 'default',
             service: '',
-            customerNumber: '',
+            customerId: '',
             customerName: '',
             customerAddress: '',
             customerPhone: '',
             agentId: '',
-            technicianId: ''
+            technicianId: '',
+            ownerId: ''
         });
     };
 
@@ -641,15 +659,17 @@ export default function UsersPage() {
                 setSelectedUsers(new Set());
                 fetchCustomersData();
             } else {
-                alert('Failed to bulk update: ' + data.error);
+                // Use prompt to allow copying the error
+                prompt('Failed to bulk update (Copy this error):', data.error);
             }
         } catch (error) {
             console.error('Bulk update error:', error);
-            alert('Error performing bulk update');
+            prompt('Error performing bulk update (Copy this error):', error.message || error);
         } finally {
             setLoading(false);
         }
     };
+
 
     const formatBytes = (bytes) => {
         if (!bytes || bytes === 0) return '0 B';
@@ -664,7 +684,7 @@ export default function UsersPage() {
             <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">PPPoE Users</h1>
                 <div className="flex flex-col gap-2 md:flex-row md:gap-2">
-                    {selectedUsers.size > 0 && (
+                    {selectedUsers.size > 0 && userRole !== 'staff' && userRole !== 'editor' && (
                         <button
                             onClick={() => setShowBulkEditModal(true)}
                             className="w-full md:w-auto bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors shadow-lg animate-pulse"
@@ -672,7 +692,7 @@ export default function UsersPage() {
                             <UsersIcon size={20} /> Bulk Edit ({selectedUsers.size})
                         </button>
                     )}
-                    {userRole !== 'staff' && (
+                    {(userRole !== 'staff' && userRole !== 'editor') && (
                         <button
                             onClick={handleGenerateMissingNumbers}
                             className="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
@@ -692,7 +712,7 @@ export default function UsersPage() {
 
             {/* Pending Registrations (Admin & Staff) */}
             {((userRole === 'admin' || userRole === 'editor' || userRole === 'staff') && pendingRegistrations.length > 0) && (
-                <div className="bg-yellow-50/30 dark:bg-yellow-900/30 backdrop-blur-xl border border-yellow-200/50 dark:border-yellow-800/50 rounded-lg p-6 shadow-lg">
+                <div className="bg-yellow-50/30 dark:bg-yellow-900/30 backdrop-blur-xl border border-yellow-200/50 dark:border-yellow-800/50 rounded-lg p-4 md:p-6 shadow-lg">
                     <h2 className="text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-4 flex items-center gap-2">
                         <Clock className="text-yellow-600 dark:text-yellow-400" /> Pending Registrations
                     </h2>
@@ -703,6 +723,7 @@ export default function UsersPage() {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Username</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Customer Name</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Agent</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Plan</th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                                     {userRole === 'admin' && (
@@ -725,6 +746,12 @@ export default function UsersPage() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{reg.name}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                {(() => {
+                                                    const agent = systemUsers.find(u => u.id === reg.agentId);
+                                                    return agent ? (agent.fullName || agent.username) : '-';
+                                                })()}
+                                            </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                                 {reg.registrationData?.profile} / {reg.registrationData?.service}
                                             </td>
@@ -750,8 +777,8 @@ export default function UsersPage() {
             )}
 
             {/* Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border-l-4 border-blue-500 border-y border-r border-white/20 dark:border-white/5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
+                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-3 md:p-6 border-l-4 border-blue-500 border-y border-r border-white/20 dark:border-white/5">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Users</p>
@@ -762,7 +789,7 @@ export default function UsersPage() {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border-l-4 border-green-500 border-y border-r border-white/20 dark:border-white/5">
+                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-3 md:p-6 border-l-4 border-green-500 border-y border-r border-white/20 dark:border-white/5">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Online</p>
@@ -775,7 +802,7 @@ export default function UsersPage() {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border-l-4 border-red-500 border-y border-r border-white/20 dark:border-white/5">
+                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-3 md:p-6 border-l-4 border-red-500 border-y border-r border-white/20 dark:border-white/5">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Offline</p>
@@ -832,8 +859,7 @@ export default function UsersPage() {
                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                 >
                                     <div className="flex items-center gap-1">
-                                        Username
-                                        <ArrowUpDown size={14} />
+                                        Username <ArrowUpDown size={14} className="text-gray-400" />
                                     </div>
                                 </th>
                                 <th
@@ -846,7 +872,7 @@ export default function UsersPage() {
                                     </div>
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Cust Number
+                                    Customer ID
                                 </th>
                                 <th
                                     onClick={() => sortData('profile')}
@@ -916,7 +942,7 @@ export default function UsersPage() {
                                             {getCustomerName(user.name)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {customersData[user.name]?.customerNumber || '-'}
+                                            {customersData[user.name]?.customerId || '-'}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                             <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs font-medium border border-blue-100 dark:border-blue-800/50">
@@ -1147,14 +1173,15 @@ export default function UsersPage() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                                <User size={16} /> Cust Number
+                                                <User size={16} /> Customer ID
                                             </label>
                                             <input
                                                 type="text"
-                                                value={formData.customerNumber}
-                                                onChange={(e) => setFormData({ ...formData, customerNumber: e.target.value })}
-                                                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                                                placeholder="Leave blank to auto-generate"
+                                                value={formData.customerId}
+                                                readOnly
+                                                disabled
+                                                className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                                                placeholder="Auto-generated"
                                             />
                                         </div>
                                         <div>
@@ -1246,6 +1273,82 @@ export default function UsersPage() {
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* Bulk Edit Modal */}
+            <AnimatePresence>
+                {showBulkEditModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden"
+                        >
+                            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+                                <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                                    <UsersIcon className="text-purple-500" />
+                                    Bulk Edit Staff
+                                </h3>
+                            </div>
+
+                            <form onSubmit={handleBulkEditSubmit} className="p-6">
+                                <div className="space-y-4">
+                                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 text-sm text-yellow-800 dark:text-yellow-200">
+                                        You are updating <strong>{selectedUsers.size}</strong> users.
+                                        Select the staff members you want to assign. Leave blank to keep existing.
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign Agent</label>
+                                        <select
+                                            value={bulkEditData.agentId}
+                                            onChange={(e) => setBulkEditData({ ...bulkEditData, agentId: e.target.value })}
+                                            className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white"
+                                        >
+                                            <option value="">-- No Change --</option>
+                                            {systemUsers.filter(u => u.isAgent).map(user => (
+                                                <option key={user.id} value={user.id}>{user.username}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign Technician</label>
+                                        <select
+                                            value={bulkEditData.technicianId}
+                                            onChange={(e) => setBulkEditData({ ...bulkEditData, technicianId: e.target.value })}
+                                            className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white"
+                                        >
+                                            <option value="">-- No Change --</option>
+                                            {systemUsers.filter(u => u.isTechnician).map(user => (
+                                                <option key={user.id} value={user.id}>{user.username}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-700 mt-6">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowBulkEditModal(false)}
+                                            className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/30"
+                                        >
+                                            Update Staff
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+
 
             {/* Review Modal */}
             <AnimatePresence>
@@ -1345,6 +1448,31 @@ export default function UsersPage() {
                                                     <option value="pppoe">pppoe</option>
                                                     <option value="hotspot">hotspot</option>
                                                 </select>
+                                            </div>
+                                            <div className="md:col-span-2 mt-2 pt-2 border-t dark:border-gray-600">
+                                                <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Target Routers</label>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                                                    {connections.map(conn => (
+                                                        <label key={conn.id} className="flex items-center space-x-2 p-2 border dark:border-gray-600 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={(reviewFormData.routerIds || []).includes(conn.id)}
+                                                                onChange={(e) => {
+                                                                    const current = reviewFormData.routerIds || [];
+                                                                    const newIds = e.target.checked
+                                                                        ? [...current, conn.id]
+                                                                        : current.filter(id => id !== conn.id);
+                                                                    setReviewFormData({ ...reviewFormData, routerIds: newIds });
+                                                                }}
+                                                                className="rounded text-blue-600 focus:ring-blue-500"
+                                                            />
+                                                            <div>
+                                                                <div className="text-xs font-bold text-gray-700 dark:text-gray-300">{conn.name}</div>
+                                                                <div className="text-[10px] text-gray-500">{conn.host}</div>
+                                                            </div>
+                                                        </label>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

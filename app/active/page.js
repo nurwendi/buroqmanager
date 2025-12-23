@@ -13,8 +13,8 @@ export default function ActiveConnectionsPage() {
     const [searchTerm, setSearchTerm] = useState('');
 
     const { preferences } = useDashboard();
-    // Default to 10. Allow changing via UI.
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    // Default to 25. Allow changing via UI.
+    const [rowsPerPage, setRowsPerPage] = useState(25);
     const [currentPage, setCurrentPage] = useState(1);
 
     const sortData = (key) => {
@@ -172,7 +172,7 @@ export default function ActiveConnectionsPage() {
 
                                 <tr>
                                     <th
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                                        className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
 
                                         onClick={() => sortData('name')}
                                     >
@@ -208,7 +208,7 @@ export default function ActiveConnectionsPage() {
                                         </div>
                                     </th>
                                     <th
-                                        className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                                        className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
 
                                         onClick={() => sortData('tx-byte')}
                                     >
@@ -216,7 +216,7 @@ export default function ActiveConnectionsPage() {
                                             Data Usage <ArrowUpDown size={14} />
                                         </div>
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 
                                         Actions
                                     </th>
@@ -238,7 +238,7 @@ export default function ActiveConnectionsPage() {
                                         )
                                         .map((conn, index) => (
                                             <tr key={index} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                                                <td className="px-3 md:px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">
                                                     {conn.name || 'N/A'}
                                                 </td>
                                                 <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">
@@ -250,14 +250,14 @@ export default function ActiveConnectionsPage() {
                                                 <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">
                                                     {conn['caller-id'] || '-'}
                                                 </td>
-                                                <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400 text-sm">
+                                                <td className="px-3 md:px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400 text-sm">
                                                     <div className="flex flex-col">
                                                         <span className="text-green-600 dark:text-green-400">↓ {formatBytes(conn['tx-byte'])}</span>
                                                         <span className="text-blue-600 dark:text-blue-400">↑ {formatBytes(conn['rx-byte'])}</span>
                                                     </div>
                                                 </td>
 
-                                                <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                                                <td className="px-3 md:px-6 py-4 whitespace-nowrap text-gray-500">
                                                     {conn.address && (
                                                         <a
                                                             href={`http://${conn.address}`}
@@ -265,16 +265,16 @@ export default function ActiveConnectionsPage() {
                                                             rel="noopener noreferrer"
                                                             className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-2"
                                                         >
-                                                            <ExternalLink size={14} className="mr-1" />
-                                                            Manage
+                                                            <ExternalLink size={14} className="mr-0 md:mr-1" />
+                                                            <span className="hidden md:inline">Manage</span>
                                                         </a>
                                                     )}
                                                     <button
                                                         onClick={() => handleDisconnect(conn['.id'], conn.name)}
                                                         className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                                                     >
-                                                        <Power size={14} className="mr-1" />
-                                                        Disconnect
+                                                        <Power size={14} className="mr-0 md:mr-1" />
+                                                        <span className="hidden md:inline">Disconnect</span>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -286,7 +286,7 @@ export default function ActiveConnectionsPage() {
 
                     {/* Pagination Controls */}
                     {/* Pagination Controls */}
-                    <div className="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between px-4 md:px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-gray-700 dark:text-gray-300">
                                 Showing <span className="font-medium mx-1">

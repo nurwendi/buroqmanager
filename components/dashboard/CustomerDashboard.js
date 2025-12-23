@@ -20,14 +20,9 @@ export default function CustomerDashboard() {
 
     const fetchStats = async () => {
         try {
-            // In a real implementation, we would fetch from specific customer endpoints
-            // For now, we mock or use existing endpoints if available
-            // Let's assume we create a new endpoint /api/customer/dashboard later
-            // But for now, we can try to fetch basic info
-
-            // Placeholder data simulation
-            // You should implement the actual API endpoint /api/customer/stats
+            setLoading(true);
             const res = await fetch('/api/customer/stats');
+
             if (res.ok) {
                 const data = await res.json();
                 setStats(data);
@@ -41,14 +36,16 @@ export default function CustomerDashboard() {
     };
 
     useEffect(() => {
+        // Initial fetch
         fetchStats();
+    }, []);
 
-        // Auto-refresh every 5 seconds
+    useEffect(() => {
+        // Auto-refresh interval
         const interval = setInterval(() => {
             fetchStats();
         }, 5000);
 
-        // Cleanup on unmount
         return () => clearInterval(interval);
     }, []);
 
@@ -67,6 +64,8 @@ export default function CustomerDashboard() {
         }
     };
 
+    // ... format helpers ...
+
     const formatBytes = (bytes) => {
         if (!bytes) return '0 B';
         const k = 1024;
@@ -74,6 +73,8 @@ export default function CustomerDashboard() {
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
+
+    // ... other helpers ...
 
     const formatUptime = (uptime) => {
         if (!uptime || uptime === '-') return '-';
@@ -93,6 +94,7 @@ export default function CustomerDashboard() {
         const i = Math.floor(Math.log(val) / Math.log(k));
         return parseFloat((val / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
+
 
     const containerVariants = {
         hidden: { opacity: 0 },

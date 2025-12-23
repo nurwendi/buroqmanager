@@ -3,40 +3,105 @@ import { getMikrotikClient } from '@/lib/mikrotik';
 import { getUserFromRequest } from '@/lib/api-auth';
 import db from '@/lib/db';
 
+import { getConfig, getUserConnectionId } from '@/lib/config';
+
 export async function GET(request) {
     try {
-        const client = await getMikrotikClient();
+        const user = await getUserFromRequest(request);
+        const config = await getConfig();
+        const connectionId = getUserConnectionId(user, config);
+
+        // Fallback: If no connection ID for staff/user, try owner's connection
+        let effectiveConnectionId = connectionId;
+        if (!effectiveConnectionId && user?.ownerId) {
+            const ownerConn = config.connections?.find(c => c.ownerId === user.ownerId);
+            if (ownerConn) effectiveConnectionId = ownerConn.id;
+        }
+
+        // If no connection found for this user (and not superadmin), return empty
+        if (!effectiveConnectionId && user?.role !== 'superadmin') {
+            // We might want to handle this gracefully if querying DB only? 
+            // But line 9 fetches from Mikrotik.
+            // If connection missing, we can't fetch from Mikrotik.
+            // But we still might return DB users if offline?
+            // Current logic mixes Mikrotik + DB filter.
+            // Let's return empty to be consistent with Profiles logic.
+            // However, "Users" page usually shows DB users if offline?
+            // Line 8 fetches Mikrotik. If failing, it errors catch block.
+            return NextResponse.json([]);
+        }
+
+        const client = await getMikrotikClient(effectiveConnectionId);
         let users = await client.write('/ppp/secret/print');
 
         // Filter based on role
-        const user = await getUserFromRequest(request);
-        if (user && user.role !== 'admin') {
-            try {
-                // If role is agent, technician, or partner - filter the list
-                if (user.role === 'agent' || user.role === 'technician' || user.role === 'partner') {
-                    // Load allowed customers from DB
+        // user already fetched above
+
+        if (user) {
+            // Determine if user owns the current connection
+            const currentConnection = config.connections?.find(c => c.id === effectiveConnectionId);
+            const isConnectionOwner = currentConnection?.ownerId === user.id;
+
+            if (user.role === 'superadmin' || isConnectionOwner) {
+                // Superadmin or Router Owner sees ALL users on the router
+                // We still might want to mark them or something, but for now just return them all.
+                // But wait, if we return all, we might show users that belong to OTHER tenants if looking at a shared router?
+                // If isConnectionOwner, they own the router, so they own everyone on it.
+                // No filter needed.
+
+                // Optional: We could filtering to exclude system users or something? user.role === 'superadmin' usually sees all.
+                // Admin who owns router sees all.
+            } else {
+                // Non-owner Admin/Staff: Apply strict filters
+                try {
                     let allowedUsernames = new Set();
+                    let filterWhere = {};
 
-                    if (user.role === 'agent' || user.role === 'partner') {
+                    if (user.role === 'admin' || user.role === 'manager') {
+                        // Admin and Manager see ALL users of the owner
+                        filterWhere = { ownerId: user.id };
+                        if (user.role === 'manager' && user.ownerId) {
+                            filterWhere = { ownerId: user.ownerId };
+                        }
+                    } else if (['agent', 'partner', 'technician', 'staff', 'editor'].includes(user.role)) {
+                        // Staff/Agent/Technician/Editor see ONLY assigned users
+                        filterWhere = {
+                            OR: [
+                                { agentId: user.id },
+                                { technicianId: user.id }
+                            ]
+                        };
+                        // Ensure strict tenant scoping
+                        if (user.ownerId) {
+                            filterWhere = {
+                                AND: [
+                                    { ownerId: user.ownerId },
+                                    filterWhere
+                                ]
+                            };
+                        }
+                    } else {
+                        // Default fallback
+                        filterWhere = { ownerId: 'impossible_id' };
+                    }
+
+                    // Fetch allowed usernames from DB
+                    if (Object.keys(filterWhere).length > 0 || (filterWhere.AND && filterWhere.AND.length > 0)) {
                         const customers = await db.customer.findMany({
-                            where: { agentId: user.id },
+                            where: filterWhere,
                             select: { username: true }
                         });
                         customers.forEach(c => allowedUsernames.add(c.username));
-                    }
 
-                    if (user.role === 'technician') {
-                        const customers = await db.customer.findMany({
-                            where: { technicianId: user.id },
-                            select: { username: true }
-                        });
-                        customers.forEach(c => allowedUsernames.add(c.username));
+                        // Apply filter to Mikrotik result
+                        users = users.filter(u => allowedUsernames.has(u.name));
+                    } else {
+                        users = [];
                     }
-
-                    users = users.filter(u => allowedUsernames.has(u.name));
+                } catch (e) {
+                    console.error('Error filtering users:', e);
+                    users = [];
                 }
-            } catch (e) {
-                console.error('Error filtering users:', e);
             }
         }
 
@@ -76,6 +141,7 @@ export async function POST(request) {
 
         // Check user role
         const user = await getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         let userRole = 'admin';
         let userId = '';
         let prefix = '';
@@ -125,7 +191,8 @@ export async function POST(request) {
                     profile: profile,
                     service: service,
                     comment: comment,
-                    routerIds: JSON.stringify(routerIds)
+                    routerIds: JSON.stringify(routerIds),
+                    ownerId: user.ownerId // Assign to owner
                 }
             });
 
@@ -136,9 +203,42 @@ export async function POST(request) {
         }
 
         // If admin/technician, proceed with Mikrotik creation
-        const targetRouterIds = (routerIds && Array.isArray(routerIds) && routerIds.length > 0)
-            ? routerIds
-            : [null];
+        // If admin/technician, proceed with Mikrotik creation
+
+        // Smart Fallback for Router Selection
+        let targetRouterIds = [];
+        if (routerIds && Array.isArray(routerIds) && routerIds.length > 0) {
+            targetRouterIds = routerIds;
+        } else {
+            // No router specified, try to find a default
+            const config = await getConfig();
+
+            if (userRole === 'superadmin') {
+                // For superadmin, default to Active Connection, or First Connection
+                if (config.activeConnectionId) {
+                    targetRouterIds = [config.activeConnectionId];
+                } else if (config.connections?.length > 0) {
+                    targetRouterIds = [config.connections[0].id];
+                }
+            } else if (user.ownerId) {
+                // For tenants, find their router
+                const ownerConn = config.connections?.find(c => c.ownerId === user.ownerId);
+                if (ownerConn) {
+                    targetRouterIds = [ownerConn.id];
+                }
+            } else {
+                // For tenants who are their own owners (e.g. admin role where id=ownerId conceptually but maybe stored differently)
+                // If the user IS the owner (e.g. unrelated admin), try to find connection by their ID?
+                // Usually config.connections has ownerId.
+                const myConn = config.connections?.find(c => c.ownerId === user.id);
+                if (myConn) {
+                    targetRouterIds = [myConn.id];
+                }
+            }
+        }
+
+        // If still no router, fallback to [null] which might fail but maintains old behavior or try one last ditch
+        if (targetRouterIds.length === 0) targetRouterIds = [null];
 
         const results = [];
         const errors = [];
@@ -184,3 +284,5 @@ export async function POST(request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+

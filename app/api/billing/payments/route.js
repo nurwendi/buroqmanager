@@ -4,9 +4,16 @@ import { getUserFromRequest } from '@/lib/api-auth';
 import { sendPaymentReceiptEmail } from '@/lib/email';
 
 // Helper to calculate commissions
-async function calculateCommissions(amount, username) {
+async function calculateCommissions(amount, username, ownerId = null) {
     const commissionsData = [];
-    const customer = await db.customer.findUnique({ where: { username } });
+
+    // Use findFirst because username is not unique globally anymore
+    const where = { username };
+    if (ownerId) {
+        where.ownerId = ownerId;
+    }
+
+    const customer = await db.customer.findFirst({ where });
 
     if (customer) {
         if (customer.agentId) {
@@ -51,11 +58,21 @@ export async function GET(request) {
     let where = {};
 
     // Filter based on role
-    if (user && user.role !== 'admin') {
+    if (user && user.role !== 'superadmin') {
+        const ownerId = user.role === 'admin' ? user.id : user.ownerId;
+        if (ownerId) where.ownerId = ownerId;
+
+        // Further Staff Restrictions (Agent/Tech view ONLY their customers??)
+        // Original code Logic:
+        // if user.role != 'admin' -> it did logic to find allowedUsernames.
+        // We should KEEP that logic for Agent/Staff, but ALSO limit by ownerId.
+    }
+
+    if (user && user.role !== 'admin' && user.role !== 'superadmin') {
         const allowedUsernames = [];
 
         // Fetch user's assigned customers
-        if (user.role === 'agent' || user.role === 'staff') {
+        if (user.role === 'agent' || user.role === 'staff' || user.role === 'editor') {
             const agentCusts = await db.customer.findMany({
                 where: { agentId: user.id },
                 select: { username: true }
@@ -71,18 +88,25 @@ export async function GET(request) {
             allowedUsernames.push(...techCusts.map(c => c.username));
         }
 
-        // Also allow viewing own payments if user is a customer (not implemented yet, but good practice)
         if (allowedUsernames.length > 0) {
             where.username = { in: allowedUsernames };
-        } else {
-            // Return empty if no customers assigned
-            // But wait, if role is just "viewer" what happens? 
-            // Original code read all payments then filtered.
-            // If user has no customers, he sees nothing.
-            // If username param is provided, it must be in allowed list.
-            if (!username) return NextResponse.json([]); // Strict
+        } else if (!user.ownerId) {
+            // If legacy staff has no owner?? nothing.
+            return NextResponse.json([]);
         }
     }
+
+    // ... filtering by username param ...
+
+    // POST Logic for Owner Assignment
+    // Inside POST function...
+    // const customer = await db.customer.findMany({ where: { username: body.username } }); // Changed to findMany likely if ambiguous? No logic here is comments.
+
+    // ...
+    // data: {
+    //    ownerId: customer?.ownerId,
+    //    ...
+    // }
 
     if (username) {
         // combine with existing filtered list if any
@@ -108,6 +132,11 @@ export async function GET(request) {
 
 export async function POST(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const body = await request.json();
 
         // Basic validation
@@ -115,19 +144,28 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Username and amount are required' }, { status: 400 });
         }
 
+        // Determine Owner Context
+        const ownerId = user.role === 'admin' ? user.id : user.ownerId;
+
         // Calculate commissions
         const amount = Number(body.amount);
-        const commissionsData = await calculateCommissions(amount, body.username);
+        const commissionsData = await calculateCommissions(amount, body.username, ownerId);
 
         // Generate Invoice Number if not present
         let invoiceNumber = body.invoiceNumber;
+        const custWhere = { username: body.username };
+        if (ownerId) custWhere.ownerId = ownerId;
+
+        const customer = await db.customer.findFirst({ where: custWhere });
+
         if (!invoiceNumber) {
             const now = new Date();
             const yy = String(now.getFullYear()).slice(-2);
             const mm = String(now.getMonth() + 1).padStart(2, '0');
-            
-            const customer = await db.customer.findUnique({ where: { username: body.username } });
-            const custNumber = customer?.customerNumber || '0000';
+
+
+
+            const custNumber = customer?.customerId || '0000';
 
             // Sequence
             const count = await db.payment.count();
@@ -141,10 +179,16 @@ export async function POST(request) {
 
         let existingPayment = null;
 
+        // Base payment where
+        const paymentWhere = {
+            username: body.username
+        };
+        if (ownerId) paymentWhere.ownerId = ownerId;
+
         if (targetMonth !== null && targetYear !== null) {
             existingPayment = await db.payment.findFirst({
                 where: {
-                    username: body.username,
+                    ...paymentWhere,
                     month: targetMonth,
                     year: targetYear
                 }
@@ -156,7 +200,7 @@ export async function POST(request) {
             // Find most recent pending
             existingPayment = await db.payment.findFirst({
                 where: {
-                    username: body.username,
+                    ...paymentWhere,
                     status: { not: 'completed' }
                 },
                 orderBy: { date: 'desc' }
@@ -195,6 +239,7 @@ export async function POST(request) {
                     month: targetMonth !== null ? targetMonth : new Date().getMonth(),
                     year: targetYear !== null ? targetYear : new Date().getFullYear(),
                     notes: body.notes || '',
+                    ownerId: customer?.ownerId || ownerId, // Set Owner
                     commissions: {
                         create: commissionsData
                     }
@@ -208,13 +253,14 @@ export async function POST(request) {
             const { addNotification } = await import('@/lib/notifications-db');
             const currencyFormatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' });
             const notifMessage = `"System" : Payment of ${currencyFormatter.format(Number(paymentResult.amount))} for Invoice ${paymentResult.invoiceNumber} received.`;
+            // Owner aware notification? Notification DB likely needs ownerId too, but keeping it simple for now
             await addNotification(notifMessage, { username: paymentResult.username });
         } catch (notifError) {
             console.error('Failed to add payment notification:', notifError);
         }
 
         // Send Email
-        const customer = await db.customer.findUnique({ where: { username: body.username } });
+
         if (customer && customer.email) {
             try {
                 await sendPaymentReceiptEmail(customer.email, {
@@ -291,11 +337,12 @@ export async function PATCH(request) {
                 // Standard behavior: Only update pending to completed.
                 // Re-calculating completed ones might be risky if already paid out.
                 if (payment.status !== 'completed') {
-                    const commissionsData = await calculateCommissions(payment.amount, payment.username);
-                    
+                    // Use payment.ownerId if available to scope commission calc
+                    const commissionsData = await calculateCommissions(payment.amount, payment.username, payment.ownerId);
+
                     await db.payment.update({
                         where: { id: payment.id },
-                        data: { 
+                        data: {
                             status: status,
                             date: new Date(), // Update payment date to now
                             commissions: {

@@ -6,25 +6,39 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 const outfit = Outfit({ subsets: ['latin'] });
 
 
-import fs from 'fs';
-import path from 'path';
+import db from '@/lib/db';
 
 export async function generateMetadata() {
     try {
-        const settingsPath = path.join(process.cwd(), 'app-settings.json');
-        if (fs.existsSync(settingsPath)) {
-            const data = fs.readFileSync(settingsPath, 'utf8');
-            const settings = JSON.parse(data);
+        const setting = await db.systemSetting.findUnique({
+            where: { key: 'app_settings' }
+        });
+
+        if (setting) {
+            const data = JSON.parse(setting.value);
+            const appName = data.appName || 'Mikrotik Manager';
+            const settings = JSON.parse(setting.value);
             return {
-                title: settings.appName || 'Buroq Billing',
+                title: {
+                    default: appName,
+                    template: `%s | ${appName}`,
+                },
                 description: 'Professional MikroTik PPPoE Management System',
+                icons: {
+                    icon: data.logoUrl || '/favicon.ico', // Use uploaded logo/favicon
+                    shortcut: data.logoUrl || '/favicon.ico',
+                    apple: data.logoUrl || '/apple-touch-icon.png',
+                },
             };
         }
     } catch (error) {
         console.error('Error reading app settings:', error);
     }
     return {
-        title: 'Buroq Billing',
+        title: {
+            default: 'Mikrotik Manager',
+            template: '%s | Mikrotik Manager',
+        },
         description: 'Professional MikroTik PPPoE Management System',
     };
 }
@@ -33,7 +47,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
             <body className={outfit.className}>
 
                 <ThemeProvider>

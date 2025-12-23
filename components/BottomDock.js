@@ -2,7 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Settings, Server, Activity, LogOut, Network, CreditCard, WifiOff, Database, Menu, X, Palette, Bell } from 'lucide-react';
+import {
+    Home, Users, Settings, Server, Activity, LogOut, Network, CreditCard, WifiOff, Database, Menu, X, Palette, Bell, Wallet,
+    LayoutGrid, UserCheck, Zap, Wifi, Route, ShieldCheck, HardDrive, Save, SlidersHorizontal, MessageSquare, Shield, FileText, FileCheck, UserCog
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import AppLauncher from './AppLauncher';
@@ -31,17 +34,19 @@ export default function BottomDock() {
 
     // All navigation items
     const navItems = [
-        { href: '/', icon: Home, label: t('sidebar.dashboard'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/billing', icon: CreditCard, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/active', icon: Activity, label: t('sidebar.activeConnections'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/offline', icon: WifiOff, label: 'Offline', roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/profiles', icon: Network, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
-        { href: '/system-users', icon: Users, label: t('sidebar.systemUsers'), roles: ['admin'] },
-        { href: '/routers', icon: Server, label: 'Routers', roles: ['admin', 'manager'] },
-        { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['admin', 'manager'] },
-        { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/notifications', icon: Bell, label: t('sidebar.notifications'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/', icon: Home, hoverIcon: LayoutGrid, label: t('sidebar.dashboard'), roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/billing', icon: CreditCard, hoverIcon: Wallet, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/users', icon: Users, hoverIcon: UserCheck, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/active', icon: Activity, hoverIcon: Zap, label: t('sidebar.activeConnections'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/notifications', icon: Bell, hoverIcon: MessageSquare, label: t('sidebar.notifications'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/offline', icon: WifiOff, hoverIcon: Wifi, label: 'Offline', roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/profiles', icon: Network, hoverIcon: Route, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
+        { href: '/system-users', icon: UserCog, hoverIcon: ShieldCheck, label: t('sidebar.systemUsers'), roles: ['admin'] },
+        { href: '/system-admin', icon: Shield, hoverIcon: UserCheck, label: 'Owners', roles: ['superadmin'] },
+        { href: '/routers', icon: Server, hoverIcon: HardDrive, label: 'Routers', roles: ['admin', 'manager'] },
+        { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin', 'admin', 'manager'] },
+        { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: 'Invoice Settings', roles: ['superadmin'] },
+        { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
     // Mobile navigation items (5 items only)
@@ -73,6 +78,7 @@ export default function BottomDock() {
                         {navItems.map((item) => {
                             const isActive = pathname === item.href;
                             const Icon = item.icon;
+                            const HoverIcon = item.hoverIcon;
 
                             return (
                                 <Link
@@ -87,7 +93,7 @@ export default function BottomDock() {
                                         transition-all duration-300
                                         ${isActive
                                             ? 'bg-accent shadow-lg shadow-accent/50'
-                                            : 'bg-gray-100 dark:bg-gray-800 group-hover:bg-white dark:group-hover:bg-gray-800 group-hover:text-accent group-hover:shadow-lg group-hover:shadow-accent/20'
+                                            : 'bg-gray-100 dark:bg-gray-800'
                                         }
                                     `}>
                                         <Icon
@@ -96,7 +102,7 @@ export default function BottomDock() {
                                                 transition-all duration-300
                                                 ${isActive
                                                     ? 'text-white'
-                                                    : 'text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)]'
+                                                    : 'text-gray-600 dark:text-gray-300'
                                                 }
                                             `}
                                         />
@@ -147,13 +153,9 @@ export default function BottomDock() {
             {/* Mobile Bottom Navigation - Visible on Mobile Only */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[102] print:hidden">
                 <div className="relative">
-                    {/* Bottom Bar - Slides down when launcher is open */}
-                    <div className={`
-                        bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl border-t border-white/20 dark:border-white/10 shadow-2xl
-                        transition-transform duration-500 ease-in-out
-                        ${isLauncherOpen ? 'translate-y-full' : 'translate-y-0'}
-                    `}>
-                        <div className="flex items-center justify-around px-4 py-3">
+                    {/* Bottom Bar */}
+                    <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl border-t border-white/20 dark:border-white/10 shadow-2xl">
+                        <div className="flex items-center justify-between px-2 py-2">
                             {/* Left Items */}
                             {mobileNavItems.slice(0, 2).map((item) => {
                                 const isActive = pathname === item.href;
@@ -166,7 +168,7 @@ export default function BottomDock() {
                                         className="flex flex-col items-center justify-center min-w-[60px]"
                                     >
                                         <div className={`
-                                            p-3 rounded-xl transition-all duration-300
+                                            p-1 rounded-xl transition-all duration-300
                                             ${isActive
                                                 ? 'bg-blue-50 dark:bg-gray-800/50'
                                                 : 'bg-transparent'
@@ -195,8 +197,34 @@ export default function BottomDock() {
                                 );
                             })}
 
-                            {/* Spacer for center FAB */}
-                            <div className="min-w-[80px]" />
+                            {/* Center Menu Button (Integrated) */}
+                            <button
+                                onClick={() => setIsLauncherOpen(!isLauncherOpen)}
+                                className="flex flex-col items-center justify-center min-w-[60px]"
+                            >
+                                <div className={`
+                                    p-1 rounded-xl transition-all duration-300
+                                    ${isLauncherOpen
+                                        ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
+                                        : 'bg-accent text-white shadow-lg shadow-accent/30'
+                                    }
+                                `}>
+                                    {isLauncherOpen ? (
+                                        <X size={24} />
+                                    ) : (
+                                        <Menu size={24} />
+                                    )}
+                                </div>
+                                <span className={`
+                                    text-[10px] font-medium mt-1
+                                    ${isLauncherOpen
+                                        ? 'text-red-500'
+                                        : 'text-accent'
+                                    }
+                                `}>
+                                    {isLauncherOpen ? 'Close' : 'Menu'}
+                                </span>
+                            </button>
 
                             {/* Right Items */}
                             {mobileNavItems.slice(2).map((item) => {
@@ -210,9 +238,9 @@ export default function BottomDock() {
                                         className="flex flex-col items-center justify-center min-w-[60px]"
                                     >
                                         <div className={`
-                                            p-3 rounded-xl transition-all duration-300
+                                            p-1 rounded-xl transition-all duration-300
                                             ${isActive
-                                                ? 'bg-accent shadow-lg shadow-accent/30'
+                                                ? 'bg-blue-50 dark:bg-gray-800/50'
                                                 : 'bg-transparent'
                                             }
                                         `}>
@@ -220,7 +248,7 @@ export default function BottomDock() {
                                                 size={24}
                                                 className={`
                                                     ${isActive
-                                                        ? 'text-white'
+                                                        ? 'stroke-[url(#icon-gradient)]'
                                                         : 'text-gray-600 dark:text-gray-400'
                                                     }
                                                 `}
@@ -244,7 +272,7 @@ export default function BottomDock() {
                                 onClick={handleLogout}
                                 className="flex flex-col items-center justify-center min-w-[60px]"
                             >
-                                <div className="p-3 rounded-xl bg-transparent transition-all duration-300">
+                                <div className="p-1 rounded-xl bg-transparent transition-all duration-300">
                                     <LogOut size={24} className="text-gray-600 dark:text-gray-400" />
                                 </div>
                                 <span className="text-[10px] font-medium mt-1 text-gray-600 dark:text-gray-400">
@@ -253,36 +281,6 @@ export default function BottomDock() {
                             </button>
                         </div>
                     </div>
-
-                    {/* Floating Menu Button - Center FAB - Changes to red when open */}
-                    <button
-                        onClick={() => setIsLauncherOpen(!isLauncherOpen)}
-                        className="absolute left-1/2 -translate-x-1/2 -top-4 z-[103] transform transition-all duration-300 hover:scale-110 active:scale-95"
-                    >
-                        <div className="relative">
-                            {/* Main FAB - Blue when menu, Red when close */}
-                            <div className={`
-                                w-16 h-16 rounded-full shadow-2xl flex items-center justify-center border-4 border-white dark:border-gray-900
-                                transition-all duration-500
-                                ${isLauncherOpen
-                                    ? 'bg-gradient-to-br from-red-500 via-red-600 to-rose-600 shadow-red-500/50'
-                                    : 'bg-accent shadow-accent/50'
-                                }
-                            `}>
-                                {/* Animated Icon - Rotates 180deg when toggling */}
-                                <div
-                                    className="transition-transform duration-500 ease-in-out"
-                                    style={{ transform: isLauncherOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                                >
-                                    {isLauncherOpen ? (
-                                        <X size={28} className="text-white" />
-                                    ) : (
-                                        <Menu size={28} className="text-white" />
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </button>
                 </div>
             </div>
 

@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -14,7 +14,7 @@ model User {
   id             String   @id @default(cuid())
   username       String   @unique
   passwordHash   String
-  role           String   @default("viewer") // admin, manager, editor, agent, technician, staff, viewer
+  role           String   @default("viewer") // superadmin, admin, manager, editor, agent, technician, staff, viewer
   isTechnician   Boolean  @default(false)
   isAgent        Boolean  @default(false) // Added for consistency with code usage
   agentRate      Float    @default(0)
@@ -27,11 +27,20 @@ model User {
   agentNumber    String   @default("")
   createdAt      DateTime @default(now())
 
+  // Multi-tenancy
+  ownerId        String?
+  owner          User?    @relation("UserOwner", fields: [ownerId], references: [id])
+  users          User[]   @relation("UserOwner") // For admins managing staff
+
   // Relations
   customersAsAgent      Customer[] @relation("AgentCustomers")
   customersAsTechnician Customer[] @relation("TechnicianCustomers")
+  customersOwned        Customer[] @relation("CustomerOwner") // Customers owned by this admin
   commissions           Commission[]
-  
+  payments              Payment[]  @relation("PaymentOwner")
+  notifications         Notification[] @relation("NotificationOwner")
+  registrations         Registration[] @relation("RegistrationOwner")
+
   language     String   @default("id")
 }
 
@@ -46,20 +55,29 @@ model SystemMetric {
 }
 
 model Customer {
-  username       String   @id // Using username as ID to match current JSON structure
+  id             String   @id @default(cuid()) // New internal ID
+  customerId     String   @unique // Renamed from customerNumber, used for login
+  username       String   // PPPoE username, no longer unique globally
+  password       String?  // Added for customer login
   name           String   @default("")
   address        String   @default("")
   phone          String   @default("")
   email          String   @default("")
-  customerNumber String?
+  
   agentId        String?
   technicianId   String?
   updatedAt      DateTime @updatedAt
   createdAt      DateTime @default(now())
 
+  // Multi-tenancy
+  ownerId        String?
+  owner          User?    @relation("CustomerOwner", fields: [ownerId], references: [id])
+
   // Relations
   agent      User? @relation("AgentCustomers", fields: [agentId], references: [id])
   technician User? @relation("TechnicianCustomers", fields: [technicianId], references: [id])
+
+  @@unique([username, ownerId]) // Username is unique only within an owner
 }
 
 model Payment {
@@ -73,6 +91,10 @@ model Payment {
   month         Int // 0-11
   year          Int
   notes         String   @default("")
+
+  // Multi-tenancy
+  ownerId       String?
+  owner         User?    @relation("PaymentOwner", fields: [ownerId], references: [id])
 
   commissions Commission[]
 }
@@ -98,6 +120,10 @@ model Notification {
   username  String?
   status    String?
   createdAt DateTime @default(now())
+
+  // Multi-tenancy
+  ownerId   String?
+  owner     User?    @relation("NotificationOwner", fields: [ownerId], references: [id])
 }
 
 model Registration {
@@ -127,6 +153,10 @@ model Registration {
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  // Multi-tenancy
+  ownerId        String?
+  owner          User?    @relation("RegistrationOwner", fields: [ownerId], references: [id])
 }
 
 model SystemSetting {

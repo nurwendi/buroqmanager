@@ -41,6 +41,16 @@ export async function GET(request) {
                 }
             };
 
+            // Filter by Owner
+            if (currentUser.role !== 'superadmin') {
+                const ownerId = currentUser.role === 'admin' ? currentUser.id : currentUser.ownerId;
+                if (ownerId) where.ownerId = ownerId;
+                else if (currentUser.role !== 'admin') {
+                    // unowned staff?
+                    where.ownerId = 'nothing';
+                }
+            }
+
             const payments = await db.payment.findMany({
                 where,
                 include: { commissions: true }
@@ -100,12 +110,19 @@ export async function GET(request) {
         // Filter payments by date/month/year
         let where = {};
         if (month && year) {
-            // Prisma doesn't have easy "month" extraction in comparison across DBs without raw query.
-            // But we store month/year as Int in Payment model!
             where = {
                 month: parseInt(month),
                 year: parseInt(year)
             };
+        }
+
+        // Filter by Owner
+        if (currentUser.role !== 'superadmin') {
+            const ownerId = currentUser.role === 'admin' ? currentUser.id : currentUser.ownerId;
+            if (ownerId) where.ownerId = ownerId;
+            else if (currentUser.role !== 'admin') {
+                where.ownerId = 'nothing';
+            }
         }
 
         const filteredPayments = await db.payment.findMany({
@@ -129,14 +146,16 @@ export async function GET(request) {
                     grandTotalRevenue += p.amount;
                 }
 
-                // Process Commissions
-                for (const comm of p.commissions) {
-                    // Start/Update partner stats
-                    if (!partnerStats[comm.userId]) {
-                        partnerStats[comm.userId] = {
-                            id: comm.userId,
-                            name: comm.username,
-                            role: 'staff',
+                const processedUsersForPayment = new Set();
+
+                if (p.commissions.length === 0) {
+                    // No agent/tech -> Attribute to Owner (Admin)
+                    const ownerId = currentUser.id;
+                    if (!partnerStats[ownerId]) {
+                        partnerStats[ownerId] = {
+                            id: ownerId,
+                            name: currentUser.fullName || currentUser.username || 'Owner',
+                            role: 'admin',
                             paidCount: 0,
                             unpaidCount: 0,
                             totalRevenue: 0,
@@ -145,19 +164,58 @@ export async function GET(request) {
                     }
 
                     if (p.status === 'completed') {
-                        partnerStats[comm.userId].commission += comm.amount;
-                        partnerStats[comm.userId].totalRevenue += p.amount;
-                        partnerStats[comm.userId].paidCount += 1;
-                        grandTotalCommission += comm.amount;
+                        partnerStats[ownerId].totalRevenue += p.amount;
+                        partnerStats[ownerId].paidCount += 1;
+                        // No commission for owner
                     } else {
-                        partnerStats[comm.userId].unpaidCount += 1;
+                        partnerStats[ownerId].unpaidCount += 1;
+                    }
+                } else {
+                    // Process Commissions
+                    for (const comm of p.commissions) {
+                        // Start/Update partner stats
+                        if (!partnerStats[comm.userId]) {
+                            partnerStats[comm.userId] = {
+                                id: comm.userId,
+                                name: comm.username,
+                                role: 'staff',
+                                paidCount: 0,
+                                unpaidCount: 0,
+                                totalRevenue: 0,
+                                commission: 0
+                            };
+                        }
+
+                        if (p.status === 'completed') {
+                            partnerStats[comm.userId].commission += comm.amount;
+                            grandTotalCommission += comm.amount;
+
+                            // Prevent double counting revenue/count if user has multiple roles (Agent + Tech)
+                            if (!processedUsersForPayment.has(comm.userId)) {
+                                partnerStats[comm.userId].totalRevenue += p.amount;
+                                partnerStats[comm.userId].paidCount += 1;
+                                processedUsersForPayment.add(comm.userId);
+                            }
+                        } else {
+                            if (!processedUsersForPayment.has(comm.userId)) {
+                                partnerStats[comm.userId].unpaidCount += 1;
+                                processedUsersForPayment.add(comm.userId);
+                            }
+                        }
                     }
                 }
             }
 
+            // Convert to array and sort (Owner first, then by revenue desc)
+            const agentsArray = Object.values(partnerStats).sort((a, b) => {
+                if (a.role === 'admin') return -1; // Owner first
+                if (b.role === 'admin') return 1;
+                return b.totalRevenue - a.totalRevenue;
+            });
+
             return NextResponse.json({
                 role: 'admin',
-                agents: Object.values(partnerStats),
+                agents: agentsArray,
                 grandTotal: {
                     revenue: grandTotalRevenue,
                     commission: grandTotalCommission,
@@ -167,7 +225,7 @@ export async function GET(request) {
                     filteredPaymentsCount: filteredPayments.length
                 }
             });
-        } else if (currentUser.role === 'staff' || currentUser.role === 'agent' || currentUser.role === 'technician') {
+        } else if (currentUser.role === 'staff' || currentUser.role === 'agent' || currentUser.role === 'technician' || currentUser.role === 'editor') {
             // Staff View
             const myStats = {
                 totalRevenue: 0,

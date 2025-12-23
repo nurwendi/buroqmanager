@@ -43,7 +43,8 @@ if [ ! -f .env ]; then
         cp .env.local.example .env
     else
         echo -e "${YELLOW}⚠️  No .env.local.example found. Creating default .env...${NC}"
-        echo 'DATABASE_URL="file:./dev.db"' > .env
+        echo 'DATABASE_URL="postgresql://user:password@localhost:5432/mikrotik_billing?schema=public"' > .env
+        echo -e "${RED}⚠️  IMPORTANT: You must edit .env and set your PostgreSQL connection string before running the app!${NC}"
     fi
 fi
 

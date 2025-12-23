@@ -25,12 +25,15 @@ export default function AppSettingsPage() {
     const [userRole, setUserRole] = useState(null);
     const [activeTab, setActiveTab] = useState('profile');
 
+    // Define restricted roles (Everyone except Superadmin)
+    const isRestricted = userRole !== 'superadmin';
+
     const tabs = [
         { id: 'profile', label: 'User Profile', icon: User },
-        { id: 'appearance', label: 'Appearance', icon: Palette },
-        { id: 'system', label: 'System', icon: Gauge },
-        { id: 'security', label: 'Security', icon: Shield },
-    ];
+        { id: 'appearance', label: 'Appearance', icon: Palette, hidden: isRestricted },
+        { id: 'system', label: 'System', icon: Gauge, hidden: isRestricted },
+        { id: 'security', label: 'Security', icon: Shield, hidden: isRestricted },
+    ].filter(tab => !tab.hidden);
 
     const [settings, setSettings] = useState({
         appName: 'Mikrotik Manager',
@@ -103,7 +106,6 @@ export default function AppSettingsPage() {
                 if (res.ok) return res.json();
                 throw new Error('Failed to fetch user');
             })
-            .then(data => setUserRole(data.user.role))
             .then(data => setUserRole(data.user.role))
             .catch(() => setUserRole(null));
         fetchSettings();
@@ -412,13 +414,19 @@ export default function AppSettingsPage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Username</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Username
+                                            {userRole !== 'admin' && userRole !== 'superadmin' && (
+                                                <span className="text-xs text-red-500 ml-2">(Contact Admin to change)</span>
+                                            )}
+                                        </label>
                                         <input
                                             type="text"
                                             value={profile.username}
                                             onChange={(e) => setProfile({ ...profile, username: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-60 disabled:bg-gray-100 dark:disabled:bg-gray-800 cursor-not-allowed"
                                             required
+                                            disabled={userRole !== 'admin' && userRole !== 'superadmin'}
                                         />
                                     </div>
                                     <div>
@@ -497,7 +505,79 @@ export default function AppSettingsPage() {
                         </div>
 
                     </>)}
-                    {activeTab === 'appearance' && (<>
+                    {activeTab === 'appearance' && !isRestricted && (<>
+
+                        {/* General Settings */}
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
+                            <div className="flex items-center gap-3 mb-6">
+                                <Monitor className="text-blue-600 dark:text-blue-400" size={24} />
+                                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">General Application Settings</h2>
+                            </div>
+
+                            <form onSubmit={handleSaveAppearance} className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Application Name</label>
+                                    <input
+                                        type="text"
+                                        value={settings.appName}
+                                        onChange={(e) => setSettings({ ...settings, appName: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                        placeholder="Mikrotik Manager"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Logo Upload */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Application Logo</label>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-600">
+                                                {settings.logoUrl ? (
+                                                    <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                                                ) : (
+                                                    <ImageIcon className="text-gray-400" size={24} />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <label className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                                                    <Upload size={16} />
+                                                    Upload Logo
+                                                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'logo')} />
+                                                </label>
+                                                <p className="text-xs text-gray-500 mt-1">Recommended: 512x512 PNG</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Favicon Upload */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Favicon</label>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-600">
+                                                <Globe className="text-gray-400" size={24} />
+                                            </div>
+                                            <div>
+                                                <label className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center gap-2">
+                                                    <Upload size={16} />
+                                                    Upload Favicon
+                                                    <input type="file" className="hidden" accept="image/x-icon,image/png" onChange={(e) => handleFileUpload(e, 'favicon')} />
+                                                </label>
+                                                <p className="text-xs text-gray-500 mt-1">Recommended: 32x32 ICO/PNG</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-70 transition-all shadow-md"
+                                >
+                                    <Save size={18} />
+                                    {loading ? 'Saving...' : 'Save General Settings'}
+                                </button>
+                            </form>
+                        </div>
 
                         {/* Language Settings */}
                         <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
@@ -597,7 +677,7 @@ export default function AppSettingsPage() {
 
                     {/* Display Preferences */}
                     {
-                        activeTab === 'system' && userRole !== 'viewer' && (
+                        activeTab === 'system' && !isRestricted && (
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Clock className="text-blue-600 dark:text-blue-400" size={24} />
@@ -716,7 +796,7 @@ export default function AppSettingsPage() {
 
                     {/* Security Settings */}
                     {
-                        activeTab === 'security' && userRole !== 'viewer' && (
+                        activeTab === 'security' && !isRestricted && (
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Shield className="text-red-600 dark:text-red-400" size={24} />
@@ -760,7 +840,7 @@ export default function AppSettingsPage() {
 
                     {/* Dashboard Settings */}
                     {
-                        activeTab === 'system' && userRole !== 'viewer' && (
+                        activeTab === 'system' && !isRestricted && (
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Gauge className="text-blue-600 dark:text-blue-400" size={24} />

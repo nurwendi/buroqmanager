@@ -23,8 +23,9 @@ export async function PUT(request) {
     const user = await getUserFromRequest(request);
     if (!user) return unauthorizedResponse();
 
+    let body;
     try {
-        const body = await request.json();
+        body = await request.json();
 
         // Allowed fields for update
         const allowedFields = ['username', 'password', 'fullName', 'phone', 'address', 'avatar', 'language'];
@@ -45,6 +46,15 @@ export async function PUT(request) {
         }
 
         if (updates.username) {
+            // Check authorization to change username
+            if (user.role !== 'admin' && user.role !== 'superadmin') {
+                // If the submitted username is different from current, deny
+                const currentUserData = await getUserById(user.id);
+                if (currentUserData.username !== updates.username) {
+                    return NextResponse.json({ error: 'Only admins can change usernames' }, { status: 403 });
+                }
+            }
+
             // Check if username is taken by another user
             const existingUser = await getUserByUsername(updates.username);
             if (existingUser && existingUser.id !== user.id) {
@@ -57,9 +67,13 @@ export async function PUT(request) {
 
     } catch (error) {
         console.error('Profile update error:', error);
+        console.error('Request body:', body); // Log body object
         // Handle unique constraint violation (e.g. username taken)
         if (error.message.includes('Username already exists') || error.code === 'P2002') {
             return NextResponse.json({ error: 'Username already taken' }, { status: 409 });
+        }
+        if (error.message === 'User not found') {
+            return NextResponse.json({ error: 'User does not exist' }, { status: 401 });
         }
         return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
     }

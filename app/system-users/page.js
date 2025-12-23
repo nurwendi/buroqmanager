@@ -27,8 +27,14 @@ export default function SystemUsersPage() {
     });
     const [error, setError] = useState('');
 
+    const [currentUserRole, setCurrentUserRole] = useState(null);
+
     useEffect(() => {
         fetchUsers();
+        fetch('/api/auth/me')
+            .then(res => res.json())
+            .then(data => setCurrentUserRole(data.user.role))
+            .catch(err => console.error('Failed to fetch user role', err));
     }, []);
 
     const fetchUsers = async () => {
@@ -166,7 +172,8 @@ export default function SystemUsersPage() {
                 <button
                     onClick={() => {
                         setEditMode(false);
-                        setFormData({ username: '', password: '', role: 'viewer', isAgent: false, isTechnician: false, agentRate: 0, technicianRate: 0, prefix: '' });
+                        const defaultRole = currentUserRole === 'superadmin' ? 'admin' : 'viewer';
+                        setFormData({ username: '', password: '', role: defaultRole, isAgent: false, isTechnician: false, agentRate: 0, technicianRate: 0, prefix: '' });
                         setShowModal(true);
                     }}
                     className="w-full md:w-auto bg-accent text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all"
@@ -303,7 +310,7 @@ export default function SystemUsersPage() {
                                         value={formData.username ?? ''}
                                         onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                                         className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:opacity-50"
-                                        disabled={editMode}
+                                        disabled={editMode && currentUserRole !== 'admin' && currentUserRole !== 'superadmin'}
                                     />
                                 </div>
                                 <div>
@@ -363,18 +370,28 @@ export default function SystemUsersPage() {
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">System Role</label>
                                     <select
-                                        value={formData.role ?? 'viewer'}
+                                        value={formData.role ?? (currentUserRole === 'superadmin' ? 'admin' : 'viewer')}
                                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                         className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                        disabled={currentUserRole === 'superadmin'} // Superadmin only creates Admin, so lock it? Or just show 1 option.
                                     >
-                                        <option value="admin">Admin (Full Access)</option>
-                                        <option value="manager">Manager (No System Users)</option>
-                                        <option value="editor">Editor (Can Edit)</option>
-                                        <option value="staff">Staff (Agent/Technician)</option>
-                                        <option value="viewer">Viewer (Read Only)</option>
+                                        {currentUserRole === 'superadmin' ? (
+                                            <>
+                                                <option value="admin">Admin (Owner)</option>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <option value="manager">Manager (No System Users)</option>
+                                                <option value="editor">Editor (Can Edit)</option>
+                                                <option value="staff">Staff (Agent/Technician)</option>
+                                                <option value="viewer">Viewer (Read Only)</option>
+                                            </>
+                                        )}
                                     </select>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        Determines what pages the user can access.
+                                        {currentUserRole === 'superadmin'
+                                            ? "Superadmin can only create Admins (Owners)."
+                                            : "Admins manage operational roles."}
                                     </p>
                                 </div>
 

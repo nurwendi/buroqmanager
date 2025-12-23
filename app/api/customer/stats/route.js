@@ -18,9 +18,54 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        const username = decoded.username;
-        console.log(`[CustomerStats] Fetching stats for user: ${username}`);
-        const client = await getMikrotikClient();
+        let username = decoded.username;
+
+        // Determine Owner ID for router selection
+        let targetOwnerId = decoded.ownerId;
+        if (decoded.role === 'customer' && !decoded.ownerId) {
+            // Fallback if token missing ownerId (older tokens)
+            const u = await db.user.findUnique({ where: { username } });
+            if (u) targetOwnerId = u.ownerId;
+        }
+
+        // Check for customerId lookup (Query Param has priority)
+        const { searchParams } = new URL(request.url);
+        const searchId = searchParams.get('customerId');
+
+        if (searchId) {
+            console.log(`[CustomerStats] Searching for customerId: ${searchId}`);
+            const customer = await db.customer.findFirst({
+                where: { customerId: searchId }
+            });
+
+            if (customer) {
+                username = customer.username;
+                targetOwnerId = customer.ownerId; // vital update
+                console.log(`[CustomerStats] Found user ${username} for ID ${searchId}`);
+            } else {
+                return NextResponse.json({ error: 'Customer ID not found' }, { status: 404 });
+            }
+        } else {
+            // Implicit Lookup: Check if logged-in 'username' is actually a 'customerId'
+            // This handles the case where user logs in with ID "10100010"
+            const asCustomer = await db.customer.findUnique({
+                where: { customerId: username }
+            });
+
+            if (asCustomer) {
+                console.log(`[CustomerStats] Logged in with CustomerID ${username}, resolving to ${asCustomer.username}`);
+                username = asCustomer.username;
+                targetOwnerId = asCustomer.ownerId; // vital update
+            }
+        }
+
+        console.log(`[CustomerStats] Fetching stats for user: ${username} (Owner: ${targetOwnerId})`);
+
+        // Get correct Mikrotik Connection
+        const { getConfig, getUserConnectionId } = await import('@/lib/config');
+        const config = await getConfig();
+        // Emulate a user object for getUserConnectionId
+        const connectionId = getUserConnectionId({ role: 'customer', ownerId: targetOwnerId }, config);
 
         // 1. Get Session Status (Mikrotik)
         let session = {
@@ -30,6 +75,9 @@ export async function GET(request) {
         };
 
         try {
+            console.log(`[CustomerStats] Connecting to Mikrotik (ConnID: ${connectionId})...`);
+            const client = await getMikrotikClient(connectionId);
+
             const activeConnections = await client.write('/ppp/active/print', [
                 `?name=${username}`
             ]);
@@ -40,30 +88,25 @@ export async function GET(request) {
                 session.id = active['.id'];
                 session.uptime = active.uptime;
                 session.active = true;
+                // ... (rest of logic handles traffic)
                 session.ipAddress = active['address'];
 
                 try {
-                    // Try to monitor the PPPoE interface directly to get real-time speed.
-                    // PPPoE dynamic interfaces are usually named <pppoe-{username}>
                     const traffic = await client.write('/interface/monitor-traffic', [
                         `=interface=<pppoe-${username}>`,
                         '=once='
                     ]);
-
                     if (traffic && traffic[0]) {
                         session.currentSpeed = {
-                            tx: traffic[0]['tx-bits-per-second'] || '0', // Download (Router TX -> Client RX)
-                            rx: traffic[0]['rx-bits-per-second'] || '0'  // Upload (Router RX <- Client TX)
+                            tx: traffic[0]['tx-bits-per-second'] || '0',
+                            rx: traffic[0]['rx-bits-per-second'] || '0'
                         };
                     }
-                } catch (trafficError) {
-                    console.error('Failed to monitor traffic:', trafficError);
-                    // Silently fail - speed will show 0 or hidden
-                }
+                } catch (tErr) { console.warn('Traffic monitor failed', tErr); }
             }
-        } catch (e) {
-            console.error('Mikrotik error:', e);
-            // Non-fatal, session remains inactive
+        } catch (mikrotikError) {
+            console.error('Mikrotik connection failed:', mikrotikError);
+            // Non-fatal, session remains inactive/offline
         }
 
         // 2. Get Monthly Usage (Accumulated)
@@ -128,3 +171,5 @@ export async function GET(request) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+

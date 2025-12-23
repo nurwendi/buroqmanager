@@ -29,7 +29,7 @@ Buroq Billing is a modern, full-stack web application designed to streamline bil
 - **Customer Portal**: Dedicated view for customers to check their package info and payment status.
 
 ### 🛠 System & Tools
-- **Database**: SQLite database managed via Prisma ORM.
+- **Database**: PostgreSQL managed via Prisma ORM.
 - **Auto Backup**: 
   - **Database**: Daily automatic backup to local storage.
   - **Mikrotik**: Daily automatic configuration backup `.backup` files on the router itself.
@@ -40,7 +40,7 @@ Buroq Billing is a modern, full-stack web application designed to streamline bil
 ## 💻 Tech Stack
 
 - **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
-- **Database**: [SQLite](https://www.sqlite.org/)
+- **Database**: [PostgreSQL](https://www.postgresql.org/)
 - **ORM**: [Prisma](https://www.prisma.io/)
 - **UI**: [Tailwind CSS](https://tailwindcss.com/)
 - **Components**: [Lucide React](https://lucide.dev/), [Framer Motion](https://www.framer.com/motion/), [Recharts](https://recharts.org/)
@@ -51,63 +51,70 @@ Buroq Billing is a modern, full-stack web application designed to streamline bil
 ## 📦 Deployment & Installation
 
 ### System Requirements
-- **OS**: Ubuntu 20.04+ / Debian 11+
+- **OS**: Windows, Ubuntu 20.04+, or Debian 11+
 - **Node.js**: 20.x or higher
+- **Database**: PostgreSQL 13+ (Required)
 - **RAM**: Minimum 1GB
 - **Storage**: Minimum 10GB
 - **Network**: Access to MikroTik Router via API
 
-### 1. Update System
-```bash
-apt update && apt upgrade -y
-```
-
-### 2. Install Node.js 20.x
+### 1. Install Node.js
+**Linux:**
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
-node -v  # Verify installation
 ```
+**Windows:**
+Download and install from [nodejs.org](https://nodejs.org/).
 
-### 3. Install PM2 (Process Manager)
+### 2. Install PostgreSQL
+**Linux:**
 ```bash
-npm install -g pm2
+sudo apt install postgresql postgresql-contrib
+sudo systemctl start postgresql
 ```
+**Windows:**
+Download and install from [postgresql.org](https://www.postgresql.org/).
 
-### 4. Install Git
-```bash
-apt install -y git
-```
+**Configure Database User:**
+Create a database user and password (e.g., `postgres` / `32326655`).
+Create a new database named `mikrotikbilling` (optional, script can create tables).
 
-### 5. Install & Setup Buroq Billing
-**Method A: Automatic (Recommended)**
-```bash
-curl -fsSL https://raw.githubusercontent.com/nurwendi/mikrotikmanagement/master/install.sh | bash
-```
-*Note: This script will auto-clone the repository if not present, install dependencies, and setup the database.*
-
-**Method B: Manual Step-by-Step**
+### 3. Setup Application
 ```bash
 # Clone Repository
-cd /opt
 git clone https://github.com/nurwendi/mikrotikmanagement.git billing
-chown -R $USER:$USER /opt/billing
-cd /opt/billing
+cd billing
 
 # Install Dependencies
 npm install
 
-# Setup Database
-npx prisma generate
-npx prisma db push
-
-# Run Application
-npm run dev
+# Configure Environment
+cp .env.example .env
+# Edit .env and set DATABASE_URL:
+# DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/mikrotikbilling?schema=public"
 ```
 
-### 6. Start Application with PM2 (Production)
+### 4. Initialize Database (Fresh Install)
+This will create tables and the default `superadmin` user.
 ```bash
-cd /opt/billing
+npx prisma migrate dev --name init_postgres
+npx prisma db seed
+```
+> **Note**: This resets the database completely.
+
+### 5. Run Application
+The application is configured to run on Port **80** by default.
+
+**Development/Testing:**
+```bash
+npm run dev
+# Access at http://localhost
+```
+
+**Production (PM2):**
+```bash
+npm install -g pm2
 npm run build
 pm2 start npm --name "billing" -- start
 pm2 save

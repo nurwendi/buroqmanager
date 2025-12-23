@@ -341,37 +341,7 @@ export default function SettingsPage() {
                 </div>
             </div>
 
-            {/* General Settings */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                {/* ... existing general settings ... */}
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">General Settings</h2>
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">WAN Interface (Internet Source)</label>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Select the interface used for internet connection to monitor traffic.</p>
-                        <div className="flex gap-2">
-                            <select
-                                className="w-full max-w-md border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                value={settings.wanInterface || ''}
-                                onChange={(e) => setSettings({ ...settings, wanInterface: e.target.value })}
-                            >
-                                <option value="">Select Interface</option>
-                                {interfaces.map(iface => (
-                                    <option key={iface.name} value={iface.name}>
-                                        {iface.name} {iface.disabled ? '(Disabled)' : ''}
-                                    </option>
-                                ))}
-                            </select>
-                            <button
-                                onClick={() => saveSettings({ wanInterface: settings.wanInterface })}
-                                className="px-4 py-2 bg-accent text-white rounded-md hover:opacity-90 transition-all"
-                            >
-                                Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
 
             {/* Isolir Settings */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
