@@ -224,6 +224,14 @@ To reset ONLY data (keep config):
 node scripts/reset-data.js
 ```
 
+### Push Changes to GitHub
+To upload your changes to the repository:
+```bash
+git add .
+git commit -m "Description of your changes"
+git push
+```
+
 ### Manual Removal (Linux)
 If you prefer to remove the application manually or if the script fails:
 
