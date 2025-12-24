@@ -1,4 +1,6 @@
 import './globals.css'
+export const dynamic = 'force-dynamic';
+
 import { Outfit } from 'next/font/google'
 import ClientLayout from './ClientLayout';
 import { ThemeProvider } from '@/contexts/ThemeContext';

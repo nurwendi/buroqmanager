@@ -16,13 +16,16 @@ if ($LASTEXITCODE -ne 0) {
 
 # 3. Setup Environment Variables
 if (!(Test-Path ".env")) {
-    if (Test-Path ".env.local.example") {
-        Write-Host "`n⚙️  Creating .env from .env.local.example..." -ForegroundColor Yellow
-        Copy-Item ".env.local.example" ".env"
+    if (Test-Path ".env.example") {
+        Write-Host "`n⚙️  Creating .env from .env.example..." -ForegroundColor Yellow
+        Copy-Item ".env.example" ".env"
+        Write-Warning "Please configure your .env file with your Database and Mikrotik credentials before continuing."
+        Write-Host "Press any key to continue after you have edited .env..."
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
     }
     else {
-        Write-Warning "No .env.local.example found. Creating default .env..."
-        Set-Content .env "DATABASE_URL=`"file:./dev.db`""
+        Write-Warning "No .env.example found. Creating default .env..."
+        Set-Content .env "DATABASE_URL=`"postgresql://USER:PASSWORD@localhost:5432/mikrotikbilling?schema=public`""
     }
 }
 

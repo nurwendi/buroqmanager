@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
+import NativeBridge from '@/components/NativeBridge';
 
 
 
@@ -100,6 +101,11 @@ export default function LoginPage() {
                     >
                         {loading ? t('common.loading') : t('login.loginButton')}
                     </button>
+
+                    <NativeBridge onBiometricSuccess={() => {
+                        // TODO: Auto-login logic would go here
+                        // For now, let user know it worked
+                    }} />
                 </form>
             </div>
         </div>

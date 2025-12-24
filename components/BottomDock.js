@@ -49,8 +49,12 @@ export default function BottomDock() {
         { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
-    // Mobile navigation items (5 items only)
-    const mobileNavItems = [
+    // Mobile navigation items (Dynamic based on role)
+    const mobileNavItems = userRole === 'superadmin' ? [
+        { href: '/', icon: Home, label: t('sidebar.dashboard') },
+        { href: '/system-admin', icon: Shield, label: 'Owners' },
+        { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings') },
+    ] : [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
         { href: '/active', icon: Activity, label: 'Active' },
         { href: '/billing', icon: CreditCard, label: t('sidebar.billing') },

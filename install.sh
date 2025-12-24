@@ -38,11 +38,14 @@ npm install
 
 # 2. Setup Environment Variables
 if [ ! -f .env ]; then
-    if [ -f .env.local.example ]; then
-        echo -e "${YELLOW}⚙️  Creating .env from .env.local.example...${NC}"
-        cp .env.local.example .env
+    if [ -f .env.example ]; then
+        echo -e "${YELLOW}⚙️  Creating .env from .env.example...${NC}"
+        cp .env.example .env
+        echo -e "${RED}⚠️  IMPORTANT: You must edit .env and set your PostgreSQL connection string before running the app!${NC}"
+        echo -e "${YELLOW}Press any key to continue after you have edited .env...${NC}"
+        read -n 1 -s
     else
-        echo -e "${YELLOW}⚠️  No .env.local.example found. Creating default .env...${NC}"
+        echo -e "${YELLOW}⚠️  No .env.example found. Creating default .env...${NC}"
         echo 'DATABASE_URL="postgresql://user:password@localhost:5432/mikrotik_billing?schema=public"' > .env
         echo -e "${RED}⚠️  IMPORTANT: You must edit .env and set your PostgreSQL connection string before running the app!${NC}"
     fi
