@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import Navbar from "@/components/Navbar";
 import BottomDock from '@/components/BottomDock';
 import SessionTimeoutHandler from "@/components/SessionTimeoutHandler";
@@ -14,6 +15,39 @@ export default function ClientLayout({ children }) {
     const isInvoicePage = pathname.startsWith('/invoice') && !pathname.startsWith('/invoice-settings');
     const isIsolirPage = pathname.startsWith('/isolir');
     const isPublicPage = isLoginPage || isInvoicePage || isIsolirPage;
+
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        // Mobile: Global Fetch Interceptor
+        import('@/lib/isMobile').then(({ isMobileApp }) => {
+            if (isMobileApp()) {
+                setIsMobile(true);
+                const originalFetch = window.fetch;
+                window.fetch = async (input, init) => {
+                    let url = input;
+                    if (typeof input === 'string' && input.startsWith('/')) {
+                        const baseUrl = localStorage.getItem('buroq_server_url');
+                        if (baseUrl) {
+                            const cleanBase = baseUrl.replace(/\/$/, '');
+                            url = `${cleanBase}${input}`;
+                        }
+                    }
+                    return originalFetch(url, init);
+                };
+            }
+        });
+
+        // Sync Title from Settings
+        fetch('/api/app-settings')
+            .then(res => res.json())
+            .then(data => {
+                if (data.appName) {
+                    document.title = data.appName;
+                }
+            })
+            .catch(err => console.error('Failed to load app settings', err));
+    }, []);
 
     const variants = {
         hidden: { opacity: 0, x: -10, y: 0 },

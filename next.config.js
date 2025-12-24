@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const isMobileBuild = process.env.BUILD_MODE === 'mobile';
 
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+    output: isMobileBuild ? 'export' : undefined,
+    images: {
+        unoptimized: isMobileBuild,
+    },
     async headers() {
         return [
             {

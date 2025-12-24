@@ -127,7 +127,7 @@ export async function GET(request) {
 
         const filteredPayments = await db.payment.findMany({
             where,
-            include: { commissions: true }
+            include: { commissions: true, owner: true }
         });
 
         // Debug logging
@@ -135,7 +135,7 @@ export async function GET(request) {
         console.log('Filtered Payments Count:', filteredPayments.length);
 
         // Calculate Stats
-        if (currentUser.role === 'admin') {
+        if (currentUser.role === 'admin' || currentUser.role === 'superadmin') {
             // Admin View: All Staff
             const partnerStats = {};
             let grandTotalRevenue = 0;
@@ -150,11 +150,11 @@ export async function GET(request) {
 
                 if (p.commissions.length === 0) {
                     // No agent/tech -> Attribute to Owner (Admin)
-                    const ownerId = currentUser.id;
+                    const ownerId = p.ownerId || 'unknown';
                     if (!partnerStats[ownerId]) {
                         partnerStats[ownerId] = {
                             id: ownerId,
-                            name: currentUser.fullName || currentUser.username || 'Owner',
+                            name: p.owner?.fullName || p.owner?.username || 'Unknown Owner',
                             role: 'admin',
                             paidCount: 0,
                             unpaidCount: 0,

@@ -25,9 +25,20 @@ export async function POST(request) {
         const body = await request.json();
         const { appName, logoUrl } = body;
 
+        // Fetch existing settings to preserve other fields like faviconUrl
+        const existingRecord = await db.systemSetting.findUnique({
+            where: { key: SETTINGS_KEY }
+        });
+
+        let currentSettings = {};
+        if (existingRecord) {
+            currentSettings = JSON.parse(existingRecord.value);
+        }
+
         const settings = {
-            appName: appName || 'Buroq Billing',
-            logoUrl: logoUrl || ''
+            ...currentSettings,
+            appName: appName || currentSettings.appName || 'Buroq Billing',
+            logoUrl: logoUrl || currentSettings.logoUrl || ''
         };
 
         await db.systemSetting.upsert({

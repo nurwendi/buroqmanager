@@ -19,7 +19,7 @@ async function getBillingSettings() {
         return {
             companyName: 'Mikrotik Manager',
             companyAddress: 'Jalan Raya Internet No. 1',
-            companyContact: '081234567890',
+            companyContact: '', // Default was phone, now empty as it's used for email
             invoiceFooter: 'Terima kasih atas kepercayaan Anda.',
             logoUrl: '',
             autoDropDate: 10, // Day of month to auto-drop unpaid users

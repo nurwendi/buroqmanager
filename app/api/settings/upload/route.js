@@ -21,29 +21,30 @@ export async function POST(request) {
 
         await writeFile(filePath, buffer);
 
-        // If logo, update system setting with the logo URL
-        if (type === 'logo') {
-            let settings = { appName: 'Mikrotik Manager', logoUrl: '' };
+        // Update system setting
+        let settings = { appName: 'Mikrotik Manager', logoUrl: '', faviconUrl: '' };
 
-            // Read existing settings
-            const record = await db.systemSetting.findUnique({
-                where: { key: SETTING_KEY }
-            });
+        // Read existing settings
+        const record = await db.systemSetting.findUnique({
+            where: { key: SETTING_KEY }
+        });
 
-            if (record) {
-                settings = JSON.parse(record.value);
-            }
-
-            // Update logoUrl with a cache-busting timestamp
-            settings.logoUrl = `/${filename}?t=${Date.now()}`;
-
-            // Save updated settings
-            await db.systemSetting.upsert({
-                where: { key: SETTING_KEY },
-                update: { value: JSON.stringify(settings) },
-                create: { key: SETTING_KEY, value: JSON.stringify(settings) }
-            });
+        if (record) {
+            settings = JSON.parse(record.value);
         }
+
+        if (type === 'logo') {
+            settings.logoUrl = `/${filename}?t=${Date.now()}`;
+        } else if (type === 'favicon') {
+            settings.faviconUrl = `/${filename}?t=${Date.now()}`;
+        }
+
+        // Save updated settings
+        await db.systemSetting.upsert({
+            where: { key: SETTING_KEY },
+            update: { value: JSON.stringify(settings) },
+            create: { key: SETTING_KEY, value: JSON.stringify(settings) }
+        });
 
         return NextResponse.json({ success: true, path: `/${filename}` });
     } catch (error) {

@@ -11,6 +11,16 @@ const outfit = Outfit({ subsets: ['latin'] });
 import db from '@/lib/db';
 
 export async function generateMetadata() {
+    if (process.env.BUILD_MODE === 'mobile') {
+        return {
+            title: {
+                default: 'Buroq Billing',
+                template: '%s | Buroq Billing',
+            },
+            description: 'Professional MikroTik PPPoE Management System (Mobile)',
+        };
+    }
+
     try {
         const setting = await db.systemSetting.findUnique({
             where: { key: 'app_settings' }
@@ -27,9 +37,9 @@ export async function generateMetadata() {
                 },
                 description: 'Professional MikroTik PPPoE Management System',
                 icons: {
-                    icon: data.logoUrl || '/favicon.ico', // Use uploaded logo/favicon
-                    shortcut: data.logoUrl || '/favicon.ico',
-                    apple: data.logoUrl || '/apple-touch-icon.png',
+                    icon: data.faviconUrl || '/favicon.ico',
+                    shortcut: data.faviconUrl || '/favicon.ico',
+                    apple: data.logoUrl || '/apple-touch-icon.png', // Keep logo for apple touch icon
                 },
             };
         }
@@ -38,8 +48,8 @@ export async function generateMetadata() {
     }
     return {
         title: {
-            default: 'Mikrotik Manager',
-            template: '%s | Mikrotik Manager',
+            default: 'Buroq Billing',
+            template: '%s | Buroq Billing',
         },
         description: 'Professional MikroTik PPPoE Management System',
     };

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 80",
     "build": "next build",
+    "build:mobile": "node scripts/build-mobile.js",
     "start": "next start -p 80",
     "lint": "next lint"
   },
@@ -16,6 +17,7 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@prisma/client": "^5.22.0",
     "@types/estree": "^1.0.8",
     "autoprefixer": "^10.4.22",
@@ -31,6 +33,7 @@
     "@capacitor/core": "^6.2.1",
     "@capacitor/device": "^6.0.3",
     "@capacitor/preferences": "^6.0.4",
+    "@capgo/capacitor-native-biometric": "^6.0.0",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",

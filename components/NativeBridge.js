@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { NativeBiometric } from '@capacitor-community/native-biometric';
+import { NativeBiometric } from '@capgo/capacitor-native-biometric';
 import { Device } from '@capacitor/device';
 import { toast } from 'sonner';
 

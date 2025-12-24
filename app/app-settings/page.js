@@ -507,16 +507,17 @@ export default function AppSettingsPage() {
                     </>)}
                     {activeTab === 'appearance' && !isRestricted && (<>
 
-                        {/* General Settings */}
                         <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
-                            <div className="flex items-center gap-3 mb-6">
-                                <Monitor className="text-blue-600 dark:text-blue-400" size={24} />
-                                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">General Application Settings</h2>
+                            <div className="flex items-center gap-3 mb-4">
+                                <ImageIcon className="text-blue-600 dark:text-blue-400" size={24} />
+                                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Appearance</h2>
                             </div>
 
-                            <form onSubmit={handleSaveAppearance} className="space-y-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Application Name</label>
+                            <form onSubmit={handleSaveAppearance}>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Application Name
+                                    </label>
                                     <input
                                         type="text"
                                         value={settings.appName}
@@ -526,55 +527,84 @@ export default function AppSettingsPage() {
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Logo Upload */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Application Logo</label>
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-600">
-                                                {settings.logoUrl ? (
-                                                    <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
-                                                ) : (
-                                                    <ImageIcon className="text-gray-400" size={24} />
-                                                )}
-                                            </div>
-                                            <div>
-                                                <label className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center gap-2">
-                                                    <Upload size={16} />
-                                                    Upload Logo
-                                                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'logo')} />
-                                                </label>
-                                                <p className="text-xs text-gray-500 mt-1">Recommended: 512x512 PNG</p>
-                                            </div>
-                                        </div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Upload Logo (PNG)
+                                        </label>
+                                        <input
+                                            type="file"
+                                            accept="image/png"
+                                            onChange={(e) => handleFileUpload(e, 'logo')}
+                                            className="block w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-blue-50 file:text-blue-700
+                                hover:file:bg-blue-100"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">Replaces the app logo. Recommended size: 512x512px.</p>
                                     </div>
 
-                                    {/* Favicon Upload */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Favicon</label>
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-600">
-                                                <Globe className="text-gray-400" size={24} />
-                                            </div>
-                                            <div>
-                                                <label className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center gap-2">
-                                                    <Upload size={16} />
-                                                    Upload Favicon
-                                                    <input type="file" className="hidden" accept="image/x-icon,image/png" onChange={(e) => handleFileUpload(e, 'favicon')} />
-                                                </label>
-                                                <p className="text-xs text-gray-500 mt-1">Recommended: 32x32 ICO/PNG</p>
-                                            </div>
-                                        </div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Upload Favicon (ICO)
+                                        </label>
+                                        <input
+                                            type="file"
+                                            accept=".ico"
+                                            onChange={(e) => handleFileUpload(e, 'favicon')}
+                                            className="block w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-blue-50 file:text-blue-700
+                                hover:file:bg-blue-100"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">Replaces the browser tab icon.</p>
                                     </div>
                                 </div>
+
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Or use Logo URL
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={settings.logoUrl}
+                                        onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                        placeholder="https://example.com/logo.png"
+                                    />
+                                </div>
+
+                                {settings.logoUrl && (
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Logo Preview
+                                        </label>
+                                        <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+                                            <img
+                                                src={settings.logoUrl}
+                                                alt="Logo preview"
+                                                className="h-12 object-contain"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    e.target.nextSibling.style.display = 'block';
+                                                }}
+                                            />
+                                            <p className="text-red-500 text-sm hidden">Failed to load image</p>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-70 transition-all shadow-md"
+                                    className="flex items-center gap-2 bg-accent text-white px-6 py-2 rounded-lg hover:opacity-90 disabled:bg-gray-400 transition-all"
                                 >
                                     <Save size={18} />
-                                    {loading ? 'Saving...' : 'Save General Settings'}
+                                    {loading ? 'Saving...' : 'Save Appearance'}
                                 </button>
                             </form>
                         </div>
@@ -980,112 +1010,7 @@ export default function AppSettingsPage() {
                         )
                     }
 
-                    {/* Appearance Settings */}
-                    {
-                        activeTab === 'appearance' && userRole !== 'viewer' && (
-                            <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <ImageIcon className="text-blue-600 dark:text-blue-400" size={24} />
-                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Appearance</h2>
-                                </div>
 
-                                <form onSubmit={handleSaveAppearance}>
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Application Name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={settings.appName}
-                                            onChange={(e) => setSettings({ ...settings, appName: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                            placeholder="Mikrotik Manager"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                Upload Logo (PNG)
-                                            </label>
-                                            <input
-                                                type="file"
-                                                accept="image/png"
-                                                onChange={(e) => handleFileUpload(e, 'logo')}
-                                                className="block w-full text-sm text-gray-500
-                                file:mr-4 file:py-2 file:px-4
-                                file:rounded-full file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-blue-50 file:text-blue-700
-                                hover:file:bg-blue-100"
-                                            />
-                                            <p className="text-xs text-gray-500 mt-1">Replaces the app logo. Recommended size: 512x512px.</p>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                Upload Favicon (ICO)
-                                            </label>
-                                            <input
-                                                type="file"
-                                                accept=".ico"
-                                                onChange={(e) => handleFileUpload(e, 'favicon')}
-                                                className="block w-full text-sm text-gray-500
-                                file:mr-4 file:py-2 file:px-4
-                                file:rounded-full file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-blue-50 file:text-blue-700
-                                hover:file:bg-blue-100"
-                                            />
-                                            <p className="text-xs text-gray-500 mt-1">Replaces the browser tab icon.</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Or use Logo URL
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={settings.logoUrl}
-                                            onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                            placeholder="https://example.com/logo.png"
-                                        />
-                                    </div>
-
-                                    {settings.logoUrl && (
-                                        <div className="mb-4">
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                Logo Preview
-                                            </label>
-                                            <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
-                                                <img
-                                                    src={settings.logoUrl}
-                                                    alt="Logo preview"
-                                                    className="h-12 object-contain"
-                                                    onError={(e) => {
-                                                        e.target.style.display = 'none';
-                                                        e.target.nextSibling.style.display = 'block';
-                                                    }}
-                                                />
-                                                <p className="text-red-500 text-sm hidden">Failed to load image</p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className="flex items-center gap-2 bg-accent text-white px-6 py-2 rounded-lg hover:opacity-90 disabled:bg-gray-400 transition-all"
-                                    >
-                                        <Save size={18} />
-                                        {loading ? 'Saving...' : 'Save Appearance'}
-                                    </button>
-                                </form>
-                            </div>
-                        )
-                    }
 
                     {/* Admin User Settings */}
                     {

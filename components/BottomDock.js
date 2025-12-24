@@ -16,6 +16,14 @@ export default function BottomDock() {
     const { t } = useLanguage();
     const [userRole, setUserRole] = useState(null);
     const [isLauncherOpen, setIsLauncherOpen] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        // Check if running in mobile app context
+        import('@/lib/isMobile').then(mod => {
+            setIsMobile(mod.isMobileApp());
+        });
+    }, []);
 
     useEffect(() => {
         fetch('/api/auth/me')
@@ -74,88 +82,92 @@ export default function BottomDock() {
                 </defs>
             </svg>
 
-            {/* Desktop Dock - Hidden on Mobile */}
-            <div className="hidden lg:flex fixed bottom-0 left-0 right-0 z-50 justify-center pb-4 print:hidden pointer-events-none">
-                {/* macOS-style Dock Container */}
-                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 px-4 py-3 pointer-events-auto">
-                    <div className="flex items-center gap-4">
-                        {navItems.map((item) => {
-                            const isActive = pathname === item.href;
-                            const Icon = item.icon;
-                            const HoverIcon = item.hoverIcon;
+            {/* Desktop Dock - Hidden on Mobile or Mobile App */}
+            {!isMobile && (
+                <div className="hidden lg:flex fixed bottom-0 left-0 right-0 z-50 justify-center pb-4 print:hidden pointer-events-none">
+                    {/* macOS-style Dock Container */}
+                    <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 px-4 py-3 pointer-events-auto">
+                        <div className="flex items-center gap-4">
+                            {navItems.map((item) => {
+                                const isActive = pathname === item.href;
+                                const Icon = item.icon;
+                                const HoverIcon = item.hoverIcon;
 
-                            return (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2"
-                                >
-                                    {/* Icon Container */}
-                                    <div className={`
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2"
+                                    >
+                                        {/* Icon Container */}
+                                        <div className={`
                                         relative flex flex-col items-center justify-center
                                         w-14 h-14 rounded-xl
                                         transition-all duration-300
                                         ${isActive
-                                            ? 'bg-accent shadow-lg shadow-accent/50'
-                                            : 'bg-gray-100 dark:bg-gray-800'
-                                        }
+                                                ? 'bg-accent shadow-lg shadow-accent/50'
+                                                : 'bg-gray-100 dark:bg-gray-800'
+                                            }
                                     `}>
-                                        <Icon
-                                            size={24}
-                                            className={`
+                                            <Icon
+                                                size={24}
+                                                className={`
                                                 transition-all duration-300
                                                 ${isActive
-                                                    ? 'text-white'
-                                                    : 'text-gray-600 dark:text-gray-300'
-                                                }
+                                                        ? 'text-white'
+                                                        : 'text-gray-600 dark:text-gray-300'
+                                                    }
                                             `}
-                                        />
-                                    </div>
+                                            />
+                                        </div>
 
-                                    {/* Label - hidden by default, shows on hover above icon */}
-                                    <span className={`
+                                        {/* Label - hidden by default, shows on hover above icon */}
+                                        <span className={`
                                         absolute -top-8 text-[10px] font-medium whitespace-nowrap px-2 py-1 rounded-md
                                         transition-all duration-300
                                         ${isActive
-                                            ? 'opacity-0 group-hover:opacity-100 text-accent dark:text-blue-400 bg-blue-50 dark:bg-gray-800'
-                                            : 'opacity-0 group-hover:opacity-100 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 shadow-lg'
-                                        }
+                                                ? 'opacity-0 group-hover:opacity-100 text-accent dark:text-blue-400 bg-blue-50 dark:bg-gray-800'
+                                                : 'opacity-0 group-hover:opacity-100 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 shadow-lg'
+                                            }
                                     `}>
-                                        {item.label}
-                                    </span>
+                                            {item.label}
+                                        </span>
 
-                                    {/* Hover glow effect */}
-                                    <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-accent/20 blur-xl" />
-                                </Link>
-                            );
-                        })}
+                                        {/* Hover glow effect */}
+                                        <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-accent/20 blur-xl" />
+                                    </Link>
+                                );
+                            })}
 
-                        {/* Separator */}
-                        <div className="w-px h-12 bg-gray-300 dark:bg-gray-600 mx-2" />
+                            {/* Separator */}
+                            <div className="w-px h-12 bg-gray-300 dark:bg-gray-600 mx-2" />
 
-                        {/* Logout Button */}
-                        <button
-                            onClick={handleLogout}
-                            className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2"
-                        >
-                            <div className="relative flex flex-col items-center justify-center w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 group-hover:bg-white dark:group-hover:bg-gray-800 group-hover:text-red-500 group-hover:shadow-lg group-hover:shadow-red-400/20 transition-all duration-300">
-                                <LogOut
-                                    size={24}
-                                    className="text-gray-600 dark:text-gray-300 group-hover:text-red-500 transition-colors duration-300"
-                                />
-                            </div>
-                            <span className="absolute -top-8 text-[10px] font-medium whitespace-nowrap px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 shadow-lg transition-all duration-300">
-                                Logout
-                            </span>
-                            {/* Hover glow effect */}
-                            <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-red-400/10 blur-xl" />
-                        </button>
+                            {/* Logout Button */}
+                            <button
+                                onClick={handleLogout}
+                                className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2"
+                            >
+                                <div className="relative flex flex-col items-center justify-center w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 group-hover:bg-white dark:group-hover:bg-gray-800 group-hover:text-red-500 group-hover:shadow-lg group-hover:shadow-red-400/20 transition-all duration-300">
+                                    <LogOut
+                                        size={24}
+                                        className="text-gray-600 dark:text-gray-300 group-hover:text-red-500 transition-colors duration-300"
+                                    />
+                                </div>
+                                <span className="absolute -top-8 text-[10px] font-medium whitespace-nowrap px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 shadow-lg transition-all duration-300">
+                                    Logout
+                                </span>
+                                {/* Hover glow effect */}
+                                {/* Hover glow effect */}
+                                <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-red-400/10 blur-xl" />
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
-            {/* Mobile Bottom Navigation - Visible on Mobile Only */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[102] print:hidden">
+
+            {/* Mobile Bottom Navigation - Visible on Mobile Only OR Mobile App Mode */}
+            <div className={`${!isMobile ? 'lg:hidden' : ''} fixed bottom-0 left-0 right-0 z-[102] print:hidden`}>
                 <div className="relative">
                     {/* Bottom Bar */}
                     <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl border-t border-white/20 dark:border-white/10 shadow-2xl">
