@@ -10,10 +10,27 @@ export async function GET(request) {
 
     // Fetch fresh user data from DB to ensure latest name/role
     const db = (await import('@/lib/db')).default;
-    const freshUser = await db.user.findUnique({
-        where: { id: user.id },
-        select: { id: true, username: true, fullName: true, role: true, ownerId: true }
-    });
+    let freshUser = null;
+
+    if (user.role === 'customer') {
+        const customer = await db.customer.findUnique({
+            where: { id: user.id }
+        });
+        if (customer) {
+            freshUser = {
+                id: customer.id,
+                username: customer.customerId, // Use customerId as username
+                fullName: customer.name,
+                role: 'customer',
+                ownerId: customer.ownerId
+            };
+        }
+    } else {
+        freshUser = await db.user.findUnique({
+            where: { id: user.id },
+            select: { id: true, username: true, fullName: true, role: true, ownerId: true }
+        });
+    }
 
     if (!freshUser) return unauthorizedResponse();
 

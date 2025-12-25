@@ -204,7 +204,7 @@ export default function DashboardContent() {
     };
 
 
-    if (loading) {
+    if (loading || userRole === null) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="text-gray-600 dark:text-gray-300">{t('common.loading')}</div>
