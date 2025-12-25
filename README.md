@@ -118,5 +118,21 @@ npm start
   node prisma/seed.js
   ```
 
-**Error: `EACCES: permission denied`**
 - Do not run `npm` commands as the `postgres` user. Type `exit` to return to your root/regular user.
+
+## 🔄 Updating Server Application
+
+To force update the server with the latest changes from GitHub (Hard Reset):
+
+```bash
+cd /opt/billing
+git fetch --all
+git reset --hard origin/master
+npm install
+npx prisma generate
+npx prisma db push
+npm run build
+pm2 restart billing
+```
+> **Warning**: This command (`git reset --hard`) will overwrite any local changes made directly on the server.
+
