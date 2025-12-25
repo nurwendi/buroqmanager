@@ -171,6 +171,9 @@ export default function ActiveConnectionsPage() {
                             <thead className="bg-black/5 dark:bg-white/5">
 
                                 <tr>
+                                    <th className="md:hidden px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Manage
+                                    </th>
                                     <th
                                         className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
 
@@ -238,6 +241,18 @@ export default function ActiveConnectionsPage() {
                                         )
                                         .map((conn, index) => (
                                             <tr key={index} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                                                <td className="md:hidden px-3 py-4 whitespace-nowrap">
+                                                    {conn.address && (
+                                                        <a
+                                                            href={`http://${conn.address}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                        >
+                                                            <ExternalLink size={14} />
+                                                        </a>
+                                                    )}
+                                                </td>
                                                 <td className="px-3 md:px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">
                                                     {conn.name || 'N/A'}
                                                 </td>
@@ -263,7 +278,9 @@ export default function ActiveConnectionsPage() {
                                                             href={`http://${conn.address}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-2"
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="hidden md:inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-2"
                                                         >
                                                             <ExternalLink size={14} className="mr-0 md:mr-1" />
                                                             <span className="hidden md:inline">Manage</span>

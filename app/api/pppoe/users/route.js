@@ -9,6 +9,7 @@ export async function GET(request) {
     try {
         const user = await getUserFromRequest(request);
         const config = await getConfig();
+
         const connectionId = getUserConnectionId(user, config);
 
         // Fallback: If no connection ID for staff/user, try owner's connection
