@@ -12,6 +12,7 @@ import StaffBillingPage from '@/app/billing/staff/page';
 import FinancialStats from './FinancialStats';
 import PppoeStats from './PppoeStats';
 import SuperadminStats from './SuperadminStats';
+import PendingRegistrationStats from './PendingRegistrationStats';
 
 
 
@@ -42,7 +43,8 @@ export default function DashboardContent() {
             totalUnpaid: 0,
             pendingCount: 0
         },
-        agentStats: null
+        agentStats: null,
+        pendingRegistrations: 0
     });
     const [userRole, setUserRole] = useState(null);
     const [username, setUsername] = useState('');
@@ -62,12 +64,13 @@ export default function DashboardContent() {
 
     const fetchStats = useCallback(async () => {
         try {
-            // 1. Fetch Fast/Local Data (Billing, Agents) - Unblock UI ASAP
+            // 1. Fetch Fast/Local Data (Billing, Agents, Registrations) - Unblock UI ASAP
             const fetchLocalData = async () => {
                 try {
-                    const [billingRes, agentStatsRes] = await Promise.all([
+                    const [billingRes, agentStatsRes, regsRes] = await Promise.all([
                         fetch('/api/billing/stats'),
-                        fetch(`/api/billing/stats/agent?month=${new Date().getMonth()}&year=${new Date().getFullYear()}`)
+                        fetch(`/api/billing/stats/agent?month=${new Date().getMonth()}&year=${new Date().getFullYear()}`),
+                        fetch('/api/registrations')
                     ]);
 
                     const newStats = {};
@@ -82,6 +85,12 @@ export default function DashboardContent() {
                         if (data.role === 'staff') {
                             newStats.agentStats = data.stats;
                         }
+                    }
+
+                    if (regsRes.ok) {
+                        const data = await regsRes.json();
+                        // Assuming the API returns an array of pending registrations
+                        newStats.pendingRegistrations = Array.isArray(data) ? data.length : 0;
                     }
 
                     setStats(prev => ({ ...prev, ...newStats }));
@@ -276,6 +285,8 @@ export default function DashboardContent() {
                         {visibleWidgets.financial && userRole !== 'staff' && (
                             <FinancialStats key="financial" stats={stats} formatCurrency={formatCurrency} />
                         )}
+
+                        <PendingRegistrationStats key="pending" stats={stats} />
 
                         {visibleWidgets.pppoe && (
                             <PppoeStats key="pppoe" stats={stats} />

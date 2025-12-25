@@ -27,7 +27,7 @@ export default function UsersPage() {
     const [formData, setFormData] = useState({
         name: '',
         password: '',
-        profile: 'default',
+        profile: '', // Enforce selection
         service: 'pppoe',
         customerId: '',
         customerName: '',
@@ -321,6 +321,22 @@ export default function UsersPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validation for new registration or edit
+        const missingFields = [];
+        if (!formData.name) missingFields.push("Username");
+        if (!editMode && !formData.password) missingFields.push("Password");
+        if (!formData.profile || formData.profile === '' || formData.profile === 'default') missingFields.push("Profile");
+        if (!formData.customerName) missingFields.push("Nama Customer");
+        if (!formData.customerAddress) missingFields.push("Alamat");
+        if (!formData.agentId) missingFields.push("Agent");
+        if (!formData.technicianId) missingFields.push("Teknisi");
+
+        if (missingFields.length > 0) {
+            alert(`Mohon lengkapi data wajib berikut:\n- ${missingFields.join('\n- ')}`);
+            return;
+        }
+
 
         // Staff/Editor Edit Request (Downgrade Editor to Request flow for active users)
         if ((userRole === 'staff' || userRole === 'editor') && editMode) {
@@ -1065,7 +1081,7 @@ export default function UsersPage() {
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username <span className="text-red-500">*</span></label>
                                             <input
                                                 type="text"
                                                 required
@@ -1076,7 +1092,7 @@ export default function UsersPage() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password <span className="text-red-500">*</span></label>
                                             <input
                                                 type="password"
                                                 required={!editMode}
@@ -1087,12 +1103,14 @@ export default function UsersPage() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Profile</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Profile <span className="text-red-500">*</span></label>
                                             <select
+                                                required
                                                 value={formData.profile}
                                                 onChange={(e) => setFormData({ ...formData, profile: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                             >
+                                                <option value="" disabled>-- Select Profile --</option>
                                                 <option value="default">Default</option>
                                                 {profiles.map(profile => (
                                                     <option key={profile['.id']} value={profile.name}>{profile.name}</option>
@@ -1161,10 +1179,11 @@ export default function UsersPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                                <Building size={16} /> Customer Name
+                                                <Building size={16} /> Customer Name <span className="text-red-500">*</span>
                                             </label>
                                             <input
                                                 type="text"
+                                                required
                                                 value={formData.customerName}
                                                 onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
@@ -1210,9 +1229,10 @@ export default function UsersPage() {
                                         </div>
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                                <MapPin size={16} /> Address
+                                                <MapPin size={16} /> Address <span className="text-red-500">*</span>
                                             </label>
                                             <textarea
+                                                required
                                                 value={formData.customerAddress}
                                                 onChange={(e) => setFormData({ ...formData, customerAddress: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
@@ -1226,8 +1246,9 @@ export default function UsersPage() {
                                 {/* Agent and Technician Selection */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Agent</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Agent <span className="text-red-500">*</span></label>
                                         <select
+                                            required
                                             value={formData.agentId}
                                             onChange={(e) => setFormData({ ...formData, agentId: e.target.value })}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -1239,8 +1260,9 @@ export default function UsersPage() {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Technician</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Technician <span className="text-red-500">*</span></label>
                                         <select
+                                            required
                                             value={formData.technicianId}
                                             onChange={(e) => setFormData({ ...formData, technicianId: e.target.value })}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
