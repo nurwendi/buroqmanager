@@ -85,6 +85,13 @@ export async function POST(request) {
                 // Creating Admin or Superadmin
                 body.ownerId = currentUser.id;
 
+                // Allow Superadmin to set OLT Access for Admins
+                if (body.role === 'admin' && typeof body.oltAccess !== 'undefined') {
+                    // body.oltAccess is already in body
+                } else if (body.role === 'admin') {
+                    body.oltAccess = false; // Default
+                }
+
                 // Generate Numeric Admin ID (agentNumber) if not provided
                 if (body.role === 'admin' && !body.agentNumber) {
                     const db = (await import('@/lib/db')).default;

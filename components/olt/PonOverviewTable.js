@@ -4,17 +4,22 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
+import { useOlt } from '@/contexts/OltContext';
+
 export default function PonOverviewTable() {
+    const { selectedOltId } = useOlt();
     const [stats, setStats] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/olt/stats')
+        if (!selectedOltId) return;
+        setLoading(true);
+        fetch(`/api/olt/stats?oltId=${selectedOltId}`)
             .then(res => res.json())
             .then(data => setStats(data))
             .catch(err => console.error(err))
             .finally(() => setLoading(false));
-    }, []);
+    }, [selectedOltId]);
 
     if (loading) return <Skeleton className="h-40 w-full" />;
 

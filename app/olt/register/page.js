@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { Search, Loader2, Plus, Wifi } from 'lucide-react';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useOlt } from '@/contexts/OltContext';
 
 export default function RegisterOnuPage() {
     const { t } = useLanguage();
+    const { selectedOltId } = useOlt();
     const [uncfg, setUncfg] = useState([]);
     const [loading, setLoading] = useState(false);
     const [scanning, setScanning] = useState(false);
@@ -33,9 +35,10 @@ export default function RegisterOnuPage() {
     const [addingProfile, setAddingProfile] = useState(false);
 
     const scanUnconfigured = async () => {
+        if (!selectedOltId) return toast.error("No OLT Selected");
         setScanning(true);
         try {
-            const res = await fetch('/api/olt/uncfg');
+            const res = await fetch(`/api/olt/uncfg?oltId=${selectedOltId}`);
             const data = await res.json();
             if (Array.isArray(data)) {
                 setUncfg(data);
@@ -113,9 +116,9 @@ export default function RegisterOnuPage() {
         setRegistering(true);
         try {
             const payload = {
-                slotPort: selectedOnu.slotPort,
                 onuId: selectedOnu.onuId,
                 sn: selectedOnu.sn,
+                oltId: selectedOltId,
                 ...formData
             };
 

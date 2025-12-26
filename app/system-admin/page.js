@@ -20,7 +20,10 @@ export default function SystemAdminPage() {
         fullName: '',
         phone: '',
         address: '',
-        agentNumber: '' // Auto-generated usually, but editable?
+        phone: '',
+        address: '',
+        agentNumber: '', // Auto-generated usually, but editable?
+        oltAccess: false
     });
     const [error, setError] = useState('');
 
@@ -91,7 +94,10 @@ export default function SystemAdminPage() {
             fullName: user.fullName || '',
             phone: user.phone || '',
             address: user.address || '',
-            agentNumber: user.agentNumber || ''
+            phone: user.phone || '',
+            address: user.address || '',
+            agentNumber: user.agentNumber || '',
+            oltAccess: user.oltAccess || false
         });
         setEditMode(true);
         setShowModal(true);
@@ -131,7 +137,10 @@ export default function SystemAdminPage() {
             fullName: '',
             phone: '',
             address: '',
-            agentNumber: ''
+            phone: '',
+            address: '',
+            agentNumber: '',
+            oltAccess: false
         });
         setEditMode(false);
         setSelectedUser(null);
@@ -299,6 +308,19 @@ export default function SystemAdminPage() {
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                         className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                                     />
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="checkbox"
+                                        id="oltAccess"
+                                        checked={formData.oltAccess}
+                                        onChange={(e) => setFormData({ ...formData, oltAccess: e.target.checked })}
+                                        className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
+                                    />
+                                    <label htmlFor="oltAccess" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Enable OLT Access
+                                    </label>
                                 </div>
 
                                 <div className="pt-4 flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700">

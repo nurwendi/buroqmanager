@@ -1,22 +1,24 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
-export async function GET() {
+export async function GET(request) {
     try {
-        const setting = await db.systemSetting.findUnique({
-            where: { key: 'olt_config' }
+        const user = await getUserFromRequest(request);
+        if (!user) return unauthorizedResponse();
+
+        const olts = await db.oltConfig.findMany({
+            where: { ownerId: user.id },
+            orderBy: { createdAt: 'asc' }
         });
 
-        if (!setting) {
-            return NextResponse.json({});
-        }
+        // Mask passwords
+        const safeOlts = olts.map(olt => ({
+            ...olt,
+            password: olt.password ? '********' : ''
+        }));
 
-        const config = JSON.parse(setting.value);
-        // Mask password for security
-        return NextResponse.json({
-            ...config,
-            password: config.password ? '********' : ''
-        });
+        return NextResponse.json(safeOlts);
     } catch (error) {
         console.error("Get OLT Settings Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -25,32 +27,30 @@ export async function GET() {
 
 export async function POST(req) {
     try {
+        const user = await getUserFromRequest(req);
+        if (!user) return unauthorizedResponse();
+
         const body = await req.json();
-        const { host, port, username, password } = body;
+        const { name, host, port, username, password } = body;
 
-        // Fetch existing to handle partial updates or password retention if empty
-        const existing = await db.systemSetting.findUnique({
-            where: { key: 'olt_config' }
-        });
-
-        let newConfig = { host, port, username };
-
-        if (password && password !== '********') {
-            newConfig.password = password;
-        } else if (existing) {
-            const oldConfig = JSON.parse(existing.value);
-            newConfig.password = oldConfig.password;
+        if (!host || !username || !password) {
+            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        await db.systemSetting.upsert({
-            where: { key: 'olt_config' },
-            update: { value: JSON.stringify(newConfig) },
-            create: { key: 'olt_config', value: JSON.stringify(newConfig) }
+        const newOlt = await db.oltConfig.create({
+            data: {
+                ownerId: user.id,
+                name: name || host,
+                host,
+                port: parseInt(port || 23),
+                username,
+                password
+            }
         });
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json(newOlt);
     } catch (error) {
-        console.error("Save OLT Settings Error:", error);
+        console.error("Create OLT Error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

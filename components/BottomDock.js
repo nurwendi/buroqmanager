@@ -15,6 +15,7 @@ export default function BottomDock() {
     const router = useRouter();
     const { t } = useLanguage();
     const [userRole, setUserRole] = useState(null);
+    const [userData, setUserData] = useState(null);
     const [isLauncherOpen, setIsLauncherOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
 
@@ -31,8 +32,14 @@ export default function BottomDock() {
                 if (res.ok) return res.json();
                 throw new Error('Failed to fetch user');
             })
-            .then(data => setUserRole(data.user.role))
-            .catch(() => setUserRole(null));
+            .then(data => {
+                setUserRole(data.user.role);
+                setUserData(data.user);
+            })
+            .catch(() => {
+                setUserRole(null);
+                setUserData(null);
+            });
     }, []);
 
     const handleLogout = async () => {
@@ -52,7 +59,18 @@ export default function BottomDock() {
         { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
-    ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
+    ].filter(item => {
+        if (item.href === '/olt') {
+            // OLT Check: Admin/Manager needs oltAccess. Superadmin always has access (or logic elsewhere).
+            // Actually superadmin role check on item is sufficient? 
+            // Wait, roles: ['admin', 'manager']. Superadmin is NOT in roles list for OLT?
+            // If Superadmin should see OLT, add 'superadmin' to roles.
+            // If Admin needs explicit access:
+            if (userRole === 'superadmin') return true;
+            if (!userData?.oltAccess) return false;
+        }
+        return !item.roles || (userRole && item.roles.includes(userRole));
+    });
 
     // Mobile/Launcher Navigation Items (Original Full List)
     const mobileLauncherItems = [
@@ -70,7 +88,13 @@ export default function BottomDock() {
         { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
-    ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
+    ].filter(item => {
+        if (item.href === '/olt') {
+            if (userRole === 'superadmin') return true;
+            if (!userData?.oltAccess) return false;
+        }
+        return !item.roles || (userRole && item.roles.includes(userRole));
+    });
 
     // Select which list to use based on context
     const dockedNavItems = desktopNavItems;

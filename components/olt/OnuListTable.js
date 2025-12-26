@@ -6,15 +6,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Search, RotateCcw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useOlt } from '@/contexts/OltContext';
+
 export default function OnuListTable() {
+    const { selectedOltId } = useOlt();
     const [onus, setOnus] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [deleting, setDeleting] = useState(null);
 
     const fetchData = () => {
+        if (!selectedOltId) return;
         setLoading(true);
-        fetch('/api/olt/onus')
+        fetch(`/api/olt/onus?oltId=${selectedOltId}`)
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) {
@@ -35,7 +39,7 @@ export default function OnuListTable() {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [selectedOltId]);
 
     const handleDelete = async (slotPort, onuId) => {
         if (!confirm(`Are you sure you want to delete ONU ${slotPort}:${onuId}? This action cannot be undone.`)) {
@@ -48,7 +52,7 @@ export default function OnuListTable() {
             const res = await fetch('/api/olt/onus', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ slotPort, onuId })
+                body: JSON.stringify({ slotPort, onuId, oltId: selectedOltId })
             });
 
             const data = await res.json();

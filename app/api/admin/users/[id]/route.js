@@ -21,6 +21,13 @@ export async function PUT(request, { params }) {
             }
         }
 
+        // Restrict changing oltAccess to Superadmin
+        if (typeof body.oltAccess !== 'undefined') {
+            if (currentUser.role !== 'superadmin') {
+                delete body.oltAccess; // Ignore attempts by non-superadmins
+            }
+        }
+
         const updatedUser = await updateUser(id, body);
         return NextResponse.json(updatedUser);
     } catch (error) {
