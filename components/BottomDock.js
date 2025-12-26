@@ -130,7 +130,7 @@ export default function BottomDock() {
                 <div className="hidden lg:flex fixed bottom-0 left-0 right-0 z-50 justify-center pb-4 print:hidden pointer-events-none">
                     {/* macOS-style Dock Container */}
                     <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 px-4 py-3 pointer-events-auto">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-12">
                             {dockedNavItems.map((item) => {
                                 const isActive = pathname === item.href || (item.label === 'PPPoE' && ['/users', '/active', '/offline', '/profiles', '/notifications'].some(path => pathname.startsWith(path)));
                                 const Icon = item.icon;
@@ -140,7 +140,7 @@ export default function BottomDock() {
                                     <Link
                                         key={item.href}
                                         href={item.href}
-                                        className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2"
+                                        className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-14"
                                     >
                                         {/* Icon Container */}
                                         <div className={`
@@ -158,7 +158,7 @@ export default function BottomDock() {
                                                 transition-all duration-300
                                                 ${isActive
                                                         ? 'text-white'
-                                                        : 'text-gray-600 dark:text-gray-300'
+                                                        : 'text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)]'
                                                     }
                                             `}
                                             />
@@ -166,7 +166,7 @@ export default function BottomDock() {
 
                                         {/* Label - visible below icon */}
                                         <span className={`
-                                        text-[11px] font-medium mt-1 whitespace-nowrap px-2 rounded-md
+                                        text-[11px] font-medium mt-2 whitespace-nowrap px-2 rounded-md
                                         transition-all duration-300
                                         ${isActive
                                                 ? 'text-accent dark:text-blue-400'
@@ -188,15 +188,15 @@ export default function BottomDock() {
                             {/* Logout Button */}
                             <button
                                 onClick={handleLogout}
-                                className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2"
+                                className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-14"
                             >
                                 <div className="relative flex flex-col items-center justify-center w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 group-hover:bg-white dark:group-hover:bg-gray-800 group-hover:text-red-500 group-hover:shadow-lg group-hover:shadow-red-400/20 transition-all duration-300">
                                     <LogOut
                                         size={24}
-                                        className="text-gray-600 dark:text-gray-300 group-hover:text-red-500 transition-colors duration-300"
+                                        className="text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)] transition-colors duration-300"
                                     />
                                 </div>
-                                <span className="absolute -top-8 text-[10px] font-medium whitespace-nowrap px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 shadow-lg transition-all duration-300">
+                                <span className="text-[10px] font-medium mt-2 whitespace-nowrap px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 shadow-lg transition-all duration-300">
                                     Logout
                                 </span>
                                 {/* Hover glow effect */}

@@ -2,7 +2,7 @@
 
 import OltInfoCard from '@/components/olt/OltInfoCard';
 import OnuStatsCard from '@/components/olt/OnuStatsCard';
-import OltConfigForm from '@/components/olt/OltConfigForm';
+
 
 export default function OltDashboard() {
     return (
@@ -12,7 +12,6 @@ export default function OltDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="space-y-6 lg:col-span-1">
                     <OltInfoCard />
-                    <OltConfigForm />
                 </div>
                 <div className="lg:col-span-2">
                     <OnuStatsCard />
