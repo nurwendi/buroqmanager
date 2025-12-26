@@ -66,7 +66,7 @@ export default function BottomDock() {
             // Wait, roles: ['admin', 'manager']. Superadmin is NOT in roles list for OLT?
             // If Superadmin should see OLT, add 'superadmin' to roles.
             // If Admin needs explicit access:
-            if (userRole === 'superadmin') return true;
+
             if (!userData?.oltAccess) return false;
         }
         return !item.roles || (userRole && item.roles.includes(userRole));
@@ -90,7 +90,7 @@ export default function BottomDock() {
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
     ].filter(item => {
         if (item.href === '/olt') {
-            if (userRole === 'superadmin') return true;
+
             if (!userData?.oltAccess) return false;
         }
         return !item.roles || (userRole && item.roles.includes(userRole));

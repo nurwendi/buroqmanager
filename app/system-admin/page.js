@@ -129,6 +129,31 @@ export default function SystemAdminPage() {
         }
     };
 
+    const handleToggleOlt = async (admin) => {
+        const newValue = !admin.oltAccess;
+        // Optimistic update
+        setAdmins(prev => prev.map(a => a.id === admin.id ? { ...a, oltAccess: newValue } : a));
+
+        try {
+            const res = await fetch(`/api/admin/users/${admin.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ oltAccess: newValue })
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to update');
+            }
+            // Optional: Fetch fresh data to confirm
+            // fetchAdmins(); 
+        } catch (error) {
+            console.error(error);
+            // Revert on error
+            setAdmins(prev => prev.map(a => a.id === admin.id ? { ...a, oltAccess: !newValue } : a));
+            alert("Failed to update OLT Access");
+        }
+    };
+
     const resetForm = () => {
         setFormData({
             username: '',
@@ -172,6 +197,7 @@ export default function SystemAdminPage() {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Owner Detail</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Agent ID</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Contact</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">OLT Access</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created At</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                         </tr>
@@ -204,6 +230,25 @@ export default function SystemAdminPage() {
                                         <div className="flex flex-col">
                                             <span>{admin.phone || '-'}</span>
                                             <span className="text-xs truncate max-w-[150px]">{admin.address}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                                        <button
+                                            onClick={() => handleToggleOlt(admin)}
+                                            className={`
+                                                relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                                                ${admin.oltAccess ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}
+                                            `}
+                                        >
+                                            <span
+                                                className={`
+                                                    inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+                                                    ${admin.oltAccess ? 'translate-x-6' : 'translate-x-1'}
+                                                `}
+                                            />
+                                        </button>
+                                        <div className="text-[10px] text-gray-400 mt-1">
+                                            {admin.oltAccess ? 'Enabled' : 'Disabled'}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
