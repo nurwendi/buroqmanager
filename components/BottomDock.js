@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
     Home, Users, Settings, Server, Activity, LogOut, Network, CreditCard, WifiOff, Database, Menu, X, Palette, Bell, Wallet,
-    LayoutGrid, UserCheck, Zap, Wifi, Route, ShieldCheck, HardDrive, Save, SlidersHorizontal, MessageSquare, Shield, FileText, FileCheck, UserCog
+    LayoutGrid, UserCheck, Zap, Wifi, Route, ShieldCheck, HardDrive, Save, SlidersHorizontal, MessageSquare, Shield, FileText, FileCheck, UserCog, Router
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -40,31 +40,50 @@ export default function BottomDock() {
         router.push('/login');
     };
 
-    // All navigation items
-    const navItems = [
+    // Desktop Navigation Items (Grouped)
+    const desktopNavItems = [
         { href: '/', icon: Home, hoverIcon: LayoutGrid, label: t('sidebar.dashboard'), roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/billing', icon: CreditCard, hoverIcon: Wallet, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/users', icon: Users, hoverIcon: UserCheck, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/active', icon: Activity, hoverIcon: Zap, label: t('sidebar.activeConnections'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/notifications', icon: Bell, hoverIcon: MessageSquare, label: t('sidebar.notifications'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/offline', icon: WifiOff, hoverIcon: Wifi, label: 'Offline', roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/profiles', icon: Network, hoverIcon: Route, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
+        { href: '/users', icon: Network, hoverIcon: Route, label: t('sidebar.pppoe'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] }, // Groups Users, Active, Offline, Profiles, Notifications
         { href: '/system-users', icon: UserCog, hoverIcon: ShieldCheck, label: t('sidebar.systemUsers'), roles: ['admin'] },
-        { href: '/system-admin', icon: Shield, hoverIcon: UserCheck, label: 'Owners', roles: ['superadmin'] },
-        { href: '/routers', icon: Server, hoverIcon: HardDrive, label: 'Routers', roles: ['admin', 'manager'] },
-        { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin', 'admin', 'manager'] },
-        { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: 'Invoice Settings', roles: ['superadmin'] },
+        { href: '/system-admin', icon: Shield, hoverIcon: UserCheck, label: t('sidebar.owners'), roles: ['superadmin'] },
+        { href: '/routers', icon: Server, hoverIcon: HardDrive, label: t('sidebar.routers'), roles: ['admin', 'manager'] },
+        { href: '/olt', icon: Router, hoverIcon: Activity, label: t('sidebar.oltManagement'), roles: ['admin', 'manager'] },
+        { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin'] },
+        { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
+
+    // Mobile/Launcher Navigation Items (Original Full List)
+    const mobileLauncherItems = [
+        { href: '/', icon: Home, label: t('sidebar.dashboard'), roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/billing', icon: CreditCard, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/active', icon: Activity, label: t('sidebar.activeConnections'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/notifications', icon: Bell, label: t('sidebar.notifications'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/offline', icon: WifiOff, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/profiles', icon: Network, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
+        { href: '/system-users', icon: UserCog, label: t('sidebar.systemUsers'), roles: ['admin'] },
+        { href: '/system-admin', icon: Shield, label: t('sidebar.owners'), roles: ['superadmin'] },
+        { href: '/routers', icon: Server, label: t('sidebar.routers'), roles: ['admin', 'manager'] },
+        { href: '/olt', icon: Router, label: t('sidebar.oltManagement'), roles: ['admin', 'manager'] },
+        { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['superadmin'] },
+        { href: '/invoice-settings', icon: FileText, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
+        { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
+    ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
+
+    // Select which list to use based on context
+    const dockedNavItems = desktopNavItems;
+    const launcherNavItems = mobileLauncherItems;
 
     // Mobile navigation items (Dynamic based on role)
     const mobileNavItems = userRole === 'superadmin' ? [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
-        { href: '/system-admin', icon: Shield, label: 'Owners' },
+        { href: '/system-admin', icon: Shield, label: t('sidebar.owners') },
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings') },
     ] : [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
-        { href: '/active', icon: Activity, label: 'Active' },
+        { href: '/active', icon: Activity, label: t('sidebar.activeConnections') },
         { href: '/billing', icon: CreditCard, label: t('sidebar.billing') },
     ];
 
@@ -88,8 +107,8 @@ export default function BottomDock() {
                     {/* macOS-style Dock Container */}
                     <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 px-4 py-3 pointer-events-auto">
                         <div className="flex items-center gap-4">
-                            {navItems.map((item) => {
-                                const isActive = pathname === item.href;
+                            {dockedNavItems.map((item) => {
+                                const isActive = pathname === item.href || (item.label === 'PPPoE' && ['/users', '/active', '/offline', '/profiles', '/notifications'].some(path => pathname.startsWith(path)));
                                 const Icon = item.icon;
                                 const HoverIcon = item.hoverIcon;
 
@@ -121,13 +140,13 @@ export default function BottomDock() {
                                             />
                                         </div>
 
-                                        {/* Label - hidden by default, shows on hover above icon */}
+                                        {/* Label - visible below icon */}
                                         <span className={`
-                                        absolute -top-8 text-[10px] font-medium whitespace-nowrap px-2 py-1 rounded-md
+                                        text-[11px] font-medium mt-1 whitespace-nowrap px-2 rounded-md
                                         transition-all duration-300
                                         ${isActive
-                                                ? 'opacity-0 group-hover:opacity-100 text-accent dark:text-blue-400 bg-blue-50 dark:bg-gray-800'
-                                                : 'opacity-0 group-hover:opacity-100 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 shadow-lg'
+                                                ? 'text-accent dark:text-blue-400'
+                                                : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200'
                                             }
                                     `}>
                                             {item.label}
@@ -156,7 +175,6 @@ export default function BottomDock() {
                                 <span className="absolute -top-8 text-[10px] font-medium whitespace-nowrap px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 shadow-lg transition-all duration-300">
                                     Logout
                                 </span>
-                                {/* Hover glow effect */}
                                 {/* Hover glow effect */}
                                 <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-red-400/10 blur-xl" />
                             </button>
@@ -304,7 +322,7 @@ export default function BottomDock() {
             <AppLauncher
                 isOpen={isLauncherOpen}
                 onClose={() => setIsLauncherOpen(false)}
-                navItems={navItems}
+                navItems={launcherNavItems} // Use launcherNavItems here
                 currentPath={pathname}
             />
         </>
