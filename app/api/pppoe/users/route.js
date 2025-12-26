@@ -111,8 +111,15 @@ export async function GET(request) {
         const allUsageData = await getAllMonthlyUsage();
         const currentMonth = new Date().toISOString().slice(0, 7);
 
+        // Create a lowercase map for fallback
+        const usageMapLowerCase = {};
+        Object.keys(allUsageData).forEach(key => {
+            usageMapLowerCase[key.toLowerCase()] = allUsageData[key];
+        });
+
         const usersWithUsage = users.map(u => {
-            const userData = allUsageData[u.name];
+            // Try exact match first, then case-insensitive
+            const userData = allUsageData[u.name] || usageMapLowerCase[u.name.toLowerCase()];
             let usage = { rx: 0, tx: 0 };
 
             if (userData && userData.month === currentMonth) {
