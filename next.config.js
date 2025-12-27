@@ -5,7 +5,6 @@ const isMobileBuild = process.env.BUILD_MODE === 'mobile';
 const nextConfig = {
     output: isMobileBuild ? 'export' : undefined,
     experimental: {
-        instrumentationHook: true
     },
     images: {
         unoptimized: isMobileBuild,

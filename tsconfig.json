@@ -41,6 +41,10 @@
   ],
   "exclude": [
     "node_modules",
-    "olt-mng-frontend"
+    "olt-mng-frontend",
+    "external_source_onu",
+    "external_source",
+    "external_source_check",
+    "external_source_temp"
   ]
 }
