@@ -168,8 +168,11 @@ export async function POST(request) {
             const custNumber = customer?.customerId || '0000';
 
             // Sequence
-            const count = await db.payment.count();
-            const seq = String(count + 1).padStart(4, '0');
+            const currentYear = new Date().getFullYear();
+            const count = await db.payment.count({
+                where: { year: currentYear }
+            });
+            const seq = String(count + 1).padStart(5, '0');
             invoiceNumber = `INV/${yy}/${mm}/${custNumber}/${seq}`;
         }
 

@@ -879,6 +879,9 @@ Terima Kasih
                                             <ArrowUpDown size={14} />
                                         </div>
                                     </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Invoice
+                                    </th>
                                     <th
                                         onClick={() => sortData('amount')}
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
@@ -968,6 +971,9 @@ Terima Kasih
                                                             <div className="text-xs text-gray-500 dark:text-gray-400">ID: {payment.username}</div>
                                                         )}
                                                     </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                    {payment.invoiceNumber ? payment.invoiceNumber.split('/').pop() : '-'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-white">
                                                     {formatCurrency(payment.amount)}
@@ -1348,7 +1354,7 @@ Terima Kasih
                                         <div className={`flex ${printFormat === 'thermal' ? 'flex-col justify-center' : 'items-center gap-4'}`}>
                                             <div>
                                                 <h2 className={`${printFormat === 'thermal' ? 'text-xl' : 'text-3xl'} font-bold text-gray-900`}>TAGIHAN</h2>
-                                                <p className="text-gray-500">#{selectedInvoice.id}</p>
+                                                <p className="text-gray-500">#{selectedInvoice.invoiceNumber || selectedInvoice.id}</p>
                                             </div>
                                         </div>
                                         <div className={`${printFormat === 'thermal' ? 'mt-4 text-center' : 'text-right'}`}>
@@ -1376,7 +1382,7 @@ Terima Kasih
                                             {customersData[selectedInvoice.username]?.phone && (
                                                 <p className="text-sm text-gray-600 mt-1">{customersData[selectedInvoice.username].phone}</p>
                                             )}
-                                            <p className="text-xs text-gray-400 mt-2">ID: {selectedInvoice.username}</p>
+
                                         </div>
                                         <div className={printFormat === 'thermal' ? 'text-center' : 'text-right'}>
                                             <p className="text-sm font-medium text-gray-500 mb-1">Tanggal:</p>

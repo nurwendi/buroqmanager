@@ -70,7 +70,7 @@ export default async function InvoicePage({ params }) {
                     <div className="flex justify-between items-start mb-8 border-b border-gray-200 dark:border-gray-700 pb-6">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">TAGIHAN</h1>
-                            <p className="text-gray-500 dark:text-gray-400">#{payment.id}</p>
+                            <p className="text-gray-500 dark:text-gray-400">#{payment.invoiceNumber || payment.id}</p>
                         </div>
                         <div className="text-right">
                             {absoluteLogoUrl && (
@@ -191,10 +191,10 @@ export default async function InvoicePage({ params }) {
 
                     {/* Details */}
                     <div className="mb-2">
-                        <p>No: #{payment.id}</p>
+                        <p>No: #{payment.invoiceNumber || payment.id}</p>
                         <p>Tgl: {formatDate(payment.date)}</p>
                         <p className="mt-1 font-bold">Kpd: {customer.name || payment.username}</p>
-                        {customer.customerNumber && <p>ID: {customer.customerNumber}</p>}
+
                     </div>
 
                     <div className="flex items-center justify-center my-1 text-[10px] text-gray-400">
