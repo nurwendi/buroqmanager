@@ -36,6 +36,7 @@ next-env.d.ts
 # Database and sensitive data files
 data/
 billing-payments.json
+customer-data.json
 user-preferences.json
 startup.log
 debug_payment.log
