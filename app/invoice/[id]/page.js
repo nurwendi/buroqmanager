@@ -57,10 +57,11 @@ export default async function InvoicePage({ params }) {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-10 px-4 print:bg-white print:p-0 transition-colors">
-            <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden print:shadow-none print:max-w-none border dark:border-gray-700">
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-10 px-4 print:bg-white print:p-0 print:min-h-0 transition-colors">
+            {/* Web Layout (Hidden on Print) */}
+            <div className="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden print:hidden border dark:border-gray-700">
                 {/* Print Button */}
-                <div className="bg-gray-50 dark:bg-gray-700/50 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-end print:hidden">
+                <div className="bg-gray-50 dark:bg-gray-700/50 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-end">
                     <PrintButton />
                 </div>
 
@@ -105,8 +106,8 @@ export default async function InvoicePage({ params }) {
                             <p className="text-gray-900 dark:text-white">{formatDate(payment.date)}</p>
                             <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-2 mb-1">Status:</p>
                             <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${payment.status === 'completed'
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 print:bg-transparent print:text-black print:border print:border-black'
-                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 print:bg-transparent print:text-black print:border print:border-black'
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                                 }`}>
                                 {payment.status === 'completed' ? 'LUNAS' : 'BELUM BAYAR'}
                             </span>
@@ -114,7 +115,7 @@ export default async function InvoicePage({ params }) {
                     </div>
 
                     {/* Items */}
-                    <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-6 mb-8 print:bg-transparent print:border print:border-gray-200">
+                    <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-6 mb-8">
                         <div className="flex justify-between items-center mb-4">
                             <span className="text-gray-600 dark:text-gray-300">Deskripsi</span>
                             <span className="text-gray-600 dark:text-gray-300 font-medium">Jumlah</span>
@@ -125,7 +126,7 @@ export default async function InvoicePage({ params }) {
                         </div>
                         <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-600">
                             <span className="text-lg font-bold text-gray-900 dark:text-white">Total</span>
-                            <span className="text-lg font-bold text-blue-600 dark:text-blue-400 print:text-black">{formatCurrency(payment.amount)}</span>
+                            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatCurrency(payment.amount)}</span>
                         </div>
                     </div>
 
@@ -135,6 +136,95 @@ export default async function InvoicePage({ params }) {
                             <p>{settings.invoiceFooter}</p>
                         </div>
                     )}
+                </div>
+            </div>
+
+            {/* Thermal Print Layout (Visible only on Print) - 58mm Optimized */}
+            <div className={`hidden print:block font-mono text-black text-[12px] leading-tight w-full max-w-[58mm] mx-auto`}>
+                <style jsx global>{`
+                    @media print {
+                        @page {
+                            margin: 0;
+                            size: 58mm auto; /* Some mobile browsers ignore this */
+                        }
+                        body {
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            width: 100% !important;
+                            background-color: white !important;
+                        }
+                        /* Hide everything by default, then show our print container */
+                        body > * {
+                            display: none !important;
+                        }
+                        /* We need to target the Next.js root div or body specifically */
+                        /* But simpler: ensure our container is visible and others hidden */
+                        /* The tailwind 'print:hidden' might fail if specificity issues, so let's enforce */
+                        .print\\:hidden {
+                            display: none !important;
+                        }
+                        .print\\:block {
+                            display: block !important;
+                        }
+                        
+                        /* Force container ID to show */
+                        #thermal-print-container {
+                            display: block !important;
+                            width: 100%;
+                            max-width: 58mm; /* Constrain width */
+                            margin: 0 auto;
+                        }
+                    }
+                `}</style>
+
+                <div id="thermal-print-container">
+                    {/* Header */}
+                    <div className="text-center mb-2 pt-2">
+                        <h1 className="font-bold text-[14px]">*{settings.companyName || 'INTERNET BILLING'}*</h1>
+                        <p className="text-[10px] whitespace-pre-line">{settings.companyAddress}</p>
+                        <p className="text-[10px]">{settings.companyContact}</p>
+                    </div>
+
+                    <div className="flex items-center justify-center my-2 text-[10px] text-gray-400">
+                        --------------------------------
+                    </div>
+
+                    {/* Details */}
+                    <div className="mb-2">
+                        <p>No: #{payment.id}</p>
+                        <p>Tgl: {formatDate(payment.date)}</p>
+                        <p className="mt-1 font-bold">Kpd: {customer.name || payment.username}</p>
+                        {customer.customerNumber && <p>ID: {customer.customerNumber}</p>}
+                    </div>
+
+                    <div className="flex items-center justify-center my-1 text-[10px] text-gray-400">
+                        --------------------------------
+                    </div>
+
+                    {/* Item List */}
+                    <div className="mb-2">
+                        <div className="flex justify-between mb-1">
+                            <span>Layanan Internet</span>
+                        </div>
+                        <div className="flex justify-between font-bold">
+                            <span>Total</span>
+                            <span>{formatCurrency(payment.amount)}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-center my-1 text-[10px] text-gray-400">
+                        --------------------------------
+                    </div>
+
+                    {/* Status & Footer */}
+                    <div className="text-center mt-2 pb-4">
+                        <p className="font-bold text-[14px] mb-2 uppercase">
+                            *{payment.status === 'completed' ? 'LUNAS' : 'BELUM BAYAR'}*
+                        </p>
+                        <p className="text-[10px]">Simpan struk ini sebagai</p>
+                        <p className="text-[10px]">bukti pembayaran yang sah.</p>
+                        <p className="text-[10px] mt-1">*** Terima Kasih ***</p>
+                    </div>
                 </div>
             </div>
         </div>
