@@ -10,24 +10,34 @@ export default function SuperadminStats({ stats }) {
     const [ownerStats, setOwnerStats] = useState([]);
     const [statsLoading, setStatsLoading] = useState(true);
 
+    const [systemInfo, setSystemInfo] = useState(null);
+
     useEffect(() => {
-        const fetchOwnerStats = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch('/api/admin/stats/owners');
-                const data = await res.json();
-                if (Array.isArray(data)) {
-                    setOwnerStats(data);
+                const [ownersRes, systemRes] = await Promise.all([
+                    fetch('/api/admin/stats/owners'),
+                    fetch('/api/system/info')
+                ]);
+
+                const ownersData = await ownersRes.json();
+                if (Array.isArray(ownersData)) {
+                    setOwnerStats(ownersData);
+                }
+
+                const systemData = await systemRes.json();
+                if (!systemData.error) {
+                    setSystemInfo(systemData);
                 }
             } catch (error) {
-                console.error('Failed to fetch owner stats', error);
+                console.error('Failed to fetch stats', error);
             } finally {
                 setStatsLoading(false);
             }
         };
-        fetchOwnerStats();
+        fetchData();
     }, []);
 
-    // Stats from API
     // Stats from API
     const adminCount = stats?.adminCount || 0;
     const totalCustomers = stats?.totalCustomers || 0;
@@ -51,6 +61,14 @@ export default function SuperadminStats({ stats }) {
         visible: { opacity: 1, y: 0 }
     };
 
+    const formatBytes = (bytes) => {
+        if (!bytes) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
     return (
         <div className="space-y-6">
             <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
@@ -58,8 +76,110 @@ export default function SuperadminStats({ stats }) {
                 System Overview
             </h2>
 
+            {/* Server Specification & Usage - Consolidated */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Specs */}
+                <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+                    <div className="relative z-10">
+                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
+                            <Server size={20} className="text-blue-600 dark:text-blue-400" />
+                            Server Specification
+                        </h3>
+                        {systemInfo ? (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Operating System</p>
+                                        <div className="font-semibold text-sm truncate flex items-center gap-2 text-gray-900 dark:text-white">
+                                            {systemInfo.type === 'Windows_NT' ? 'Windows' : 'Linux'}
+                                            <span className="opacity-50 text-[10px]">({systemInfo.platform})</span>
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1 truncate">{systemInfo.release}</p>
+                                    </div>
+                                    <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Memory</p>
+                                        <div className="font-semibold text-sm flex items-center gap-2 text-gray-900 dark:text-white">
+                                            {formatBytes(systemInfo.memory?.total)}
+                                            <HardDrive size={12} className="text-orange-500" />
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1">Free: {formatBytes(systemInfo.memory?.free)}</p>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Processor (CPU)</p>
+                                    <div className="font-semibold text-sm text-gray-900 dark:text-white">{systemInfo.cpu?.model}</div>
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                        <div className="flex items-center gap-1">
+                                            <Cpu size={12} className="text-green-600 dark:text-green-400" />
+                                            {systemInfo.cpu?.cores} Cores
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Activity size={12} className="text-blue-600 dark:text-blue-400" />
+                                            {systemInfo.cpu?.speed} MHz
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="animate-pulse space-y-4">
+                                <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                                <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Real-time Usage */}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
+                        <Activity size={20} className="text-green-600 dark:text-green-400" />
+                        Realtime Usage
+                    </h3>
+
+                    <div className="space-y-6">
+                        {/* CPU */}
+                        <div>
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
+                                    <Cpu size={16} /> CPU Load
+                                </span>
+                                <span className={`text-sm font-bold ${cpuLoad > 80 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
+                                    {cpuLoad}%
+                                </span>
+                            </div>
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                                <div
+                                    className={`h-full rounded-full transition-all duration-1000 ${cpuLoad > 80 ? 'bg-red-500' : 'bg-green-500'}`}
+                                    style={{ width: `${cpuLoad}%` }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* RAM */}
+                        <div>
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
+                                    <HardDrive size={16} /> Memory Usage
+                                </span>
+                                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
+                                    {memoryPercent}%
+                                </span>
+                            </div>
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-orange-500 rounded-full transition-all duration-1000"
+                                    style={{ width: `${memoryPercent}%` }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Quick Stats Grid */}
             <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -102,62 +222,7 @@ export default function SuperadminStats({ stats }) {
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500" />
                 </motion.div>
-
-                {/* Server CPU */}
-                <motion.div
-                    variants={itemVariants}
-                    className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden group"
-                >
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Cpu size={64} className={cpuLoad > 80 ? 'text-red-500' : 'text-green-500'} />
-                    </div>
-                    <div>
-                        <p className="text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wider">Server CPU</p>
-                        <h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-2">{cpuLoad}%</h3>
-                    </div>
-                    <div className="mt-4 flex items-center gap-2 text-sm text-green-500 font-medium">
-                        <Activity size={16} />
-                        <span>Real-time Load</span>
-                    </div>
-                    <div className={`absolute bottom-0 left-0 right-0 h-1 ${cpuLoad > 80 ? 'bg-red-500' : 'bg-gradient-to-r from-green-500 to-emerald-500'}`} />
-                </motion.div>
-
-                {/* Server RAM */}
-                <motion.div
-                    variants={itemVariants}
-                    className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden group"
-                >
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <HardDrive size={64} className="text-orange-500" />
-                    </div>
-                    <div>
-                        <p className="text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wider">Memory</p>
-                        <h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-2">{memoryPercent}%</h3>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full mt-5 overflow-hidden">
-                        <div
-                            className="h-full bg-orange-500 rounded-full transition-all duration-1000"
-                            style={{ width: `${memoryPercent}%` }}
-                        />
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-amber-500" />
-                </motion.div>
             </motion.div>
-
-            {/* Additional Quick Actions or Info could go here */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-                    <div className="relative z-10">
-                        <h3 className="text-xl font-bold mb-2">System Status</h3>
-                        <p className="text-blue-100 mb-4">All systems are running normally. No critical issues detected.</p>
-                        <div className="flex items-center gap-2 text-sm bg-white/10 w-fit px-3 py-1 rounded-full backdrop-blur-md">
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                            Operational
-                        </div>
-                    </div>
-                    <Server className="absolute -bottom-4 -right-4 text-white/10" size={120} />
-                </div>
-            </div>
 
             {/* Owner Statistics Table */}
             <div className="mt-8">
