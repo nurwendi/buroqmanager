@@ -2,174 +2,275 @@
 
 A professional Mikrotik Billing & User Management System built with Next.js 14, Prisma, and PostgreSQL.
 
-## 🚀 Installation Guide
+## 📋 System Requirements
 
-### 1. Prerequisites
-Ensure you have the following installed on your server (Debian/Ubuntu/Windows):
-- **Node.js** (Version 20 or higher)
-- **PostgreSQL** (Version 15 or higher)
-- **Git**
-
-### 2. Database Setup (PostgreSQL)
-Before installing the app, you must create a database and user.
-
-#### For Linux (Debian/Ubuntu)
-**Step 1: Access PostgreSQL Shell**
-If you have `sudo`:
-```bash
-sudo -u postgres psql
-```
-If you are **root** (without sudo):
-```bash
-su - postgres
-psql
-```
-
-**Step 2: Create User & Database**
-Copy and paste these commands into the `postgres=#` prompt:
-
-```sql
--- 1. Create User (Change 'your_password' to a secure password)
-CREATE USER billing WITH PASSWORD 'your_password';
-
--- 2. Create Database
-CREATE DATABASE mikrotikbilling;
-
--- 3. Grant Privileges
-GRANT ALL PRIVILEGES ON DATABASE mikrotikbilling TO billing;
-
--- 4. Grant Schema Permissions (Crucial for Prisma)
-GRANT ALL ON SCHEMA public TO billing;
-ALTER DATABASE mikrotikbilling OWNER TO billing;
-
--- 5. Exit
-\q
-```
-
-### 3. Application Installation
-
-**1. Clone Repository**
-```bash
-git clone https://github.com/nurwendi/mikrotikmanagement.git
-cd mikrotikmanagement
-```
-
-**2. Install Dependencies**
-```bash
-npm install
-```
-
-**3. Configure Environment**
-Copy the example environment file:
-```bash
-cp .env.example .env
-```
-
-Edit the `.env` file:
-```bash
-nano .env
-```
-Find `DATABASE_URL` and update it with your password:
-```env
-DATABASE_URL="postgresql://billing:your_password@localhost:5432/mikrotikbilling?schema=public"
-```
-*Also configure your Mikrotik IP, User, and Password in this file.*
-
-**4. Initialize Database**
-Run these commands to create tables and default admin user:
-```bash
-npx prisma db push
-node prisma/seed.js
-```
-
-### 4. Running the Application
-
-**Development Mode:**
-```bash
-npm run dev
-# App will run at http://localhost (Port 80)
-```
-
-**Production Build:**
-```bash
-npm run build
-npm start
-```
-
-### 🔑 Default Login
-- **Username:** `superadmin`
-- **Password:** `admin123`
+- **OS**: Ubuntu 20.04+ / Debian 11+
+- **Node.js**: Version 20.x or higher
+- **Database**: PostgreSQL 14+
+- **RAM**: Minimum 1GB
+- **Storage**: Minimum 10GB
+- **Network**: Access to MikroTik Router via API (Port 8728)
 
 ---
 
-## 🛠 Troubleshooting
+## 🚀 Complete Installation Guide
 
-**Error: `Can't reach database server`**
-- Check if PostgreSQL is running: `systemctl status postgresql`
-- check your `.env` credentials.
+Follow these steps to set up the application from scratch on a Linux server.
 
-**Error: `permission denied for schema public`**
-- Re-run the Grant Schema Permissions SQL commands in Step 2.
+### Step 1: Server Preparation
+Update your system and install basic tools.
 
-**Error: `The table public.SystemSetting does not exist` (P2021)**
-- This means the database is empty. You must create the tables:
-  ```bash
-  npx prisma db push
-  node prisma/seed.js
-  ```
+```bash
+# Update repositories
+sudo apt update && sudo apt upgrade -y
 
-- Do not run `npm` commands as the `postgres` user. Type `exit` to return to your root/regular user.
+# Install Git and Curl
+sudo apt install -y git curl
 
-## 🔄 Updating Server Application
+# Set Timezone (Important for billing cycles)
+sudo timedatectl set-timezone Asia/Jakarta
+```
 
-To force update the server with the latest changes from GitHub (Hard Reset):
+### Step 2: Install Node.js & PM2
+Install Node.js version 20 LTS and PM2 process manager.
+
+```bash
+# Install Node.js 20.x
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash -
+sudo apt install -y nodejs
+
+# Verify installation
+node -v   # Should be v20.x.x
+npm -v
+
+# Install PM2 Global
+sudo npm install -g pm2
+```
+
+### Step 3: Install & Configure PostgreSQL
+Set up the database server and user.
+
+```bash
+# Install PostgreSQL
+sudo apt install -y postgresql postgresql-contrib
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+
+# Enter Postgres Prompt
+sudo -u postgres psql
+```
+
+**Inside the PostgreSQL prompt (`postgres=#`), run:**
+
+```sql
+-- 1. Create User (Change 'your_secure_password'!)
+CREATE USER billing_user WITH ENCRYPTED PASSWORD 'your_secure_password';
+
+-- 2. Create Database
+CREATE DATABASE mikrotik_billing;
+
+-- 3. Grant Privileges
+GRANT ALL PRIVILEGES ON DATABASE mikrotik_billing TO billing_user;
+ALTER DATABASE mikrotik_billing OWNER TO billing_user;
+
+-- 4. Exit
+\q
+```
+
+### Step 4: Install Application
+
+```bash
+# 1. Clone Repository (Recommended to use /opt directory)
+cd /opt
+sudo git clone https://github.com/nurwendi/buroqmanager.git billing
+sudo chown -R $USER:$USER /opt/billing
+cd /opt/billing
+
+# 2. Install Dependencies
+npm install
+```
+
+### Step 5: Configuration
+
+1. **Setup Environment Variables**
+   ```bash
+   cp .env.local.example .env
+   nano .env
+   ```
+
+2. **Edit `.env` File**:
+   Update `DATABASE_URL` with the password you set in Step 3.
+   ```env
+   # PostgreSQL Connection String
+   DATABASE_URL="postgresql://billing_user:your_secure_password@localhost:5432/mikrotik_billing?schema=public"
+   
+   # App Details
+   APP_URL=http://your-server-ip
+   PORT=2000
+   
+   # Optional: Mikrotik Defaults (Can be configured in UI later)
+   MIKROTIK_HOST=192.168.88.1
+   MIKROTIK_PORT=8728
+   ```
+
+3. **Initialize Database**
+   This creates all tables and the default admin user.
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   # Optional: Seed initial data if needed (usually handled by app)
+   # node prisma/seed.js 
+   ```
+
+### Step 6: Build & Start
+
+```bash
+# Build the application
+npm run build
+
+# Start with PM2
+pm2 start npm --name "billing" -- start
+
+# Save PM2 list so it restarts on reboot
+pm2 save
+pm2 startup
+# (Run the command output by pm2 startup)
+```
+
+The app is now running on **Port 2000**.
+
+---
+
+## 🌐 Port 80 Configuration (Optional)
+
+To access the app without a port number (e.g., `http://your-domain.com`), choose **Option A** OR **Option B**.
+
+### Option A: Authbind (Simplest)
+Allows the app to bind directly to port 80 safely.
+
+```bash
+sudo apt install authbind
+sudo touch /etc/authbind/byport/80
+sudo chmod 500 /etc/authbind/byport/80
+sudo chown $USER /etc/authbind/byport/80
+
+# Restart app on port 80
+# First, edit package.json script "start" to use "-p 80" or just run:
+pm2 delete billing
+authbind --deep pm2 start npm --name "billing" -- start -- -p 80
+```
+
+### Option B: Nginx Reverse Proxy (Recommended for Domain/SSL)
+
+```bash
+sudo apt install nginx
+```
+
+Create config: `sudo nano /etc/nginx/sites-available/billing`
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com; # Or your IP
+
+    location / {
+        proxy_pass http://localhost:2000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+Enable & Restart:
+```bash
+sudo ln -s /etc/nginx/sites-available/billing /etc/nginx/sites-enabled/
+sudo systemctl restart nginx
+```
+
+---
+
+## 📡 MikroTik Router Setup
+
+To allow the billing app to control users, enable API access on your MikroTik.
+
+**Run these commands in MikroTik Terminal:**
+
+```bash
+# 1. Enable API Service
+/ip service set api port=8728 address=0.0.0.0/0 disabled=no
+
+# 2. Create Billing User (Full Permissions)
+/user add name=billing password=YOUR_MIKROTIK_PASSWORD group=full comment="For Buroq Billing App"
+```
+
+---
+
+## ⛔ Isolir Server Setup (Auto-Drop)
+
+This system includes a dedicated server (Port 1500) to redirect isolated/unpaid users.
+
+**1. Start Isolir Server**
+```bash
+pm2 start npm --name "isolir-server" -- run isolir
+pm2 save
+```
+
+**2. Configure MikroTik**
+1. Login to Buroq Manager.
+2. Go to **Settings > Routers Management**.
+3. Generate the "Isolir Script" and paste it into MikroTik Terminal.
+
+---
+
+## 🔄 How to Update
+
+To update the application to the latest version:
 
 ```bash
 cd /opt/billing
-git fetch --all
-git reset --hard origin/master
+git pull origin master
 npm install
 npx prisma generate
 npx prisma db push
 npm run build
 pm2 restart billing
 ```
-> **Warning**: This command (`git reset --hard`) will overwrite any local changes made directly on the server.
 
-## ⛔ Isolir Server Setup (Auto-Drop)
+---
 
-The system uses a **dedicated server on Port 1500** to display the isolation page ("Layanan Terisolir"). This ensures that suspended users are always shown the correct page regardless of their browser state or login status.
+## 🔑 Default Credentials
 
-### 1. Start the Isolir Server
-The isolir server runs separately from the main billing app.
+- **URL**: `http://YOUR_SERVER_IP:2000` (or Port 80 if configured)
+- **Username**: `admin`
+- **Password**: `admin123`
 
-**Manual Start:**
-```bash
-npm run isolir
-# Server runs at http://0.0.0.0:1500
-```
+> ⚠️ **Change this password immediately after logging in!**
 
-**Using PM2 (Recommended for Production):**
-```bash
-pm2 start npm --name "isolir-server" -- run isolir
-pm2 save
-```
+---
 
-### 2. Configure Mikrotik
-You must redirect traffic from isolated users to this server.
+## 📂 File Locations & Logs
 
-1. Login to the application as Admin.
-2. Go to **Settings > Routers Management**.
-3. Click on **"Configure & Generate Script"** in the Isolir Configuration section.
-4. Copy the generated script and run it in your Mikrotik Terminal.
+| Item | Location/Command |
+|------|------------------|
+| **App Directory** | `/opt/billing` |
+| **Backups** | `/opt/billing/backups/` |
+| **Logs** | `pm2 logs billing` |
+| **Config** | `.env` |
 
-**The script automatically adds:**
-- **IP Pool** for isolated users.
-- **PPP Profile** named `DROP` that assigns IP from the pool.
-- **NAT Rule** to redirect Port 80 traffic to `SERVER_IP:1500`.
+## 🛠 Troubleshooting
 
-### 3. Verify
-1. Open your browser and go to `http://YOUR_SERVER_IP:1500`.
-2. You should see the "Layanan Terisolir" page.
+**1. Database Connection Error**
+- Ensure PostgreSQL is running: `systemctl status postgresql`
+- Check `.env` `DATABASE_URL` credentials.
 
+**2. Permission Denied (Schema Public)**
+- Re-run the `GRANT ALL ON SCHEMA public...` command in PostgreSQL setup.
 
+**3. App not accessible**
+- Check firewall (`ufw status`). Allow port 2000 or 80: `ufw allow 2000`.
+
+**4. Reset All Data**
+- To wipe database and start fresh: `node scripts/reset-data.js`

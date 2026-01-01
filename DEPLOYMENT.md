@@ -30,7 +30,7 @@ sudo systemctl enable postgresql
 sudo -u postgres psql
 # In psql prompt:
 CREATE DATABASE mikrotik_billing;
-CREATE USER billing_user WITH ENCRYPTED PASSWORD 'your_secure_password';
+CREATE USER billing_user WITH ENCRYPTED PASSWORD 'B1LL1n6#2025';
 GRANT ALL PRIVILEGES ON DATABASE mikrotik_billing TO billing_user;
 ALTER DATABASE mikrotik_billing OWNER TO billing_user;
 \q
@@ -56,7 +56,7 @@ apt install -y git
 ### 7. Clone Repository
 ```bash
 cd /opt
-git clone https://github.com/nurwendi/mikrotikbilling.git billing
+git clone https://github.com/nurwendi/buroqmanager.git billing
 chown -R $USER:$USER /opt/billing
 cd /opt/billing
 ```
