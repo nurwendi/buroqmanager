@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layanan Terisolir</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; overflow: hidden; border-top: 5px solid #dc2626; text-align: center; }
+        .content { padding: 40px 30px; }
+        .icon-circle { width: 80px; height: 80px; background-color: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+        .icon-circle svg { width: 40px; height: 40px; color: #dc2626; }
+        h1 { color: #1f2937; font-size: 24px; margin-bottom: 10px; margin-top: 0; }
+        p { color: #4b5563; line-height: 1.5; margin-bottom: 20px; }
+        .alert { background-color: #fff7ed; border: 1px solid #ffedd5; border-radius: 8px; padding: 15px; margin-bottom: 25px; text-align: left; display: flex; gap: 10px; }
+        .alert svg { color: #f97316; flex-shrink: 0; }
+        .alert-content h3 { color: #9a3412; font-size: 14px; margin: 0 0 5px; }
+        .alert-content p { color: #c2410c; font-size: 13px; margin: 0; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; box-sizing: border-box; background-color: #16a34a; color: white; padding: 14px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background 0.2s; border: none; cursor: pointer; font-size: 16px; }
+        .btn:hover { background-color: #15803d; }
+        .btn svg { margin-right: 10px; width: 20px; height: 20px; }
+        .logo { height: 60px; object-fit: contain; margin-bottom: 20px; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #fff; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .note { font-size: 12px; color: #9ca3af; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="content">
+            <img src="/logo.png" alt="Logo" class="logo" id="appLogo" onerror="this.style.display='none'">
+            
+            <div class="icon-circle">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414" />
+                </svg>
+            </div>
+
+            <h1>Layanan Terisolir</h1>
+            <p>Maaf, layanan internet Anda saat ini dinonaktifkan sementara karena ada tagihan yang belum terselesaikan.</p>
+
+            <div class="alert">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div class="alert-content">
+                    <h3>Penting</h3>
+                    <p>Mohon segera lakukan pembayaran untuk mengaktifkan kembali layanan internet Anda.</p>
+                </div>
+            </div>
+
+            <a id="waLink" href="#" class="btn" target="_blank">
+                <span id="btnIcon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                </span>
+                <span id="btnText">Memuat Kontak...</span>
+            </a>
+
+            <p class="note">Jika sudah melakukan pembayaran, silakan restart modem.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnText = document.getElementById('btnText');
+            const waLink = document.getElementById('waLink');
+            
+            fetch('/api/isolir/contact')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.phone) {
+                        waLink.href = `https://wa.me/${data.phone}`;
+                        btnText.textContent = `Hubungi ${data.name || 'Admin'} via WhatsApp`;
+                    } else {
+                        waLink.href = 'https://wa.me/628123456789';
+                        btnText.textContent = 'Hubungi Admin via WhatsApp';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching contact:', err);
+                    waLink.href = 'https://wa.me/628123456789';
+                    btnText.textContent = 'Hubungi Admin via WhatsApp';
+                });
+        });
+    </script>
+</body>
+</html>

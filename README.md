@@ -136,3 +136,40 @@ pm2 restart billing
 ```
 > **Warning**: This command (`git reset --hard`) will overwrite any local changes made directly on the server.
 
+## ⛔ Isolir Server Setup (Auto-Drop)
+
+The system uses a **dedicated server on Port 1500** to display the isolation page ("Layanan Terisolir"). This ensures that suspended users are always shown the correct page regardless of their browser state or login status.
+
+### 1. Start the Isolir Server
+The isolir server runs separately from the main billing app.
+
+**Manual Start:**
+```bash
+npm run isolir
+# Server runs at http://0.0.0.0:1500
+```
+
+**Using PM2 (Recommended for Production):**
+```bash
+pm2 start npm --name "isolir-server" -- run isolir
+pm2 save
+```
+
+### 2. Configure Mikrotik
+You must redirect traffic from isolated users to this server.
+
+1. Login to the application as Admin.
+2. Go to **Settings > Routers Management**.
+3. Click on **"Configure & Generate Script"** in the Isolir Configuration section.
+4. Copy the generated script and run it in your Mikrotik Terminal.
+
+**The script automatically adds:**
+- **IP Pool** for isolated users.
+- **PPP Profile** named `DROP` that assigns IP from the pool.
+- **NAT Rule** to redirect Port 80 traffic to `SERVER_IP:1500`.
+
+### 3. Verify
+1. Open your browser and go to `http://YOUR_SERVER_IP:1500`.
+2. You should see the "Layanan Terisolir" page.
+
+

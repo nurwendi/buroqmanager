@@ -28,7 +28,7 @@ export async function GET(request) {
     } else {
         freshUser = await db.user.findUnique({
             where: { id: user.id },
-            select: { id: true, username: true, fullName: true, role: true, ownerId: true, oltAccess: true }
+            select: { id: true, username: true, fullName: true, role: true, ownerId: true }
         });
     }
 

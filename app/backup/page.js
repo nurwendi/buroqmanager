@@ -12,7 +12,16 @@ export default function BackupPage() {
     const [confirmRestore, setConfirmRestore] = useState(null);
 
     useEffect(() => {
-        fetchBackups();
+        fetch('/api/auth/me')
+            .then(res => res.json())
+            .then(data => {
+                if (data.user?.role !== 'superadmin') {
+                    window.location.href = '/';
+                } else {
+                    fetchBackups();
+                }
+            })
+            .catch(() => window.location.href = '/');
     }, []);
 
     const fetchBackups = async () => {

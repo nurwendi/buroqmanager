@@ -5,15 +5,17 @@ import Navbar from '@/components/Navbar';
 import { ShieldAlert, ShieldCheck, RefreshCw, AlertTriangle, CheckCircle } from 'lucide-react';
 
 export default function DropUsersPage() {
-    const [activeTab, setActiveTab] = useState('unpaid'); // 'unpaid' or 'dropped'
+    const [activeTab, setActiveTab] = useState('unpaid'); // 'unpaid', 'dropped', 'inactive'
     const [usersToDrop, setUsersToDrop] = useState([]);
     const [droppedUsers, setDroppedUsers] = useState([]);
+    const [inactiveUsers, setInactiveUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
         fetchData();
+        fetchInactiveUsers();
     }, []);
 
     const fetchData = async () => {
@@ -26,9 +28,19 @@ export default function DropUsersPage() {
             setSelectedIds(new Set());
         } catch (error) {
             console.error('Failed to fetch data', error);
-            alert('Gagal mengambil data user.');
+            // alert('Gagal mengambil data user.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchInactiveUsers = async () => {
+        try {
+            const res = await fetch('/api/cleanup-inactive');
+            const data = await res.json();
+            if (Array.isArray(data)) setInactiveUsers(data);
+        } catch (error) {
+            console.error('Failed to fetch inactive users', error);
         }
     };
 
@@ -51,30 +63,51 @@ export default function DropUsersPage() {
     };
 
     const handleProcess = async (action) => {
-        const list = action === 'drop' ? usersToDrop : droppedUsers;
+        let list;
+        if (action === 'drop') list = usersToDrop;
+        else if (action === 'restore') list = droppedUsers;
+        else if (action === 'delete_inactive') list = inactiveUsers;
+
         const selectedUsers = list.filter(u => selectedIds.has(u.username));
 
         if (selectedUsers.length === 0) return;
 
-        if (!confirm(`Apakah Anda yakin ingin melakukan ${action.toUpperCase()} pada ${selectedUsers.length} user?`)) return;
+        let confirmMsg = `Apakah Anda yakin ingin melakukan ${action.toUpperCase()} pada ${selectedUsers.length} user?`;
+        if (action === 'delete_inactive') {
+            confirmMsg = `PERINGATAN: Anda akan MENGHAPUS PERMANEN ${selectedUsers.length} user yang tidak aktif selama 3 buan lebih. Data tidak dapat dikembalikan. Lanjutkan?`;
+        }
+
+        if (!confirm(confirmMsg)) return;
 
         setProcessing(true);
         try {
-            const res = await fetch('/api/drop-users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action,
-                    users: selectedUsers
-                })
-            });
+            let res;
+            if (action === 'delete_inactive') {
+                res = await fetch('/api/cleanup-inactive', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usernames: Array.from(selectedIds) })
+                });
+            } else {
+                res = await fetch('/api/drop-users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action,
+                        users: selectedUsers
+                    })
+                });
+            }
+
             const result = await res.json();
 
-            if (result.success) {
-                alert(`Berhasil memproses ${result.results.length} user.`);
+            if (result.success || (result.deleted && result.deleted.length > 0)) {
+                alert(`Berhasil memproses user.`);
                 fetchData();
+                fetchInactiveUsers();
+                setSelectedIds(new Set());
             } else {
-                alert('Terjadi kesalahan: ' + result.error);
+                alert('Terjadi kesalahan: ' + (result.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Process failed', error);
@@ -98,14 +131,23 @@ export default function DropUsersPage() {
                                 />
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Username</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{type === 'drop' ? 'Current Profile' : 'Original Profile'}</th>
-                            {type === 'drop' && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name (DB)</th>}
+                            {type === 'inactive' ? (
+                                <>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Last Seen</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                </>
+                            ) : (
+                                <>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{type === 'drop' ? 'Current Profile' : 'Original Profile'}</th>
+                                    {type === 'drop' && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name (DB)</th>}
+                                </>
+                            )}
                         </tr>
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                         {data.length === 0 ? (
                             <tr>
-                                <td colSpan="4" className="px-6 py-4 text-center text-gray-500">Tidak ada data.</td>
+                                <td colSpan={type === 'inactive' ? 4 : 4} className="px-6 py-4 text-center text-gray-500">Tidak ada data.</td>
                             </tr>
                         ) : (
                             data.map((user) => (
@@ -119,19 +161,35 @@ export default function DropUsersPage() {
                                         />
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{user.username}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                        {type === 'drop' ? (
-                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                {user.currentProfile}
-                                            </span>
-                                        ) : (
-                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                                {user.originalProfile}
-                                            </span>
-                                        )}
-                                    </td>
-                                    {type === 'drop' && (
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{user.name}</td>
+
+                                    {type === 'inactive' ? (
+                                        <>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                {user.lastSeen === 'Never' ? 'Never' : new Date(user.lastSeen).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                    {user.status}
+                                                </span>
+                                            </td>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                {type === 'drop' ? (
+                                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                        {user.currentProfile}
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                        {user.originalProfile}
+                                                    </span>
+                                                )}
+                                            </td>
+                                            {type === 'drop' && (
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{user.name}</td>
+                                            )}
+                                        </>
                                     )}
                                 </tr>
                             ))
@@ -151,23 +209,23 @@ export default function DropUsersPage() {
                         <ShieldAlert className="w-8 h-8 mr-2 text-red-600" />
                         Manajemen Isolir (Drop Users)
                     </h1>
-                    <button onClick={fetchData} className="p-2 bg-white dark:bg-gray-800 rounded-full shadow hover:bg-gray-100 transition-colors">
+                    <button onClick={() => { fetchData(); fetchInactiveUsers(); }} className="p-2 bg-white dark:bg-gray-800 rounded-full shadow hover:bg-gray-100 transition-colors">
                         <RefreshCw className={`w-5 h-5 text-gray-600 dark:text-gray-300 ${loading ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex space-x-4 mb-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex space-x-4 mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
                     <button
                         onClick={() => { setActiveTab('unpaid'); setSelectedIds(new Set()); }}
-                        className={`pb-2 px-4 text-sm font-medium transition-colors relative ${activeTab === 'unpaid'
-                                ? 'text-red-600 border-b-2 border-red-600'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                        className={`pb-2 px-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'unpaid'
+                            ? 'text-red-600 border-b-2 border-red-600'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
                             }`}
                     >
                         <div className="flex items-center">
                             <AlertTriangle className="w-4 h-4 mr-2" />
-                            Belum Bayar (Perlu Isolir)
+                            Belum Bayar
                             <span className="ml-2 bg-red-100 text-red-600 py-0.5 px-2 rounded-full text-xs">
                                 {usersToDrop.length}
                             </span>
@@ -175,16 +233,31 @@ export default function DropUsersPage() {
                     </button>
                     <button
                         onClick={() => { setActiveTab('dropped'); setSelectedIds(new Set()); }}
-                        className={`pb-2 px-4 text-sm font-medium transition-colors relative ${activeTab === 'dropped'
-                                ? 'text-green-600 border-b-2 border-green-600'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                        className={`pb-2 px-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'dropped'
+                            ? 'text-green-600 border-b-2 border-green-600'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
                             }`}
                     >
                         <div className="flex items-center">
                             <ShieldCheck className="w-4 h-4 mr-2" />
-                            Sedang Diisolir (Dropped)
+                            Sedang Diisolir
                             <span className="ml-2 bg-green-100 text-green-600 py-0.5 px-2 rounded-full text-xs">
                                 {droppedUsers.length}
+                            </span>
+                        </div>
+                    </button>
+                    <button
+                        onClick={() => { setActiveTab('inactive'); setSelectedIds(new Set()); }}
+                        className={`pb-2 px-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'inactive'
+                            ? 'text-gray-800 dark:text-white border-b-2 border-gray-800 dark:border-white'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                            }`}
+                    >
+                        <div className="flex items-center">
+                            <AlertTriangle className="w-4 h-4 mr-2" />
+                            Offline {'>'} 3 Bulan
+                            <span className="ml-2 bg-gray-200 text-gray-800 py-0.5 px-2 rounded-full text-xs">
+                                {inactiveUsers.length}
                             </span>
                         </div>
                     </button>
@@ -197,7 +270,7 @@ export default function DropUsersPage() {
                             {selectedIds.size} user terpilih
                         </span>
                         <div className="flex space-x-2">
-                            {activeTab === 'unpaid' ? (
+                            {activeTab === 'unpaid' && (
                                 <button
                                     onClick={() => handleProcess('drop')}
                                     disabled={processing}
@@ -206,7 +279,8 @@ export default function DropUsersPage() {
                                     {processing ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <ShieldAlert className="w-4 h-4 mr-2" />}
                                     DROP (Isolir)
                                 </button>
-                            ) : (
+                            )}
+                            {activeTab === 'dropped' && (
                                 <button
                                     onClick={() => handleProcess('restore')}
                                     disabled={processing}
@@ -216,20 +290,38 @@ export default function DropUsersPage() {
                                     RESTORE (Kembalikan)
                                 </button>
                             )}
+                            {activeTab === 'inactive' && (
+                                <button
+                                    onClick={() => handleProcess('delete_inactive')}
+                                    disabled={processing}
+                                    className="flex items-center px-4 py-2 bg-red-800 text-white rounded hover:bg-red-900 transition shadow-lg"
+                                >
+                                    {processing ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <ShowTrashIcon />}
+                                    HAPUS PERMANEN
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
 
                 {/* Content */}
-                {loading && usersToDrop.length === 0 && droppedUsers.length === 0 ? (
+                {loading && usersToDrop.length === 0 && droppedUsers.length === 0 && inactiveUsers.length === 0 ? (
                     <div className="text-center py-12">
                         <RefreshCw className="w-8 h-8 animate-spin mx-auto text-gray-400 mb-2" />
                         <p className="text-gray-500">Memuat data...</p>
                     </div>
                 ) : (
-                    activeTab === 'unpaid' ? renderTable(usersToDrop, 'drop') : renderTable(droppedUsers, 'restore')
+                    activeTab === 'unpaid' ? renderTable(usersToDrop, 'drop') :
+                        activeTab === 'dropped' ? renderTable(droppedUsers, 'restore') :
+                            renderTable(inactiveUsers, 'inactive')
                 )}
             </div>
         </div>
     );
+}
+
+function ShowTrashIcon() {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash-2 w-4 h-4 mr-2"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+    )
 }

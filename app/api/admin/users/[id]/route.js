@@ -21,10 +21,10 @@ export async function PUT(request, { params }) {
             }
         }
 
-        // Restrict changing oltAccess to Superadmin
-        if (typeof body.oltAccess !== 'undefined') {
+        // Restrict changing settings to Superadmin
+        if (typeof body.radiusPool !== 'undefined') {
             if (currentUser.role !== 'superadmin') {
-                delete body.oltAccess; // Ignore attempts by non-superadmins
+                delete body.radiusPool;
             }
         }
 

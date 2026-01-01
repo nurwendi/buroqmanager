@@ -57,7 +57,11 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { username, name, address, phone, email, customerId } = body;
+        const { username, name, address, phone, email, customerId, password, profileId } = body; // Extract profileId
+
+
+        // Radius Sync Flags
+        const createRadiusUser = true;
 
         console.log(`[API] Updating customer data for username: ${username}`, body);
 
@@ -259,8 +263,102 @@ export async function POST(request) {
                     agentId: agentId,
                     technicianId: technicianId,
                     ownerId: ownerId,
+                    password: password || undefined,
+                    profileId: profileId || undefined
                 }
             });
+        }
+
+        // ---------------------------------------------------------
+        // AUTO-SYNC TO RADIUS (User & Group)
+        // ---------------------------------------------------------
+        if (createRadiusUser) {
+            try {
+                // 1. Sync Password (radcheck)
+                if (password) {
+                    const existingCheck = await db.radCheck.findFirst({
+                        where: { username, attribute: 'Cleartext-Password' }
+                    });
+
+                    if (existingCheck) {
+                        await db.radCheck.update({
+                            where: { id: existingCheck.id },
+                            data: { value: password }
+                        });
+                    } else {
+                        await db.radCheck.create({
+                            data: {
+                                username,
+                                attribute: 'Cleartext-Password',
+                                op: ':=',
+                                value: password
+                            }
+                        });
+                    }
+                    console.log(`[Radius-Sync] Synced password for ${username}`);
+                }
+
+                // 2. Sync Profile/Group (radusergroup)
+                if (profileId) {
+                    const profile = await db.profile.findUnique({ where: { id: profileId } });
+                    if (profile) {
+                        // Check if group assignment exists
+                        // Note: RadUserGroup uses composite logic usually, but here ID is primary.
+                        // We check by username. User usually has 1 main profile.
+
+                        // Clear existing group to avoid duplicates/conflicts? 
+                        // Or just update if specific logic used?
+                        // Simple approach: Delete all groups for user and add new one.
+
+                        await db.radUserGroup.deleteMany({ where: { username } });
+
+                        await db.radUserGroup.create({
+                            data: {
+                                username,
+                                groupname: profile.name,
+                                priority: 1
+                            }
+                        });
+                        console.log(`[Radius-Sync] Assigned user ${username} to group ${profile.name}`);
+                    }
+                }
+
+                // 3. Sync IP Pool (Framed-Pool) if Owner has specific pool
+                if (ownerId) {
+                    const owner = await db.user.findUnique({ where: { id: ownerId } });
+                    if (owner && owner.radiusPool) {
+                        const poolName = owner.radiusPool;
+
+                        // Upsert Framed-Pool in RadReply
+                        const existingReply = await db.radReply.findFirst({
+                            where: { username, attribute: 'Framed-Pool' }
+                        });
+
+                        if (existingReply) {
+                            if (existingReply.value !== poolName) {
+                                await db.radReply.update({
+                                    where: { id: existingReply.id },
+                                    data: { value: poolName }
+                                });
+                            }
+                        } else {
+                            await db.radReply.create({
+                                data: {
+                                    username,
+                                    attribute: 'Framed-Pool',
+                                    op: '=',
+                                    value: poolName
+                                }
+                            });
+                        }
+                        console.log(`[Radius-Sync] Assigned user ${username} to pool ${poolName}`);
+                    }
+                }
+
+            } catch (rErr) {
+                console.error("[Radius-Sync] Error syncing to Radius tables:", rErr);
+                // Do not fail the whole request, just log it.
+            }
         }
 
         return NextResponse.json({ success: true, customer });

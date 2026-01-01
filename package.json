@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev -p 80",
+    "isolir": "node scripts/isolir-server.mjs",
     "build": "next build",
     "build:mobile": "node scripts/build-mobile.js",
     "start": "next start -p 80",
@@ -72,7 +73,6 @@
     "source-map-support": "^0.5.21",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
-    "telnet-client": "^2.2.9",
     "typescript": "^5.9.3",
     "uuid": "^13.0.0",
     "zod": "^4.1.13"

@@ -45,6 +45,7 @@ export async function POST(request) {
         }
 
         const body = await request.json();
+        const { username, password, fullName, phone, address, role, agentNumber, radiusPool } = body;
 
         // Security / Logic checks
         if (currentUser.role === 'admin') {
@@ -85,12 +86,7 @@ export async function POST(request) {
                 // Creating Admin or Superadmin
                 body.ownerId = currentUser.id;
 
-                // Allow Superadmin to set OLT Access for Admins
-                if (body.role === 'admin' && typeof body.oltAccess !== 'undefined') {
-                    // body.oltAccess is already in body
-                } else if (body.role === 'admin') {
-                    body.oltAccess = false; // Default
-                }
+
 
                 // Generate Numeric Admin ID (agentNumber) if not provided
                 if (body.role === 'admin' && !body.agentNumber) {
@@ -112,6 +108,11 @@ export async function POST(request) {
                     body.agentNumber = String(maxNum);
                 }
             }
+        }
+
+        // Add radiusPool to the body if it exists in the destructured variables
+        if (radiusPool !== undefined) {
+            body.radiusPool = radiusPool;
         }
 
         const newUser = await createUser(body);

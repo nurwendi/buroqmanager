@@ -23,7 +23,7 @@ export default function SystemAdminPage() {
         phone: '',
         address: '',
         agentNumber: '', // Auto-generated usually, but editable?
-        oltAccess: false
+        radiusPool: '', // New field for Radius IP Pool
     });
     const [error, setError] = useState('');
 
@@ -97,7 +97,7 @@ export default function SystemAdminPage() {
             phone: user.phone || '',
             address: user.address || '',
             agentNumber: user.agentNumber || '',
-            oltAccess: user.oltAccess || false
+            radiusPool: user.radiusPool || '',
         });
         setEditMode(true);
         setShowModal(true);
@@ -129,30 +129,7 @@ export default function SystemAdminPage() {
         }
     };
 
-    const handleToggleOlt = async (admin) => {
-        const newValue = !admin.oltAccess;
-        // Optimistic update
-        setAdmins(prev => prev.map(a => a.id === admin.id ? { ...a, oltAccess: newValue } : a));
 
-        try {
-            const res = await fetch(`/api/admin/users/${admin.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ oltAccess: newValue })
-            });
-
-            if (!res.ok) {
-                throw new Error('Failed to update');
-            }
-            // Optional: Fetch fresh data to confirm
-            // fetchAdmins(); 
-        } catch (error) {
-            console.error(error);
-            // Revert on error
-            setAdmins(prev => prev.map(a => a.id === admin.id ? { ...a, oltAccess: !newValue } : a));
-            alert("Failed to update OLT Access");
-        }
-    };
 
     const resetForm = () => {
         setFormData({
@@ -165,7 +142,7 @@ export default function SystemAdminPage() {
             phone: '',
             address: '',
             agentNumber: '',
-            oltAccess: false
+            radiusPool: '',
         });
         setEditMode(false);
         setSelectedUser(null);
@@ -197,7 +174,7 @@ export default function SystemAdminPage() {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Owner Detail</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Agent ID</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Contact</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">OLT Access</th>
+
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created At</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                         </tr>
@@ -232,25 +209,7 @@ export default function SystemAdminPage() {
                                             <span className="text-xs truncate max-w-[150px]">{admin.address}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                                        <button
-                                            onClick={() => handleToggleOlt(admin)}
-                                            className={`
-                                                relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                                                ${admin.oltAccess ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}
-                                            `}
-                                        >
-                                            <span
-                                                className={`
-                                                    inline-block h-4 w-4 transform rounded-full bg-white transition-transform
-                                                    ${admin.oltAccess ? 'translate-x-6' : 'translate-x-1'}
-                                                `}
-                                            />
-                                        </button>
-                                        <div className="text-[10px] text-gray-400 mt-1">
-                                            {admin.oltAccess ? 'Enabled' : 'Disabled'}
-                                        </div>
-                                    </td>
+
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                         {new Date(admin.createdAt).toLocaleDateString()}
                                     </td>
@@ -342,6 +301,19 @@ export default function SystemAdminPage() {
                                     </div>
                                 </div>
 
+
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Radius Pool (Optional)</label>
+                                    <input
+                                        type="text"
+                                        value={formData.radiusPool}
+                                        onChange={(e) => setFormData({ ...formData, radiusPool: e.target.value })}
+                                        className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="e.g. pool-tenant-1"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">If set, new users for this admin will automatically get Framed-Pool = [this value]</p>
+                                </div>
+
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                                         Password {editMode && <span className="text-gray-500 text-xs">(leave blank to keep)</span>}
@@ -355,18 +327,7 @@ export default function SystemAdminPage() {
                                     />
                                 </div>
 
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="oltAccess"
-                                        checked={formData.oltAccess}
-                                        onChange={(e) => setFormData({ ...formData, oltAccess: e.target.checked })}
-                                        className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
-                                    />
-                                    <label htmlFor="oltAccess" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Enable OLT Access
-                                    </label>
-                                </div>
+
 
                                 <div className="pt-4 flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700">
                                     <button
@@ -386,27 +347,24 @@ export default function SystemAdminPage() {
                             </form>
                         </div>
                     </div>
-                )
-            }
+                )}
 
             {/* Delete Modal */}
-            {
-                showDeleteModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-sm shadow-xl">
-                            <h2 className="text-xl font-bold text-red-600 mb-2">Confirm Delete</h2>
-                            <p className="text-gray-600 dark:text-gray-300 mb-6">
-                                Are you sure you want to delete owner <strong>{userToDelete?.username}</strong>?
-                                All their data may be affected.
-                            </p>
-                            <div className="flex justify-end gap-2">
-                                <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 text-gray-600">Cancel</button>
-                                <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 text-white rounded">Delete</button>
-                            </div>
+            {showDeleteModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-sm shadow-xl">
+                        <h2 className="text-xl font-bold text-red-600 mb-2">Confirm Delete</h2>
+                        <p className="text-gray-600 dark:text-gray-300 mb-6">
+                            Are you sure you want to delete owner <strong>{userToDelete?.username}</strong>?
+                            All their data may be affected.
+                        </p>
+                        <div className="flex justify-end gap-2">
+                            <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 text-gray-600">Cancel</button>
+                            <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 text-white rounded">Delete</button>
                         </div>
                     </div>
-                )
-            }
-        </div >
+                </div>
+            )}
+        </div>
     );
 }

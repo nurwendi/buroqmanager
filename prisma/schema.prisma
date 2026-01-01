@@ -42,32 +42,12 @@ model User {
   registrations         Registration[] @relation("RegistrationOwner")
 
   language     String   @default("id")
-  oltAccess    Boolean  @default(false)
-  oltConfigs   OltConfig[]
+  profiles     Profile[]    @relation("ProfileOwner")
+  
+  // Radius Configuration
+  radiusPool   String?  @default("") // Name of the Mikrotik IP Pool for this owner's customers
 }
 
-model OltConfig {
-  id        String   @id @default(cuid())
-  
-  // Relations: One-to-Many (One owner can have multiple OLTs)
-  ownerId   String
-  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  
-  // OLT Identity
-  name      String   @default("My OLT")
-  
-  // Connection Details
-  host      String
-  port      Int      @default(23)
-  username  String
-  password  String
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Ensure name is unique per owner? optional but good practice
-  // @@unique([ownerId, name])
-}
 
 model SystemMetric {
   id        String   @id @default(cuid())
@@ -101,6 +81,8 @@ model Customer {
   // Relations
   agent      User? @relation("AgentCustomers", fields: [agentId], references: [id])
   technician User? @relation("TechnicianCustomers", fields: [technicianId], references: [id])
+  profile    Profile? @relation(fields: [profileId], references: [id])
+  profileId  String?
 
   @@unique([username, ownerId]) // Username is unique only within an owner
 }
@@ -187,4 +169,140 @@ model Registration {
 model SystemSetting {
   key   String @id
   value String
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  price       Float    @default(0)
+  speedUp     Int      @default(0) // Kbps
+  speedDown   Int      @default(0) // Kbps
+  description String?
+  
+  // Multi-tenancy
+  ownerId     String?
+  owner       User?    @relation("ProfileOwner", fields: [ownerId], references: [id])
+  
+  // Relations
+  customers   Customer[]
+}
+
+// --------------------------------------
+// FreeRADIUS Schema (Standard PostgreSQL)
+// Optimized for 100k+ users
+// --------------------------------------
+
+model RadCheck {
+  id        Int    @id @default(autoincrement())
+  username  String
+  attribute String @default("")
+  op        String @default("==")
+  value     String @default("")
+
+  @@map("radcheck")
+  @@index([username], name: "username_idx") // Optimized index
+}
+
+model RadReply {
+  id        Int    @id @default(autoincrement())
+  username  String
+  attribute String @default("")
+  op        String @default("=")
+  value     String @default("")
+
+  @@map("radreply")
+  @@index([username], name: "reply_username_idx")
+}
+
+model RadGroupCheck {
+  id        Int    @id @default(autoincrement())
+  groupname String
+  attribute String @default("")
+  op        String @default("==")
+  value     String @default("")
+
+  @@map("radgroupcheck")
+  @@index([groupname], name: "groupcheck_idx")
+}
+
+model RadGroupReply {
+  id        Int    @id @default(autoincrement())
+  groupname String
+  attribute String @default("")
+  op        String @default("=")
+  value     String @default("")
+
+  @@map("radgroupreply")
+  @@index([groupname], name: "groupreply_idx")
+}
+
+model RadUserGroup {
+  id        Int    @id @default(autoincrement())
+  username  String
+  groupname String
+  priority  Int    @default(1)
+
+  @@map("radusergroup")
+  @@index([username], name: "usergroup_username_idx")
+}
+
+model RadAcct {
+  radacctid           BigInt   @id @default(autoincrement())
+  acctsessionid       String   @default("")
+  acctuniqueid        String   @unique(map: "acctuniqueid_unique") @default("")
+  username            String   @default("")
+  realm               String?  @default("")
+  nasipaddress        String   @default("") // inet type in raw, String in Prisma
+  nasportid           String?  @default("")
+  nasporttype         String?  @default("")
+  acctstarttime       DateTime?
+  acctupdatetime      DateTime?
+  acctstoptime        DateTime?
+  acctinterval        Int?
+  acctsessiontime     Int?
+  acctauthentic       String?
+  connectinfo_start   String?
+  connectinfo_stop    String?
+  acctinputoctets     BigInt?
+  acctoutputoctets    BigInt?
+  calledstationid     String   @default("")
+  callingstationid    String   @default("")
+  acctterminatecause  String   @default("")
+  servicetype         String?
+  framedprotocol      String?
+  framedipaddress     String?  // inet
+  
+  @@map("radacct")
+  // Critical Indexes for Performance
+  @@index([username], name: "radacct_username_idx")
+  @@index([acctstarttime], name: "radacct_start_idx")
+  @@index([acctstoptime], name: "radacct_stop_idx") 
+  @@index([nasipaddress], name: "radacct_nasip_idx")
+  @@index([framedipaddress], name: "radacct_framedip_idx")
+}
+
+model Nas {
+  id          Int     @id @default(autoincrement())
+  nasname     String  @unique // NAS IP or Hostname
+  shortname   String?
+  type        String  @default("other")
+  ports       Int?
+  secret      String  @default("secret")
+  server      String?
+  community   String?
+  description String?
+
+  @@map("nas")
+  @@index([nasname], name: "nas_nasname_idx")
+}
+
+model RadPostAuth {
+  id       Int      @id @default(autoincrement())
+  username String
+  pass     String   // Password used
+  reply    String   // Access-Accept / Access-Reject
+  authdate DateTime @default(now())
+
+  @@map("radpostauth")
+  @@index([username, authdate], name: "postauth_idx")
 }

@@ -37,11 +37,56 @@ export default function SettingsPage() {
     const [savingConfig, setSavingConfig] = useState(false);
     const [copied, setCopied] = useState(false);
 
+    // Radius NAS State
+    const [nasList, setNasList] = useState([]);
+    const [showNasModal, setShowNasModal] = useState(false);
+    const [nasForm, setNasForm] = useState({ nasname: '', secret: '', description: '' });
+
     useEffect(() => {
         fetchSettings();
         fetchInterfaces();
         fetchConfig();
+        fetchNasList();
     }, []);
+
+    const fetchNasList = async () => {
+        try {
+            const res = await fetch('/api/radius/nas');
+            if (res.ok) setNasList(await res.json());
+        } catch (e) {
+            console.error("Failed to fetch NAS list", e);
+        }
+    };
+
+    const handleSaveNas = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch('/api/radius/nas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(nasForm)
+            });
+            if (res.ok) {
+                setMessage({ type: 'success', text: 'Radius Client Added' });
+                setShowNasModal(false);
+                setNasForm({ nasname: '', secret: '', description: '' });
+                fetchNasList();
+            } else {
+                const data = await res.json();
+                setMessage({ type: 'error', text: data.error || 'Failed to add NAS' });
+            }
+        } catch (e) {
+            setMessage({ type: 'error', text: 'Error adding NAS' });
+        }
+    };
+
+    const handleDeleteNas = async (id) => {
+        if (!confirm('Delete this Radius Client?')) return;
+        try {
+            await fetch(`/api/radius/nas?id=${id}`, { method: 'DELETE' });
+            fetchNasList();
+        } catch (e) { console.error(e); }
+    };
 
     const fetchInterfaces = async () => {
         try {
@@ -222,7 +267,7 @@ export default function SettingsPage() {
 # Firewall Rules
 /ip firewall filter add chain=forward protocol=udp dst-port=53 src-address=${config.networkCidr} action=accept comment="Buroq Autoisolir - Allow DNS ID-${config.poolName}" place-before=0
 /ip firewall filter add chain=forward src-address=${config.networkCidr} dst-address=${config.billingIp} action=accept comment="Buroq Autoisolir - Allow to Billing"
-/ip firewall nat add chain=dstnat protocol=tcp dst-port=80 src-address=${config.networkCidr} action=dst-nat to-addresses=${config.billingIp} to-ports=${config.appPort} comment="Buroq Autoisolir - Redirect HTTP to Isolir"
+/ip firewall nat add chain=dstnat protocol=tcp dst-port=80 src-address=${config.networkCidr} action=dst-nat to-addresses=${config.billingIp} to-ports=1500 comment="Buroq Autoisolir - Redirect HTTP to Isolir (Port 1500)"
 /ip firewall filter add chain=forward protocol=tcp dst-port=443 src-address=${config.networkCidr} action=reject reject-with=icmp-network-unreachable comment="Buroq Autoisolir - Reject HTTPS Isolir"
 /ip firewall filter add chain=forward src-address=${config.networkCidr} action=drop comment="Buroq Autoisolir - Drop All Other Traffic Isolir"`;
     };
@@ -334,6 +379,52 @@ export default function SettingsPage() {
                                             <Trash2 size={18} />
                                         </button>
                                     </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Radius Client (NAS) Management */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Radius Clients (NAS)</h2>
+                        <p className="text-sm text-gray-500">Daftar Router yang diizinkan mengakses Server Radius</p>
+                    </div>
+                    <button
+                        onClick={() => setShowNasModal(true)}
+                        className="w-full md:w-auto flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30"
+                    >
+                        <Plus size={18} /> Add Radius Client
+                    </button>
+                </div>
+
+                <div className="space-y-4">
+                    {nasList.length === 0 ? (
+                        <p className="text-gray-500 text-center py-4">No Radius Clients configured.</p>
+                    ) : (
+                        <div className="grid gap-4">
+                            {nasList.map(nas => (
+                                <div key={nas.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-2 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                                            <Shield size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-gray-800 dark:text-white">{nas.nasname}</h3>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">Secret: <span className="font-mono bg-gray-100 dark:bg-gray-900 px-1 rounded">{nas.secret}</span></p>
+                                            {nas.description && <p className="text-xs text-gray-400 italic">{nas.description}</p>}
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleDeleteNas(nas.id)}
+                                        className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+                                        title="Delete"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
                                 </div>
                             ))}
                         </div>
@@ -602,6 +693,73 @@ export default function SettingsPage() {
                                     {savingConfig ? 'Saving...' : 'Save Configuration'}
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Add NAS Modal */}
+            {
+                showNasModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md border border-gray-200 dark:border-gray-700">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Add Radius Client (NAS)</h3>
+                                <button onClick={() => setShowNasModal(false)} className="text-gray-500 hover:text-gray-700">
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            <form onSubmit={handleSaveNas}>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Router IP Address (Mikrotik)</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            placeholder="192.168.1.1"
+                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            value={nasForm.nasname}
+                                            onChange={(e) => setNasForm({ ...nasForm, nasname: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Radius Secret</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            placeholder="mysecret123"
+                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            value={nasForm.secret}
+                                            onChange={(e) => setNasForm({ ...nasForm, secret: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Main Gateway"
+                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            value={nasForm.description}
+                                            onChange={(e) => setNasForm({ ...nasForm, description: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end gap-3 mt-6">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNasModal(false)}
+                                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                                    >
+                                        Save Client
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 )

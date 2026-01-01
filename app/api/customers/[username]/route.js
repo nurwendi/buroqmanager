@@ -62,6 +62,10 @@ export async function PUT(request, { params }) {
     }
 }
 
+// Helper to update Radius password if changed (PUT doesn't seem to pass password yet?)
+// If password update is needed, we should add it to PUT body destructuring.
+
+
 export async function DELETE(request, { params }) {
     try {
         const { username } = await params;
@@ -82,8 +86,22 @@ export async function DELETE(request, { params }) {
             await db.$transaction([deleteCustomer, deleteUser]);
         } catch (e) {
             // If transaction fails (e.g. user not found), try deleting just customer
-            await db.customer.delete({ where: { username: username } }).catch(() => { });
-            await db.user.delete({ where: { username: username } }).catch(() => { });
+            await db.customer.deleteMany({ where: { username: username } }).catch(() => { });
+            await db.user.deleteMany({ where: { username: username } }).catch(() => { });
+        }
+
+        // ---------------------------------------------------------
+        // AUTO-SYNC TO RADIUS (Delete)
+        // ---------------------------------------------------------
+        try {
+            await db.radCheck.deleteMany({ where: { username } });
+            await db.radReply.deleteMany({ where: { username } });
+            await db.radUserGroup.deleteMany({ where: { username } });
+            await db.radAcct.deleteMany({ where: { username } }); // Optional: Keep accounting history? Usually yes.
+            // Let's NOT delete RadAcct by default to keep history.
+            console.log(`[Radius-Sync] Deleted Radius user: ${username}`);
+        } catch (rErr) {
+            console.error("[Radius-Sync] Error deleting Radius user:", rErr);
         }
 
         return NextResponse.json({ success: true });
