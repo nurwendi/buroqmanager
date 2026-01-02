@@ -107,6 +107,8 @@ export default function GenieAcsPage() {
                             </div>
 
                             <div className="text-sm space-y-1 text-gray-600 mb-4">
+                                <p><strong>Manuf:</strong> {device.manufacturer}</p>
+                                <p><strong>Type:</strong> {device.model}</p>
                                 <p><strong>SN:</strong> <span className="font-mono">{device.serial}</span></p>
                                 <p><strong>User:</strong> {device.pppoe_user}</p>
                                 <p><strong>IP:</strong> {device.ip}</p>
