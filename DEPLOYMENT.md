@@ -333,3 +333,22 @@ If you cannot login with `admin` / `admin123`:
 
 For issues and feature requests, please open an issue on GitHub:
 https://github.com/nurwendi/mikrotikbilling/issues
+
+## GenieACS Integration
+
+### Configuration
+Add these variables to your `.env` file:
+```env
+GENIEACS_API_URL="http://localhost:7557"
+GENIEACS_USERNAME="your_username"        # If auth enabled
+GENIEACS_PASSWORD="your_password"        # If auth enabled
+```
+
+### Troubleshooting
+**"No devices found"**:
+1.  **Multi-tenancy**: The filters devices by owner. Log in as **superadmin** or **admin** to see all devices.
+2.  **Connection**: Run `curl http://localhost:7557/devices` on the server to verify GenieACS is running.
+
+**"Unknown Model" / "IP: N/A"**:
+*   The system tries multiple paths (TR-098/TR-181) to find device details.
+*   Ensure your devices are reporting standard parameters.
