@@ -28,13 +28,26 @@ export async function GET(request) {
         // Map to cleaner structure
         const cleanedDevices = devices.map(d => {
             // Helper to safely get value
+            // Helper to safely get value and handle GenieACS object structure
             const getVal = (path) => {
                 const parts = path.split('.');
                 let current = d;
                 for (const part of parts) {
                     current = current?.[part];
                 }
-                return current?._value || current || null;
+
+                // If it's a GenieACS object node (has _value), extract it
+                if (current && typeof current === 'object' && '_value' in current) {
+                    return current._value;
+                }
+
+                // If it's still an object (and not null), it means we hit a branch node, not a leaf value.
+                // We should NOT return the object, as React will crash.
+                if (current && typeof current === 'object') {
+                    return null;
+                }
+
+                return current || null;
             };
 
             // 1. Serial Number Strategies
