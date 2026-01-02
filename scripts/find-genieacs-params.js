@@ -59,7 +59,12 @@ async function findParams() {
                 p.includes('product') ||
                 p.includes('model') ||
                 p.includes('manuf') ||
-                p.includes('ssid')) {
+                p.includes('ssid') ||
+                p.includes('username') ||
+                p.includes('ppp') ||
+                p.includes('vendor') ||
+                p.includes('software') ||
+                p.includes('deviceinfo')) {
 
                 console.log(`[FOUND] ${path} = ${value}`);
             }
