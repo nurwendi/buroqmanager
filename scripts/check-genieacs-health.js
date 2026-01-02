@@ -95,12 +95,15 @@ function mapDevice(d) {
 
     // 2. Model / Product Class Strategies
     const model = d.DeviceID?.ProductClass ||
+        d._deviceId?._ProductClass ||
         getVal(d, 'InternetGatewayDevice.DeviceInfo.ModelName') ||
         getVal(d, 'InternetGatewayDevice.DeviceInfo.ProductClass') ||
         getVal(d, 'Device.DeviceInfo.ProductClass') || '-';
 
     // 3. Manufacturer Strategies
     const manufacturer = d.DeviceID?.Manufacturer ||
+        d._deviceId?._OUI ||
+        d._deviceId?._Manufacturer ||
         getVal(d, 'InternetGatewayDevice.DeviceInfo.ManufacturerOUI') ||
         getVal(d, 'InternetGatewayDevice.DeviceInfo.Manufacturer') ||
         getVal(d, 'Device.DeviceInfo.Manufacturer') || '-';

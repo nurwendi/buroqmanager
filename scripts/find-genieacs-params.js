@@ -21,7 +21,15 @@ async function findParams() {
         const device = devices[0];
         console.log(`✅ Analyzing Device ID: ${device._id}\n`);
 
-        console.log('--- POTENTIAL PARAMETER PATHS ---');
+        console.log('--- ROOT KEYS ---');
+        console.log(Object.keys(device).join(', '));
+
+        if (device._deviceId) {
+            console.log('\n--- _deviceId OBJECT ---');
+            console.log(JSON.stringify(device._deviceId, null, 2));
+        }
+
+        console.log('\n--- POTENTIAL PARAMETER PATHS ---');
 
         // Recursive walk
         function walk(obj, path = '') {
