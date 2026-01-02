@@ -110,6 +110,13 @@ export default function GenieAcsPage() {
                                 <p><strong>SN:</strong> <span className="font-mono">{device.serial}</span></p>
                                 <p><strong>User:</strong> {device.pppoe_user}</p>
                                 <p><strong>IP:</strong> {device.ip}</p>
+                                <div className="mt-2 pt-2 border-t border-dashed border-gray-200 grid grid-cols-2 gap-x-2 gap-y-1 text-xs">
+                                    <span>SSID:</span> <span className="font-semibold text-right truncate">{device.ssid}</span>
+                                    <span>RX Pwr:</span> <span className={`font-semibold text-right ${parseFloat(device.rx_power) < -25 ? 'text-red-500' : 'text-green-600'}`}>
+                                        {device.rx_power !== '-' ? device.rx_power + ' dBm' : '-'}
+                                    </span>
+                                    <span>Temp:</span> <span className="font-semibold text-right">{device.temp !== '-' ? device.temp + '°C' : '-'}</span>
+                                </div>
                             </div>
                         </div>
 

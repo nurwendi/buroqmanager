@@ -112,13 +112,30 @@ function mapDevice(d) {
         getVal(d, 'Device.PPP.Interface.1.Username') ||
         '-';
 
+    // 6. SSID
+    const ssid = getVal(d, 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID') ||
+        getVal(d, 'Device.WiFi.SSID.1.SSID') ||
+        '-';
+
+    // 7. RX Power
+    const rxPower = getVal(d, 'InternetGatewayDevice.WANDevice.1.X_HUAWEI_OpticalInterface.RXPower') ||
+        getVal(d, 'InternetGatewayDevice.WANDevice.1.X_ZTE-COM_WANCommonInterfaceConfig.OpticalInputPower') ||
+        getVal(d, 'Device.Optical.Interface.1.OpticalPower.RxPower') ||
+        '-';
+
+    // 8. Temp
+    const temp = getVal(d, 'InternetGatewayDevice.DeviceInfo.TemperatureStatus.Temperature') ||
+        getVal(d, 'Device.DeviceInfo.TemperatureStatus.Temperature') ||
+        '-';
+
     return {
         id: d._id,
         serial: serial,
         model: model,
         manufacturer: manufacturer,
         ip: ip,
-        pppoe_user: pppoeUser
+        pppoe_user: pppoeUser,
+        ssid, rx_power: rxPower, temp
     };
 }
 

@@ -77,6 +77,24 @@ export async function GET(request) {
                 getVal('Device.PPP.Interface.1.Username') ||
                 '-';
 
+            // 6. SSID Strategies
+            const ssid = getVal('InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID') ||
+                getVal('Device.WiFi.SSID.1.SSID') ||
+                getVal('InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID') || // 5GHz often here
+                '-';
+
+            // 7. Rx Optical Power Strategies (Vendor specific)
+            // Values are often in dBm, sometimes needing conversion /100 or /1000 depending on vendor
+            let rxPower = getVal('InternetGatewayDevice.WANDevice.1.X_HUAWEI_OpticalInterface.RXPower') ||
+                getVal('InternetGatewayDevice.WANDevice.1.X_ZTE-COM_WANCommonInterfaceConfig.OpticalInputPower') ||
+                getVal('Device.Optical.Interface.1.OpticalPower.RxPower') ||
+                '-';
+
+            // 8. Temperature Strategies
+            const temp = getVal('InternetGatewayDevice.DeviceInfo.TemperatureStatus.Temperature') ||
+                getVal('Device.DeviceInfo.TemperatureStatus.Temperature') ||
+                '-';
+
             return {
                 id: d._id,
                 serial: serial,
@@ -84,7 +102,10 @@ export async function GET(request) {
                 manufacturer: manufacturer,
                 lastInform: d._lastInform,
                 ip: ip,
-                pppoe_user: pppoeUser
+                pppoe_user: pppoeUser,
+                ssid: ssid,
+                rx_power: rxPower,
+                temp: temp
             };
         });
 
