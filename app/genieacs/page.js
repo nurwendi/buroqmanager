@@ -55,6 +55,41 @@ export default function GenieAcsPage() {
         }
     };
 
+    const [editingDevice, setEditingDevice] = useState(null);
+    const [wifiForm, setWifiForm] = useState({ ssid: '', password: '' });
+
+    const openEditWifi = (device) => {
+        setEditingDevice(device);
+        setWifiForm({ ssid: device.ssid || '', password: '' });
+    };
+
+    const handleSaveWifi = async (e) => {
+        e.preventDefault();
+        if (!confirm('This will update the device Wi-Fi settings. The device might reconnect. Continue?')) return;
+
+        try {
+            const res = await fetch('/api/genieacs/wifi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    deviceId: editingDevice.id,
+                    ssid: wifiForm.ssid,
+                    password: wifiForm.password
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                alert('Success: Wi-Fi update task queued.');
+                setEditingDevice(null);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    };
+
     return (
         <div className="p-6">
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
@@ -122,10 +157,16 @@ export default function GenieAcsPage() {
                             </div>
                         </div>
 
-                        <div className="border-t pt-3 flex justify-end">
+                        <div className="border-t pt-3 flex justify-between gap-2">
+                            <button
+                                onClick={() => openEditWifi(device)}
+                                className="flex-1 flex justify-center items-center gap-2 text-sm text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded transition-colors border border-blue-100"
+                            >
+                                <Wifi size={16} /> Edit Wi-Fi
+                            </button>
                             <button
                                 onClick={() => handleReboot(device.id, device.serial)}
-                                className="flex items-center gap-2 text-sm text-red-600 hover:bg-red-50 px-3 py-1.5 rounded transition-colors"
+                                className="flex-1 flex justify-center items-center gap-2 text-sm text-red-600 hover:bg-red-50 px-3 py-1.5 rounded transition-colors border border-red-100"
                             >
                                 <Power size={16} /> Reboot
                             </button>
@@ -139,6 +180,59 @@ export default function GenieAcsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Edit Wi-Fi Modal */}
+            {editingDevice && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+                        <h2 className="text-xl font-bold mb-4">Edit Wi-Fi Settings</h2>
+                        <p className="text-sm text-gray-500 mb-4">
+                            Device: {editingDevice.serial} <br />
+                            Note: Changing SSID/Password may disconnect devices properly.
+                        </p>
+
+                        <form onSubmit={handleSaveWifi} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">SSID Name</label>
+                                <input
+                                    className="w-full border rounded-lg px-3 py-2"
+                                    value={wifiForm.ssid}
+                                    onChange={e => setWifiForm({ ...wifiForm, ssid: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">New Password</label>
+                                <input
+                                    className="w-full border rounded-lg px-3 py-2"
+                                    type="text"
+                                    placeholder="Leave empty to keep current"
+                                    value={wifiForm.password}
+                                    onChange={e => setWifiForm({ ...wifiForm, password: e.target.value })}
+                                    minLength={8}
+                                />
+                                <p className="text-xs text-gray-400 mt-1">Min 8 characters.</p>
+                            </div>
+
+                            <div className="flex justify-end gap-3 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => setEditingDevice(null)}
+                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
