@@ -179,7 +179,8 @@ export default function GenieAcsPage() {
                                 </button>
                             </div>
                         </div>
-                    ))}
+                    );
+                })}
 
                 {!loading && devices.length === 0 && (
                     <div className="col-span-full p-8 text-center text-gray-500 bg-gray-50 rounded-xl border border-dashed">
