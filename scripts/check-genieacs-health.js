@@ -88,16 +88,20 @@ function mapDevice(d) {
     // 1. Serial Number Strategies
     const serial = d.DeviceID?.SerialNumber ||
         getVal(d, 'InternetGatewayDevice.DeviceInfo.SerialNumber') ||
+        getVal(d, 'InternetGatewayDevice.DeviceInfo.X_HW_SerialNumber') ||
+        getVal(d, 'VirtualParameters.getSerialNumber') ||
         getVal(d, 'Device.DeviceInfo.SerialNumber') ||
         d._deviceId?._SerialNumber || '-';
 
     // 2. Model / Product Class Strategies
     const model = d.DeviceID?.ProductClass ||
+        getVal(d, 'InternetGatewayDevice.DeviceInfo.ModelName') ||
         getVal(d, 'InternetGatewayDevice.DeviceInfo.ProductClass') ||
         getVal(d, 'Device.DeviceInfo.ProductClass') || '-';
 
     // 3. Manufacturer Strategies
     const manufacturer = d.DeviceID?.Manufacturer ||
+        getVal(d, 'InternetGatewayDevice.DeviceInfo.ManufacturerOUI') ||
         getVal(d, 'InternetGatewayDevice.DeviceInfo.Manufacturer') ||
         getVal(d, 'Device.DeviceInfo.Manufacturer') || '-';
 
@@ -119,12 +123,16 @@ function mapDevice(d) {
 
     // 7. RX Power
     const rxPower = getVal(d, 'InternetGatewayDevice.WANDevice.1.X_HUAWEI_OpticalInterface.RXPower') ||
+        getVal(d, 'InternetGatewayDevice.WANDevice.1.X_GponInterafceConfig.RXPower') ||
+        getVal(d, 'VirtualParameters.RXPower') ||
         getVal(d, 'InternetGatewayDevice.WANDevice.1.X_ZTE-COM_WANCommonInterfaceConfig.OpticalInputPower') ||
         getVal(d, 'Device.Optical.Interface.1.OpticalPower.RxPower') ||
         '-';
 
     // 8. Temp
     const temp = getVal(d, 'InternetGatewayDevice.DeviceInfo.TemperatureStatus.Temperature') ||
+        getVal(d, 'InternetGatewayDevice.WANDevice.1.X_GponInterafceConfig.TransceiverTemperature') ||
+        getVal(d, 'VirtualParameters.gettemp') ||
         getVal(d, 'Device.DeviceInfo.TemperatureStatus.Temperature') ||
         '-';
 

@@ -53,16 +53,20 @@ export async function GET(request) {
             // 1. Serial Number Strategies
             const serial = d.DeviceID?.SerialNumber ||
                 getVal('InternetGatewayDevice.DeviceInfo.SerialNumber') ||
+                getVal('InternetGatewayDevice.DeviceInfo.X_HW_SerialNumber') || // Huawei specific
+                getVal('VirtualParameters.getSerialNumber') ||
                 getVal('Device.DeviceInfo.SerialNumber') ||
                 d._deviceId?._SerialNumber || '-';
 
             // 2. Model / Product Class Strategies
             const model = d.DeviceID?.ProductClass ||
+                getVal('InternetGatewayDevice.DeviceInfo.ModelName') ||
                 getVal('InternetGatewayDevice.DeviceInfo.ProductClass') ||
                 getVal('Device.DeviceInfo.ProductClass') || '-';
 
             // 3. Manufacturer Strategies
             const manufacturer = d.DeviceID?.Manufacturer ||
+                getVal('InternetGatewayDevice.DeviceInfo.ManufacturerOUI') ||
                 getVal('InternetGatewayDevice.DeviceInfo.Manufacturer') ||
                 getVal('Device.DeviceInfo.Manufacturer') || '-';
 
@@ -80,18 +84,22 @@ export async function GET(request) {
             // 6. SSID Strategies
             const ssid = getVal('InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID') ||
                 getVal('Device.WiFi.SSID.1.SSID') ||
-                getVal('InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID') || // 5GHz often here
+                getVal('InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID') ||
                 '-';
 
             // 7. Rx Optical Power Strategies (Vendor specific)
             // Values are often in dBm, sometimes needing conversion /100 or /1000 depending on vendor
             let rxPower = getVal('InternetGatewayDevice.WANDevice.1.X_HUAWEI_OpticalInterface.RXPower') ||
+                getVal('InternetGatewayDevice.WANDevice.1.X_GponInterafceConfig.RXPower') || // Found in debug
                 getVal('InternetGatewayDevice.WANDevice.1.X_ZTE-COM_WANCommonInterfaceConfig.OpticalInputPower') ||
+                getVal('VirtualParameters.RXPower') ||
                 getVal('Device.Optical.Interface.1.OpticalPower.RxPower') ||
                 '-';
 
             // 8. Temperature Strategies
             const temp = getVal('InternetGatewayDevice.DeviceInfo.TemperatureStatus.Temperature') ||
+                getVal('InternetGatewayDevice.WANDevice.1.X_GponInterafceConfig.TransceiverTemperature') || // Found in debug
+                getVal('VirtualParameters.gettemp') ||
                 getVal('Device.DeviceInfo.TemperatureStatus.Temperature') ||
                 '-';
 
