@@ -102,13 +102,15 @@ function mapDevice(d) {
         getVal(d, 'Device.DeviceInfo.ProductClass') || '-';
 
     // 3. Manufacturer Strategies
-    const manufacturer = d.DeviceID?.Manufacturer ||
-        d._deviceId?._OUI ||
+    // Prioritize full names over OUI/Short codes
+    const manufacturer = d._Manufacturer ||
         d._deviceId?._Manufacturer ||
-        d._Manufacturer ||
-        getVal(d, 'InternetGatewayDevice.DeviceInfo.ManufacturerOUI') ||
         getVal(d, 'InternetGatewayDevice.DeviceInfo.Manufacturer') ||
-        getVal(d, 'Device.DeviceInfo.Manufacturer') || '-';
+        getVal(d, 'Device.DeviceInfo.Manufacturer') ||
+        d.DeviceID?.Manufacturer ||
+        d._deviceId?._OUI ||
+        getVal(d, 'InternetGatewayDevice.DeviceInfo.ManufacturerOUI') ||
+        '-';
 
     // 4. IP Address Strategies
     const ip = getVal(d, 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1.ExternalIPAddress') ||
