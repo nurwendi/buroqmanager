@@ -58,7 +58,7 @@ export default function BottomDock() {
 
         // { href: '/radius/users', icon: Radio, hoverIcon: Wifi, label: 'Radius', roles: ['admin', 'manager'] }, // Merged into Users
         // { href: '/profiles', icon: Gauge, hoverIcon: Settings, label: 'Profiles', roles: ['admin', 'manager'] },
-        { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: 'GenieACS', roles: ['admin', 'manager'] },
+        { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: 'GenieACS', roles: ['superadmin'] },
         { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
@@ -83,7 +83,7 @@ export default function BottomDock() {
         // { href: '/radius/nas', icon: Server, label: 'NAS List', roles: ['admin', 'manager'] }, // Merged into NAT
         // { href: '/radius/users', icon: Radio, label: 'Radius Users', roles: ['admin', 'manager'] }, // Merged into Users
         // { href: '/radius/acct', icon: Activity, label: 'Radius Online', roles: ['admin', 'manager'] }, // Merged into Active Connections
-        { href: '/genieacs', icon: Wifi, label: 'GenieACS', roles: ['admin', 'manager'] },
+        { href: '/genieacs', icon: Wifi, label: 'GenieACS', roles: ['superadmin'] },
         { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },

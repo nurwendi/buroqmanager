@@ -157,9 +157,9 @@ export async function GET(request) {
         });
 
         // MULTITENANCY FILTERING
-        // Allow Superadmin AND Admin to see all devices (Global Management requested)
-        if (user.role === 'superadmin' || user.role === 'admin') {
-            console.log(`[GenieACS] Found ${cleanedDevices.length} devices (Bypassed for ${user.role})`);
+        // Allow ONLY superadmin to see all devices for global management.
+        if (user.role === 'superadmin') {
+            console.log(`[GenieACS] Found ${cleanedDevices.length} devices (Bypassed for superadmin)`);
             return NextResponse.json(cleanedDevices);
         }
 
