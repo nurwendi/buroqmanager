@@ -13,6 +13,14 @@ This guide explains how to deploy the Buroq Billing Management application on Ub
 
 ## Quick Installation (Ubuntu/Debian)
 
+### Prerequisite Check
+Before installing, ensure ports 80 and 5432 are not in use.
+```bash
+sudo lsof -i :80
+sudo lsof -i :5432
+```
+
+
 ### 1. Update System
 ```bash
 apt update && apt upgrade -y
@@ -23,7 +31,22 @@ apt update && apt upgrade -y
 sudo apt install postgresql postgresql-contrib -y
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
+### 2. Install PostgreSQL
+```bash
+sudo apt install postgresql postgresql-contrib -y
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
 ```
+
+### 3. Configure Firewall (UFW)
+Ensure your server allows traffic on necessary ports.
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+```
+
 
 ### 3. Create Database & User
 ```bash
@@ -42,6 +65,12 @@ curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt-get install -y nodejs
 node -v  # Verify installation
 ```
+
+### 5. Install Process Manager (PM2)
+```bash
+npm install -g pm2
+```
+
 
 ### 5. Install PM2 (Process Manager)
 ```bash
@@ -67,13 +96,20 @@ cp .env.local.example .env
 nano .env
 # Set DATABASE_URL="postgresql://billing_user:your_secure_password@localhost:5432/mikrotik_billing?schema=public"
 ```
+> **Note**: If your password contains special characters (like `#`), you must URL encode them (e.g., `#` becomes `%23`).
+
 
 ### 9. Install & Setup
 ```bash
 npm install
 npx prisma generate
 npx prisma db push
+npm install
+npx prisma generate
+npx prisma db push
+npx prisma db seed  # CRITICAL: Creates default admin/admin123 user
 ```
+
 
 ### 10. Build Application
 ```bash
@@ -109,7 +145,18 @@ sudo apt install authbind
 sudo touch /etc/authbind/byport/80
 sudo chmod 500 /etc/authbind/byport/80
 sudo chown $USER /etc/authbind/byport/80
+sudo chown $USER /etc/authbind/byport/80
 ```
+
+To run with authbind:
+```bash
+# Run interactively (to test)
+authbind --deep npx next start -p 80 -H 0.0.0.0
+
+# Run with PM2 (Production)
+authbind --deep pm2 start npm --name "billing" -- start
+```
+
 
 **Option B: Use Nginx as Reverse Proxy**
 ```bash
@@ -257,6 +304,16 @@ pm2 logs billing --lines 100
 ```bash
 node -v  # Should be 20.x or higher
 ```
+
+### Invalid Credentials / Login Failed
+If you cannot login with `admin` / `admin123`:
+1. Ensure you ran the seed command: `npx prisma db seed`
+2. If that fails, manually reset the password via `prisma studio` or a script.
+
+### App Running but Not Accessible
+1. Check Firewall: `sudo ufw status` (Ensure 80/tcp is ALLOWED)
+2. Check Listen Address: `sudo ss -tulpn | grep :80`. If it says `127.0.0.1:80`, you need to bind to `0.0.0.0` using `-H 0.0.0.0`.
+
 
 ## Features
 
