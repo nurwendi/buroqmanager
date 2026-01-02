@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, RefreshCw, ArrowUpDown, Search, ExternalLink, Power, Wifi } from 'lucide-react';
+import { Activity, RefreshCw, ArrowUpDown, Search, ExternalLink, Power, Wifi, RotateCcw } from 'lucide-react';
 import { useDashboard } from '@/contexts/DashboardContext';
 
 export default function ActiveConnectionsPage() {
@@ -142,6 +142,26 @@ export default function ActiveConnectionsPage() {
         } catch (error) {
             console.error('Error disconnecting:', error);
             alert('Failed to disconnect user');
+        }
+    };
+
+    const handleReboot = async (deviceId, serial) => {
+        if (!confirm(`Are you sure you want to reboot device ${serial}?`)) return;
+
+        try {
+            const res = await fetch('/api/genieacs/reboot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deviceId })
+            });
+
+            if (res.ok) {
+                alert('Reboot task queued successfully.');
+            } else {
+                alert('Failed to queue reboot.');
+            }
+        } catch (e) {
+            alert('Error: ' + e.message);
         }
     };
 
@@ -368,33 +388,56 @@ export default function ActiveConnectionsPage() {
                                                     </td>
 
                                                     <td className="px-3 md:px-6 py-4 whitespace-nowrap text-gray-500">
-                                                        {conn.address && (
-                                                            <a
-                                                                href={`http://${conn.address}`}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="hidden md:inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-2"
-                                                            >
-                                                                <ExternalLink size={14} className="mr-0 md:mr-1" />
-                                                                <span className="hidden md:inline">Manage</span>
-                                                            </a>
-                                                        )}
-                                                        {acs && (
-                                                            <button
-                                                                onClick={() => openEditWifi(acs)}
-                                                                className="hidden md:inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mr-2"
-                                                            >
-                                                                <Wifi size={14} className="mr-0 md:mr-1" />
-                                                                <span className="hidden md:inline">WiFi</span>
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            onClick={() => handleDisconnect(conn['.id'], conn.name)}
-                                                            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                                                        >
-                                                            <Power size={14} className="mr-0 md:mr-1" />
-                                                            <span className="hidden md:inline">Disconnect</span>
-                                                        </button>
+                                                        <div className="flex items-center gap-2">
+                                                            {/* Group 1: Manage | Disconnect */}
+                                                            <div className="flex items-center gap-1">
+                                                                {conn.address && (
+                                                                    <a
+                                                                        href={`http://${conn.address}`}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-3 md:py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                                                        title="Manage Device"
+                                                                    >
+                                                                        <ExternalLink size={14} className="md:mr-1" />
+                                                                        <span className="hidden md:inline">Manage</span>
+                                                                    </a>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => handleDisconnect(conn['.id'], conn.name)}
+                                                                    className="flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-3 md:py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                                                    title="Disconnect User"
+                                                                >
+                                                                    <Power size={14} className="md:mr-1" />
+                                                                    <span className="hidden md:inline">Disconnect</span>
+                                                                </button>
+                                                            </div>
+
+                                                            {/* Divider */}
+                                                            {acs && <div className="hidden md:block w-px h-5 bg-gray-300 mx-1"></div>}
+
+                                                            {/* Group 2: WiFi | Reboot */}
+                                                            {acs && (
+                                                                <div className="flex items-center gap-1">
+                                                                    <button
+                                                                        onClick={() => openEditWifi(acs)}
+                                                                        className="flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-3 md:py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                                        title="Edit WiFi"
+                                                                    >
+                                                                        <Wifi size={14} className="md:mr-1" />
+                                                                        <span className="hidden md:inline">WiFi</span>
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleReboot(acs.id, acs.serial)}
+                                                                        className="flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-3 md:py-1 border border-transparent text-xs font-medium rounded text-orange-700 bg-orange-100 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+                                                                        title="Reboot Device"
+                                                                    >
+                                                                        <RotateCcw size={14} className="md:mr-1" />
+                                                                        <span className="hidden md:inline">Reboot</span>
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             );
