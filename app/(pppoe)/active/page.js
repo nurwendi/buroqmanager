@@ -39,6 +39,34 @@ export default function ActiveConnectionsPage() {
         if (!sortConfig.key) return filtered;
 
         const sorted = [...filtered].sort((a, b) => {
+            // Handle ACS field sorting
+            if (['ssid', 'rx_power', 'temp', 'serial'].includes(sortConfig.key)) {
+                const acsA = getAcsData(a.name) || {};
+                const acsB = getAcsData(b.name) || {};
+
+                // Treat Signal (rx_power) as number for correct sorting
+                if (sortConfig.key === 'rx_power') {
+                    const valA = parseFloat(acsA.rx_power) || -999;
+                    const valB = parseFloat(acsB.rx_power) || -999;
+                    return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+                }
+
+                // Treat Temp as number
+                if (sortConfig.key === 'temp') {
+                    const valA = parseFloat(acsA.temp) || -999;
+                    const valB = parseFloat(acsB.temp) || -999;
+                    return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+                }
+
+                const valA = (acsA[sortConfig.key] || '').toString().toLowerCase();
+                const valB = (acsB[sortConfig.key] || '').toString().toLowerCase();
+
+                if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+            }
+
+            // Normal PPPoE field sorting
             const aVal = a[sortConfig.key] || '';
             const bVal = b[sortConfig.key] || '';
 
@@ -272,20 +300,40 @@ export default function ActiveConnectionsPage() {
                                         </div>
                                     </th>
                                     {/* SSID Column */}
-                                    <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        SSID
+                                    <th
+                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                                        onClick={() => sortData('ssid')}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            SSID <ArrowUpDown size={14} />
+                                        </div>
                                     </th>
                                     {/* Signal Column */}
-                                    <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Signal
+                                    <th
+                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                                        onClick={() => sortData('rx_power')}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Signal <ArrowUpDown size={14} />
+                                        </div>
                                     </th>
                                     {/* Temp Column */}
-                                    <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Temp
+                                    <th
+                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                                        onClick={() => sortData('temp')}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Temp <ArrowUpDown size={14} />
+                                        </div>
                                     </th>
                                     {/* SN Column */}
-                                    <th className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        SN
+                                    <th
+                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                                        onClick={() => sortData('serial')}
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            SN <ArrowUpDown size={14} />
+                                        </div>
                                     </th>
                                     <th
                                         className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
