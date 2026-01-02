@@ -116,6 +116,7 @@ function mapDevice(d) {
 
     // 5. PPPoE Username Strategies
     const pppoeUser = getVal(d, 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username') ||
+        getVal(d, 'VirtualParameters.pppoeUsername') ||
         getVal(d, 'Device.PPP.Interface.1.Username') ||
         '-';
 

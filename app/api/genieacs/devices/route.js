@@ -81,6 +81,7 @@ export async function GET(request) {
 
             // 5. PPPoE Username Strategies
             const pppoeUser = getVal('InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username') ||
+                getVal('VirtualParameters.pppoeUsername') || // Found via discovery
                 getVal('Device.PPP.Interface.1.Username') ||
                 '-';
 
