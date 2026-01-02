@@ -77,17 +77,41 @@ export async function GET(request) {
                 getVal('InternetGatewayDevice.DeviceInfo.ManufacturerOUI') ||
                 '-';
 
-            // 4. IP Address Strategies
-            const ip = getVal('InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1.ExternalIPAddress') ||
-                getVal('InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.ExternalIPAddress') ||
-                getVal('Device.IP.Interface.1.IPv4Address.1.IPAddress') ||
-                'N/A';
+            // 4. IP Address Strategies (Loop through typical indices)
+            let ip = 'N/A';
+            let pppoeUser = '-';
 
-            // 5. PPPoE Username Strategies
-            const pppoeUser = getVal('InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username') ||
-                getVal('VirtualParameters.pppoeUsername') || // Found via discovery
-                getVal('Device.PPP.Interface.1.Username') ||
-                '-';
+            // Check TR-098 WANDevice indices (common for VLANs)
+            const wanIndices = ['1', '2', '3', '4', '5'];
+            for (const i of wanIndices) {
+                // Try PPP
+                const pIp = getVal(`InternetGatewayDevice.WANDevice.1.WANConnectionDevice.${i}.WANPPPConnection.1.ExternalIPAddress`);
+                if (pIp && pIp !== '0.0.0.0' && pIp !== '-') {
+                    ip = pIp;
+                    pppoeUser = getVal(`InternetGatewayDevice.WANDevice.1.WANConnectionDevice.${i}.WANPPPConnection.1.Username`) || pppoeUser;
+                    break;
+                }
+                // Try IP
+                const iIp = getVal(`InternetGatewayDevice.WANDevice.1.WANConnectionDevice.${i}.WANIPConnection.1.ExternalIPAddress`);
+                if (iIp && iIp !== '0.0.0.0' && iIp !== '-') {
+                    ip = iIp;
+                    break;
+                }
+            }
+
+            // Fallbacks if loop fail
+            if (ip === 'N/A') {
+                ip = getVal('Device.IP.Interface.1.IPv4Address.1.IPAddress') ||
+                    getVal('InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1.ExternalIPAddress') || // aggressive fallback
+                    'N/A';
+            }
+
+            // 5. PPPoE Username Strategies (fallback)
+            if (pppoeUser === '-') {
+                pppoeUser = getVal('VirtualParameters.pppoeUsername') ||
+                    getVal('Device.PPP.Interface.1.Username') ||
+                    '-';
+            }
 
             // 6. SSID Strategies
             const ssid = getVal('InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID') ||
