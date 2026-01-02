@@ -160,15 +160,16 @@ export async function GET(request) {
         // Allow ONLY superadmin to see all devices for global management.
         // Admin, Manager, etc. must be restricted to their own customers.
         if (user.role === 'superadmin') {
-            // console.log(`[GenieACS] Found ${cleanedDevices.length} devices (Filter bypassed for ${user.role})`);
+            console.log(`[GenieACS] Found ${cleanedDevices.length} devices (Bypassed for superadmin)`);
             return NextResponse.json(cleanedDevices);
         }
 
         // For Staff/Managers: Only show devices where pppoe_user matches one of their Customers
         const ownerId = user.ownerId; // Staff/Manager should have ownerId
+        console.log(`[GenieACS] User Role: ${user.role}, OwnerId: ${ownerId}`);
 
         if (!ownerId) {
-            // If no owner, safer to show nothing
+            console.warn('[GenieACS] No ownerId found for user. Access denied.');
             return NextResponse.json([]);
         }
 
@@ -178,6 +179,7 @@ export async function GET(request) {
             .filter(u => u && u !== '-');
 
         if (deviceUsernames.length === 0) {
+            console.log('[GenieACS] No valid PPPoE usernames found in devices.');
             return NextResponse.json([]);
         }
 
@@ -191,9 +193,11 @@ export async function GET(request) {
         });
 
         const myUsernames = new Set(myCustomers.map(c => c.username));
+        console.log(`[GenieACS] Filtering: ${cleanedDevices.length} devices -> Found ${myCustomers.length} matching customers.`);
 
         // Filter the list
         const filteredDevices = cleanedDevices.filter(d => myUsernames.has(d.pppoe_user));
+        console.log(`[GenieACS] Returning ${filteredDevices.length} devices.`);
 
         return NextResponse.json(filteredDevices);
     } catch (error) {
