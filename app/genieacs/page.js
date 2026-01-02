@@ -17,7 +17,7 @@ export default function GenieAcsPage() {
             const res = await fetch('/api/auth/me');
             if (res.ok) {
                 const user = await res.json();
-                if (user.role !== 'superadmin') {
+                if (user.role !== 'superadmin' && user.role !== 'admin') {
                     setAccessDenied(true);
                     setLoading(false);
                     return;
