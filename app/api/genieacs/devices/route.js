@@ -44,16 +44,17 @@ export async function GET(request) {
         });
 
         // MULTITENANCY FILTERING
-        if (user.role === 'superadmin') {
+        // Allow superadmin and admin to see all devices (simplifies setup/debugging)
+        if (user.role === 'superadmin' || user.role === 'admin') {
+            // console.log(`[GenieACS] Found ${cleanedDevices.length} devices (Filter bypassed for ${user.role})`);
             return NextResponse.json(cleanedDevices);
         }
 
-        // For Admins/Staff: Only show devices where pppoe_user matches one of their Customers
-        const ownerId = user.role === 'admin' ? user.id : user.ownerId; // Get effective owner
+        // For Staff/Managers: Only show devices where pppoe_user matches one of their Customers
+        const ownerId = user.ownerId; // Staff/Manager should have ownerId
 
         if (!ownerId) {
-            // If no owner (e.g. standalone staff?), maybe show nothing or all? 
-            // Safer to show nothing if not superadmin
+            // If no owner, safer to show nothing
             return NextResponse.json([]);
         }
 
