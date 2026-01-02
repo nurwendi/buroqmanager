@@ -134,89 +134,94 @@ export default function GenieAcsPage() {
                     }
 
                     return (
-                        <div key={device.id} className={`${bgClass} rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden`}>
-                            {/* Card Header: Status & Model */}
-                            <div className="p-4 border-b border-gray-100/50 bg-white/50 backdrop-blur-sm">
-                                <div className="flex justify-between items-start">
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-2 bg-white rounded-lg shadow-sm border border-gray-100 text-orange-600">
-                                            <Router size={20} />
+                        <div key={device.id} className={`${bgClass} rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden`}>
+                            {/* Unified Header Area */}
+                            <div className="p-5 border-b border-gray-100/50 bg-white/60 backdrop-blur-sm">
+                                {/* Top Row: Icon, Model, Status */}
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 text-orange-600">
+                                            <Router size={22} />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-800 text-sm leading-tight">{device.model || 'Unknown Device'}</h3>
-                                            <p className="text-xs text-gray-500">{device.manufacturer}</p>
+                                            <h3 className="font-bold text-gray-800 text-base leading-tight">{device.model || 'Unknown Device'}</h3>
+                                            <p className="text-xs text-gray-500 font-medium">{device.manufacturer}</p>
                                         </div>
                                     </div>
-                                    <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full border ${(Date.now() - new Date(device.lastInform).getTime()) < 300000
-                                        ? 'bg-green-100 text-green-700 border-green-200'
-                                        : 'bg-gray-100 text-gray-500 border-gray-200'
+                                    <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wide ${(Date.now() - new Date(device.lastInform).getTime()) < 300000
+                                            ? 'bg-green-100 text-green-700 border-green-200'
+                                            : 'bg-gray-100 text-gray-500 border-gray-200'
                                         }`}>
                                         {(Date.now() - new Date(device.lastInform).getTime()) < 300000 ? 'Online' : 'Offline'}
-                                        <span className="block font-normal normal-case text-[9px] opacity-80">
-                                            {new Date(device.lastInform).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
                                     </span>
+                                </div>
+
+                                {/* Metadata Row: User | IP | SN */}
+                                <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs text-gray-600 mt-2 bg-white/50 p-2 rounded-lg border border-gray-100/50">
+                                    <div className="flex items-center gap-1.5" title="PPPoE User">
+                                        <span className="font-semibold text-gray-400">User:</span>
+                                        <span className="font-medium">{device.pppoe_user}</span>
+                                    </div>
+                                    <div className="w-px h-3 bg-gray-300 hidden sm:block"></div>
+                                    <div className="flex items-center gap-1.5" title="IP Address">
+                                        <span className="font-semibold text-gray-400">IP:</span>
+                                        <span className="font-mono">{device.ip}</span>
+                                    </div>
+                                    <div className="w-px h-3 bg-gray-300 hidden sm:block"></div>
+                                    <div className="flex items-center gap-1.5" title="Serial Number">
+                                        <span className="font-semibold text-gray-400">SN:</span>
+                                        <span className="font-mono">{device.serial}</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Card Body: Info Grid */}
-                            <div className="p-4 flex-1 space-y-3">
-                                {/* User & IP */}
-                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                    <div className="bg-white/60 p-2 rounded border border-gray-100">
-                                        <p className="text-gray-400 mb-0.5 flex items-center gap-1">User</p>
-                                        <p className="font-medium text-gray-700 truncate" title={device.pppoe_user}>{device.pppoe_user}</p>
-                                    </div>
-                                    <div className="bg-white/60 p-2 rounded border border-gray-100">
-                                        <p className="text-gray-400 mb-0.5">IP Address</p>
-                                        <p className="font-mono font-medium text-gray-700 truncate" title={device.ip}>{device.ip}</p>
-                                    </div>
-                                </div>
-
-                                {/* SN */}
-                                <div className="text-xs flex items-center justify-between text-gray-500 px-1">
-                                    <span>SN: <span className="font-mono select-all">{device.serial}</span></span>
-                                </div>
-
-                                {/* Metrics: SSID, Signal, Temp */}
-                                <div className="bg-white/80 rounded-lg p-2 border border-gray-100 space-y-2">
-                                    <div className="flex items-center justify-between text-xs pb-2 border-b border-gray-100 border-dashed">
-                                        <div className="flex items-center gap-1.5 text-gray-600">
-                                            <Wifi size={14} className="text-blue-500" />
-                                            <span className="font-medium truncate max-w-[120px]" title={device.ssid}>{device.ssid}</span>
+                            {/* Card Body: Single Line Metrics */}
+                            <div className="px-5 py-4 flex-1 flex items-center">
+                                <div className="w-full bg-white/70 rounded-xl p-3 border border-gray-100 flex items-center justify-between text-xs gap-2">
+                                    {/* SSID */}
+                                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                                        <Wifi size={16} className="text-blue-500 flex-shrink-0" />
+                                        <div className="flex flex-col truncate">
+                                            <span className="text-[10px] text-gray-400 leading-none mb-0.5">SSID</span>
+                                            <span className="font-bold text-gray-700 truncate" title={device.ssid}>{device.ssid || '-'}</span>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between text-xs">
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex items-col flex-col">
-                                                <span className="text-[10px] text-gray-400">Signal</span>
-                                                <span className={`font-bold ${parseFloat(device.rx_power) < -25 ? 'text-red-600' : 'text-green-600'}`}>
-                                                    {device.rx_power !== '-' ? device.rx_power + ' dBm' : '-'}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-col flex-col">
-                                                <span className="text-[10px] text-gray-400">Temp</span>
-                                                <span className="font-medium text-gray-700">
-                                                    {device.temp !== '-' ? device.temp + '°C' : '-'}
-                                                </span>
-                                            </div>
-                                        </div>
+                                    {/* Divider */}
+                                    <div className="w-px h-8 bg-gray-200 mx-1"></div>
+
+                                    {/* Signal */}
+                                    <div className="flex flex-col items-center min-w-[60px]">
+                                        <span className="text-[10px] text-gray-400 leading-none mb-0.5">Signal</span>
+                                        <span className={`font-bold ${parseFloat(device.rx_power) < -25 ? 'text-red-600' : 'text-green-600'}`}>
+                                            {device.rx_power !== '-' ? device.rx_power + ' dBm' : '-'}
+                                        </span>
+                                    </div>
+
+                                    {/* Divider */}
+                                    <div className="w-px h-8 bg-gray-200 mx-1"></div>
+
+                                    {/* Temp */}
+                                    <div className="flex flex-col items-end min-w-[50px]">
+                                        <span className="text-[10px] text-gray-400 leading-none mb-0.5">Temp</span>
+                                        <span className="font-bold text-gray-700">
+                                            {device.temp !== '-' ? device.temp + '°C' : '-'}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Actions Footer */}
-                            <div className="p-3 bg-white/50 border-t border-gray-100 flex gap-2">
+                            <div className="px-5 pb-5 pt-0 flex gap-3">
                                 <button
                                     onClick={() => openEditWifi(device)}
-                                    className="flex-1 flex justify-center items-center gap-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 py-2 rounded-lg transition-colors border border-blue-100"
+                                    className="flex-1 flex justify-center items-center gap-2 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 py-2.5 rounded-xl transition-colors border border-blue-100"
                                 >
                                     <Wifi size={14} /> WiFi
                                 </button>
                                 <button
                                     onClick={() => handleReboot(device.id, device.serial)}
-                                    className="flex-1 flex justify-center items-center gap-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 py-2 rounded-lg transition-colors border border-red-100"
+                                    className="flex-1 flex justify-center items-center gap-2 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 py-2.5 rounded-xl transition-colors border border-red-100"
                                 >
                                     <Power size={14} /> Reboot
                                 </button>
