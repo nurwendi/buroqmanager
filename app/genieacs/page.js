@@ -17,7 +17,9 @@ export default function GenieAcsPage() {
             const res = await fetch('/api/auth/me');
             if (res.ok) {
                 const user = await res.json();
-                if (user.role !== 'superadmin' && user.role !== 'admin') {
+                // Allow all management roles (Superadmin, Admin, Manager, Staff, etc.)
+                // Block only 'customer' to prevent seeing sibling data via ownerId logic
+                if (user.role === 'customer') {
                     setAccessDenied(true);
                     setLoading(false);
                     return;
@@ -115,7 +117,7 @@ export default function GenieAcsPage() {
                 <div className="bg-red-50 text-red-600 p-4 rounded-xl inline-block border border-red-100 mb-4">
                     <Power size={48} className="mx-auto mb-2" />
                     <h2 className="text-xl font-bold">Access Denied</h2>
-                    <p>This page is restricted to Superadmin and Admin users only.</p>
+                    <p>This page is restricted to Management users only.</p>
                 </div>
             </div>
         );
