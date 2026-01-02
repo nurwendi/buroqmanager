@@ -27,19 +27,51 @@ export async function GET(request) {
 
         // Map to cleaner structure
         const cleanedDevices = devices.map(d => {
-            const wan = d.InternetGatewayDevice?.WANDevice?.['1']?.WANConnectionDevice?.['1'];
-            const ip = wan?.WANIPConnection?.['1']?.ExternalIPAddress?._value ||
-                wan?.WANPPPConnection?.['1']?.ExternalIPAddress?._value || 'N/A';
-            const username = wan?.WANPPPConnection?.['1']?.Username?._value || '-';
+            // Helper to safely get value
+            const getVal = (path) => {
+                const parts = path.split('.');
+                let current = d;
+                for (const part of parts) {
+                    current = current?.[part];
+                }
+                return current?._value || current || null;
+            };
+
+            // 1. Serial Number Strategies
+            const serial = d.DeviceID?.SerialNumber ||
+                getVal('InternetGatewayDevice.DeviceInfo.SerialNumber') ||
+                getVal('Device.DeviceInfo.SerialNumber') ||
+                d._deviceId?._SerialNumber || '-';
+
+            // 2. Model / Product Class Strategies
+            const model = d.DeviceID?.ProductClass ||
+                getVal('InternetGatewayDevice.DeviceInfo.ProductClass') ||
+                getVal('Device.DeviceInfo.ProductClass') || '-';
+
+            // 3. Manufacturer Strategies
+            const manufacturer = d.DeviceID?.Manufacturer ||
+                getVal('InternetGatewayDevice.DeviceInfo.Manufacturer') ||
+                getVal('Device.DeviceInfo.Manufacturer') || '-';
+
+            // 4. IP Address Strategies
+            const ip = getVal('InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1.ExternalIPAddress') ||
+                getVal('InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.ExternalIPAddress') ||
+                getVal('Device.IP.Interface.1.IPv4Address.1.IPAddress') ||
+                'N/A';
+
+            // 5. PPPoE Username Strategies
+            const pppoeUser = getVal('InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username') ||
+                getVal('Device.PPP.Interface.1.Username') ||
+                '-';
 
             return {
                 id: d._id,
-                serial: d.DeviceID?.SerialNumber,
-                model: d.DeviceID?.ProductClass,
-                manufacturer: d.DeviceID?.Manufacturer,
+                serial: serial,
+                model: model,
+                manufacturer: manufacturer,
                 lastInform: d._lastInform,
                 ip: ip,
-                pppoe_user: username
+                pppoe_user: pppoeUser
             };
         });
 
