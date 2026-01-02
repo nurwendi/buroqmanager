@@ -115,7 +115,7 @@ export default function GenieAcsPage() {
                 <div className="bg-red-50 text-red-600 p-4 rounded-xl inline-block border border-red-100 mb-4">
                     <Power size={48} className="mx-auto mb-2" />
                     <h2 className="text-xl font-bold">Access Denied</h2>
-                    <p>This page is restricted to Superadmin users only.</p>
+                    <p>This page is restricted to Superadmin and Admin users only.</p>
                 </div>
             </div>
         );
