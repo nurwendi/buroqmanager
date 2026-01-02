@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-import { setParameter, getDevice } from '@/lib/genieacs';
+import { setParameter, getDevice, parseGenieACSDevice } from '@/lib/genieacs';
 import { getUserFromRequest } from '@/lib/api-auth';
 
 export async function POST(request) {
     try {
         const user = await getUserFromRequest(request);
-        if (!user || (user.role !== 'superadmin' && user.role !== 'admin')) {
-            // For safety, currently restricting to admins only
+
+        // Allow Superadmin, Admin, and Customer
+        if (!user || (user.role !== 'superadmin' && user.role !== 'admin' && user.role !== 'customer')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -17,15 +18,31 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Device ID and at least one value (SSID/Password) are required' }, { status: 400 });
         }
 
-        // 1. Fetch device first to check type (TR-098 vs TR-181)
-        const device = await getDevice(deviceId);
+        // 1. Fetch device first to check type (TR-098 vs TR-181) AND verify ownership
+        const deviceRaw = await getDevice(deviceId);
+
+        if (!deviceRaw) {
+            return NextResponse.json({ error: 'Device not found' }, { status: 404 });
+        }
+
+        // OWNERSHIP VERIFICATION
+        if (user.role === 'customer') {
+            const parsedDevice = parseGenieACSDevice(deviceRaw);
+            // Verify that the device's PPPoE username matches the logged-in user
+            if (parsedDevice.pppoe_user !== user.username) {
+                console.warn(`[GenieACS] Security Alert: Customer ${user.username} tried to modify device ${deviceId} belonging to ${parsedDevice.pppoe_user}`);
+                return NextResponse.json({ error: 'Access Denied: You do not own this device.' }, { status: 403 });
+            }
+        }
+        // TODO: Add Manager/Staff ownership check here if needed in future (currently they don't use this endpoint directly from UI)
+
 
         // Determine correct paths based on what exists in the device data
         // We will push tasks to Update BOTH if unsure, or check explicitly
         const tasks = [];
 
         // TR-098 Paths (InternetGatewayDevice)
-        if (device.InternetGatewayDevice) {
+        if (deviceRaw.InternetGatewayDevice) {
             // Usually Index 1 for main SSID
             if (ssid) {
                 tasks.push(setParameter(deviceId, 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID', ssid));
@@ -40,7 +57,7 @@ export async function POST(request) {
         }
 
         // TR-181 Paths (Device)
-        if (device.Device) {
+        if (deviceRaw.Device) {
             if (ssid) {
                 tasks.push(setParameter(deviceId, 'Device.WiFi.SSID.1.SSID', ssid));
             }
