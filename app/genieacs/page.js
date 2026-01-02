@@ -134,7 +134,6 @@ export default function GenieAcsPage() {
                     }
 
                     return (
-                    return (
                         <div key={device.id} className={`${bgClass} rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden`}>
                             {/* Card Header: Status & Model */}
                             <div className="p-4 border-b border-gray-100/50 bg-white/50 backdrop-blur-sm">
@@ -149,8 +148,8 @@ export default function GenieAcsPage() {
                                         </div>
                                     </div>
                                     <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full border ${(Date.now() - new Date(device.lastInform).getTime()) < 300000
-                                            ? 'bg-green-100 text-green-700 border-green-200'
-                                            : 'bg-gray-100 text-gray-500 border-gray-200'
+                                        ? 'bg-green-100 text-green-700 border-green-200'
+                                        : 'bg-gray-100 text-gray-500 border-gray-200'
                                         }`}>
                                         {(Date.now() - new Date(device.lastInform).getTime()) < 300000 ? 'Online' : 'Offline'}
                                         <span className="block font-normal normal-case text-[9px] opacity-80">
