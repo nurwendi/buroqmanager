@@ -109,7 +109,6 @@ export default function GenieAcsPage() {
         }
     };
 
-    return (
     if (accessDenied) {
         return (
             <div className="p-8 text-center">
@@ -121,6 +120,8 @@ export default function GenieAcsPage() {
             </div>
         );
     }
+
+    return (
 
     return (
         <div className="p-6">
