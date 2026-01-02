@@ -96,6 +96,7 @@ function mapDevice(d) {
     // 2. Model / Product Class Strategies
     const model = d.DeviceID?.ProductClass ||
         d._deviceId?._ProductClass ||
+        d._ProductClass ||
         getVal(d, 'InternetGatewayDevice.DeviceInfo.ModelName') ||
         getVal(d, 'InternetGatewayDevice.DeviceInfo.ProductClass') ||
         getVal(d, 'Device.DeviceInfo.ProductClass') || '-';
@@ -104,6 +105,7 @@ function mapDevice(d) {
     const manufacturer = d.DeviceID?.Manufacturer ||
         d._deviceId?._OUI ||
         d._deviceId?._Manufacturer ||
+        d._Manufacturer ||
         getVal(d, 'InternetGatewayDevice.DeviceInfo.ManufacturerOUI') ||
         getVal(d, 'InternetGatewayDevice.DeviceInfo.Manufacturer') ||
         getVal(d, 'Device.DeviceInfo.Manufacturer') || '-';

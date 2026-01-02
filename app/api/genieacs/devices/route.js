@@ -60,15 +60,17 @@ export async function GET(request) {
 
             // 2. Model / Product Class Strategies
             const model = d.DeviceID?.ProductClass ||
-                d._deviceId?._ProductClass || // GenieACS Standard
+                d._deviceId?._ProductClass ||
+                d._ProductClass || // Check root level
                 getVal('InternetGatewayDevice.DeviceInfo.ModelName') ||
                 getVal('InternetGatewayDevice.DeviceInfo.ProductClass') ||
                 getVal('Device.DeviceInfo.ProductClass') || '-';
 
             // 3. Manufacturer Strategies
             const manufacturer = d.DeviceID?.Manufacturer ||
-                d._deviceId?._OUI || // GenieACS uses OUI often
+                d._deviceId?._OUI ||
                 d._deviceId?._Manufacturer ||
+                d._Manufacturer || // Check root level
                 getVal('InternetGatewayDevice.DeviceInfo.ManufacturerOUI') ||
                 getVal('InternetGatewayDevice.DeviceInfo.Manufacturer') ||
                 getVal('Device.DeviceInfo.Manufacturer') || '-';
