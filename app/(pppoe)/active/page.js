@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, RefreshCw, ArrowUpDown, Search, ExternalLink, Power, Wifi, RotateCcw } from 'lucide-react';
+import { Activity, RefreshCw, ArrowUpDown, Search, ExternalLink, Power, Wifi, RotateCcw, MoreHorizontal, X } from 'lucide-react';
 import { useDashboard } from '@/contexts/DashboardContext';
 
 export default function ActiveConnectionsPage() {
@@ -116,6 +116,7 @@ export default function ActiveConnectionsPage() {
     };
 
     const [editingDevice, setEditingDevice] = useState(null);
+    const [detailsModal, setDetailsModal] = useState(null);
     const [wifiForm, setWifiForm] = useState({ ssid: '', password: '' });
 
     const openEditWifi = (device) => {
@@ -279,7 +280,7 @@ export default function ActiveConnectionsPage() {
 
                                 <tr>
                                     <th className="md:hidden px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Manage
+                                        More
                                     </th>
                                     <th
                                         className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
@@ -308,9 +309,9 @@ export default function ActiveConnectionsPage() {
                                             SSID <ArrowUpDown size={14} />
                                         </div>
                                     </th>
-                                    {/* Signal Column */}
+                                    {/* Signal Column - Visible on Mobile now */}
                                     <th
-                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                                        className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
                                         onClick={() => sortData('rx_power')}
                                     >
                                         <div className="flex items-center gap-1">
@@ -387,16 +388,12 @@ export default function ActiveConnectionsPage() {
                                             return (
                                                 <tr key={index} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                                                     <td className="md:hidden px-3 py-4 whitespace-nowrap">
-                                                        {conn.address && (
-                                                            <a
-                                                                href={`http://${conn.address}`}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                                            >
-                                                                <ExternalLink size={14} />
-                                                            </a>
-                                                        )}
+                                                        <button
+                                                            onClick={() => setDetailsModal({ ...conn, acs })}
+                                                            className="inline-flex items-center justify-center p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                                                        >
+                                                            <MoreHorizontal size={18} />
+                                                        </button>
                                                     </td>
                                                     <td className="px-3 md:px-6 py-4 whitespace-nowrap font-medium text-gray-900 dark:text-white">
                                                         {conn.name || 'N/A'}
@@ -408,7 +405,7 @@ export default function ActiveConnectionsPage() {
                                                     <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
                                                         {acs ? <span className="font-medium text-gray-700 dark:text-gray-300 truncate max-w-[100px] block" title={acs.ssid}>{acs.ssid}</span> : '-'}
                                                     </td>
-                                                    <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
+                                                    <td className="px-3 md:px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
                                                         {acs ? (
                                                             <span className={`font-bold ${parseFloat(acs.rx_power) < -25 ? 'text-red-600' : 'text-green-600'}`}>
                                                                 {acs.rx_power !== '-' ? acs.rx_power + ' dBm' : '-'}
@@ -428,14 +425,14 @@ export default function ActiveConnectionsPage() {
                                                     <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">
                                                         {conn['caller-id'] || '-'}
                                                     </td>
-                                                    <td className="px-3 md:px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400 text-sm">
+                                                    <td className="hidden md:table-cell px-3 md:px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400 text-sm">
                                                         <div className="flex flex-col">
                                                             <span className="text-green-600 dark:text-green-400">↓ {formatBytes(conn['tx-byte'])}</span>
                                                             <span className="text-blue-600 dark:text-blue-400">↑ {formatBytes(conn['rx-byte'])}</span>
                                                         </div>
                                                     </td>
 
-                                                    <td className="px-3 md:px-6 py-4 whitespace-nowrap text-gray-500">
+                                                    <td className="hidden md:table-cell px-3 md:px-6 py-4 whitespace-nowrap text-gray-500">
                                                         <div className="flex items-center gap-2">
                                                             {/* Group 1: Manage | Disconnect */}
                                                             <div className="flex items-center gap-1">
@@ -606,7 +603,124 @@ export default function ActiveConnectionsPage() {
                         </form>
                     </div>
                 </div>
-            )}
+                </div>
+    )
+}
+
+{/* Mobile Details Modal */ }
+{
+    detailsModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[90vh]">
+                {/* Header */}
+                <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+                    <div>
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-white">{detailsModal.name}</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">{detailsModal.address}</p>
+                    </div>
+                    <button
+                        onClick={() => setDetailsModal(null)}
+                        className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    >
+                        <X size={20} className="text-gray-500" />
+                    </button>
+                </div>
+
+                {/* Body Scroller */}
+                <div className="p-5 overflow-y-auto space-y-4">
+                    {/* Connection Stats */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                            <span className="text-xs text-blue-600 dark:text-blue-400 block mb-1">Download</span>
+                            <span className="font-bold text-gray-800 dark:text-white">{formatBytes(detailsModal['tx-byte'])}</span>
+                        </div>
+                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                            <span className="text-xs text-green-600 dark:text-green-400 block mb-1">Upload</span>
+                            <span className="font-bold text-gray-800 dark:text-white">{formatBytes(detailsModal['rx-byte'])}</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                            <span className="text-sm text-gray-500">Uptime</span>
+                            <span className="text-sm font-medium dark:text-gray-200">{formatUptime(detailsModal.uptime)}</span>
+                        </div>
+                        <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                            <span className="text-sm text-gray-500">Caller ID</span>
+                            <span className="text-sm font-medium dark:text-gray-200">{detailsModal['caller-id'] || '-'}</span>
+                        </div>
+
+                        {/* ACS Details Section */}
+                        {detailsModal.acs ? (
+                            <>
+                                <div className="pt-2">
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Device Info</span>
+                                    <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">SSID</span>
+                                            <span className="font-medium dark:text-gray-200">{detailsModal.acs.ssid || '-'}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">Signal</span>
+                                            <span className={`font-bold ${parseFloat(detailsModal.acs.rx_power) < -25 ? 'text-red-500' : 'text-green-500'}`}>
+                                                {detailsModal.acs.rx_power} dBm
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">Temp</span>
+                                            <span className="font-medium dark:text-gray-200">{detailsModal.acs.temp}°C</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-500">S/N</span>
+                                            <span className="font-mono text-xs dark:text-gray-200">{detailsModal.acs.serial}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg text-center text-sm text-gray-500 italic">
+                                No GenieACS device linked.
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Actions Footer */}
+                <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-3">
+                    <button
+                        onClick={() => handleDisconnect(detailsModal['.id'], detailsModal.name)}
+                        className="flex items-center justify-center gap-2 px-4 py-3 bg-red-100 text-red-700 rounded-xl font-medium hover:bg-red-200 transition-colors"
+                    >
+                        <Power size={18} /> Disconnect
+                    </button>
+                    {detailsModal.address && (
+                        <a
+                            href={`http://${detailsModal.address}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-xl font-medium hover:bg-blue-200 transition-colors"
+                        >
+                            <ExternalLink size={18} /> Manage
+                        </a>
+                    )}
+                    {detailsModal.acs && (
+                        <>
+                            <button
+                                onClick={() => { setDetailsModal(null); openEditWifi(detailsModal.acs); }}
+                                className="flex items-center justify-center gap-2 px-4 py-3 bg-indigo-100 text-indigo-700 rounded-xl font-medium hover:bg-indigo-200 transition-colors"
+                            >
+                                <Wifi size={18} /> WiFi
+                            </button>
+                            <button
+                                onClick={() => handleReboot(detailsModal.acs.id, detailsModal.acs.serial)}
+                                className="flex items-center justify-center gap-2 px-4 py-3 bg-orange-100 text-orange-700 rounded-xl font-medium hover:bg-orange-200 transition-colors"
+                            >
+                                <RotateCcw size={18} /> Reboot
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
         </div>
-    );
+    )
 }
