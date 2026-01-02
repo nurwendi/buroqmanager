@@ -12,10 +12,17 @@ export async function GET(request) {
         if (search) {
             // Regex search on Serial Number or PPPoE Username
             // Note: GenieACS uses MongoDB syntax for queries
+            // Regex search on Serial Number, PPPoE Username, or SSID
+            // Note: GenieACS uses MongoDB syntax for queries
+            const regex = { $regex: search, $options: 'i' };
             query = {
                 $or: [
-                    { "DeviceID.SerialNumber": { $regex: search } },
-                    { "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username": { $regex: search } }
+                    { "DeviceID.SerialNumber": regex },
+                    { "_deviceId._SerialNumber": regex },
+                    { "VirtualParameters.pppoeUsername": regex }, // Key path for users
+                    { "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username": regex },
+                    { "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID": regex },
+                    { "_deviceId._OUI": regex }
                 ]
             };
         }
