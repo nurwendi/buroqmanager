@@ -53,3 +53,4 @@ generate-*.js
 /node_portable
 
 public/uploads/
+node_modules

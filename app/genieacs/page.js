@@ -9,8 +9,27 @@ export default function GenieAcsPage() {
     const [search, setSearch] = useState('');
 
     useEffect(() => {
-        fetchDevices();
+        checkPermission();
     }, []);
+
+    const checkPermission = async () => {
+        try {
+            const res = await fetch('/api/auth/me');
+            if (res.ok) {
+                const user = await res.json();
+                if (user.role !== 'superadmin') {
+                    setAccessDenied(true);
+                    setLoading(false);
+                    return;
+                }
+                fetchDevices();
+            }
+        } catch (e) {
+            console.error('Auth check failed', e);
+        }
+    };
+
+    const [accessDenied, setAccessDenied] = useState(false);
 
     const fetchDevices = async (query = '') => {
         setLoading(true);
@@ -91,6 +110,19 @@ export default function GenieAcsPage() {
     };
 
     return (
+    if (accessDenied) {
+        return (
+            <div className="p-8 text-center">
+                <div className="bg-red-50 text-red-600 p-4 rounded-xl inline-block border border-red-100 mb-4">
+                    <Power size={48} className="mx-auto mb-2" />
+                    <h2 className="text-xl font-bold">Access Denied</h2>
+                    <p>This page is restricted to Superadmin users only.</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
         <div className="p-6">
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -149,8 +181,8 @@ export default function GenieAcsPage() {
                                         </div>
                                     </div>
                                     <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wide ${(Date.now() - new Date(device.lastInform).getTime()) < 300000
-                                            ? 'bg-green-100 text-green-700 border-green-200'
-                                            : 'bg-gray-100 text-gray-500 border-gray-200'
+                                        ? 'bg-green-100 text-green-700 border-green-200'
+                                        : 'bg-gray-100 text-gray-500 border-gray-200'
                                         }`}>
                                         {(Date.now() - new Date(device.lastInform).getTime()) < 300000 ? 'Online' : 'Offline'}
                                     </span>
