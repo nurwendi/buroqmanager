@@ -56,10 +56,24 @@ async function findParams() {
             }
         }
 
+        const searchTerm = process.argv[2] ? process.argv[2].toLowerCase() : null;
+        if (searchTerm) {
+            console.log(`🔎 Searching for value matching: "${searchTerm}"`);
+        }
+
         function checkKey(path, value) {
             const p = path.toLowerCase();
-            // Keywords to look for
-            if (p.includes('power') ||
+            const v = String(value).toLowerCase();
+
+            // 1. Value Match (if argument provided)
+            if (searchTerm && v.includes(searchTerm)) {
+                console.log(`[MATCH] ${path} = ${value}`);
+                return; // Prioritize value match
+            }
+
+            // 2. Keyword Match (if no specific search term, or as general discovery)
+            if (!searchTerm && (
+                p.includes('power') ||
                 p.includes('temp') ||
                 p.includes('rssi') ||
                 p.includes('rate') ||
@@ -72,8 +86,8 @@ async function findParams() {
                 p.includes('ppp') ||
                 p.includes('vendor') ||
                 p.includes('software') ||
-                p.includes('deviceinfo')) {
-
+                p.includes('deviceinfo')
+            )) {
                 console.log(`[FOUND] ${path} = ${value}`);
             }
         }
