@@ -29,16 +29,15 @@ export default function AppSettingsPage() {
     // Define restricted roles (Everyone except Superadmin)
     // const isRestricted = userRole !== 'superadmin';
 
-    // ADJUSTED: Admin/Owner should be able to see settings related to them
-    const isRestricted = userRole === 'viewer' || userRole === 'technician' || userRole === 'agent';
-
+    const isSuperAdmin = userRole === 'superadmin';
+    const isAdminOrOwner = userRole === 'admin' || userRole === 'superadmin';
 
     const tabs = [
         { id: 'profile', label: 'User Profile', icon: User },
-        { id: 'appearance', label: 'Appearance', icon: Palette, hidden: isRestricted },
-        { id: 'payment', label: 'Payment Gateway', icon: CreditCard, hidden: isRestricted },
-        { id: 'system', label: 'System', icon: Gauge, hidden: isRestricted },
-        { id: 'security', label: 'Security', icon: Shield, hidden: isRestricted },
+        { id: 'appearance', label: 'Appearance', icon: Palette, hidden: !isSuperAdmin },
+        { id: 'payment', label: 'Payment Gateway', icon: CreditCard, hidden: !isAdminOrOwner },
+        { id: 'system', label: 'System', icon: Gauge, hidden: !isSuperAdmin },
+        { id: 'security', label: 'Security', icon: Shield, hidden: !isSuperAdmin },
     ].filter(tab => !tab.hidden);
 
     const [settings, setSettings] = useState({
@@ -511,7 +510,7 @@ export default function AppSettingsPage() {
                         </div>
 
                     </>)}
-                    {activeTab === 'appearance' && !isRestricted && (<>
+                    {activeTab === 'appearance' && isSuperAdmin && (<>
 
                         <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                             <div className="flex items-center gap-3 mb-4">
@@ -711,13 +710,13 @@ export default function AppSettingsPage() {
 
                     </>)}
 
-                    {activeTab === 'payment' && !isRestricted && (
+                    {activeTab === 'payment' && isAdminOrOwner && (
                         <PaymentGatewaySettings />
                     )}
 
                     {/* Display Preferences */}
                     {
-                        activeTab === 'system' && !isRestricted && (
+                        activeTab === 'system' && isSuperAdmin && (
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Clock className="text-blue-600 dark:text-blue-400" size={24} />
@@ -836,7 +835,7 @@ export default function AppSettingsPage() {
 
                     {/* Security Settings */}
                     {
-                        activeTab === 'security' && !isRestricted && (
+                        activeTab === 'security' && isSuperAdmin && (
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Shield className="text-red-600 dark:text-red-400" size={24} />
@@ -880,7 +879,7 @@ export default function AppSettingsPage() {
 
                     {/* Dashboard Settings */}
                     {
-                        activeTab === 'system' && !isRestricted && (
+                        activeTab === 'system' && isSuperAdmin && (
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Gauge className="text-blue-600 dark:text-blue-400" size={24} />
@@ -924,7 +923,7 @@ export default function AppSettingsPage() {
 
                     {/* Notification Settings */}
                     {
-                        activeTab === 'system' && userRole !== 'viewer' && (
+                        activeTab === 'system' && isSuperAdmin && (
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Bell className="text-yellow-600 dark:text-yellow-400" size={24} />
@@ -1024,7 +1023,7 @@ export default function AppSettingsPage() {
 
                     {/* Admin User Settings */}
                     {
-                        activeTab === 'security' && userRole === 'admin' && (
+                        activeTab === 'security' && isSuperAdmin && (
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Key className="text-blue-600 dark:text-blue-400" size={24} />
