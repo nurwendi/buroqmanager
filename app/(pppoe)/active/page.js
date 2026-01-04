@@ -309,9 +309,9 @@ export default function ActiveConnectionsPage() {
                                             SSID <ArrowUpDown size={14} />
                                         </div>
                                     </th>
-                                    {/* Signal Column - Visible on Mobile now */}
+                                    {/* Signal Column - Hidden on mobile, in More */}
                                     <th
-                                        className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                                        className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
                                         onClick={() => sortData('rx_power')}
                                     >
                                         <div className="flex items-center gap-1">
@@ -355,15 +355,15 @@ export default function ActiveConnectionsPage() {
                                         </div>
                                     </th>
                                     <th
-                                        className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
+                                        className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
 
                                         onClick={() => sortData('tx-byte')}
                                     >
                                         <div className="flex items-center gap-1">
-                                            Data Usage <ArrowUpDown size={14} />
+                                            Data <ArrowUpDown size={14} />
                                         </div>
                                     </th>
-                                    <th className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 
                                         Actions
                                     </th>
@@ -390,7 +390,7 @@ export default function ActiveConnectionsPage() {
                                                     <td className="md:hidden px-3 py-4 whitespace-nowrap">
                                                         <button
                                                             onClick={() => setDetailsModal({ ...conn, acs })}
-                                                            className="inline-flex items-center justify-center p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                                                            className="inline-flex items-center justify-center p-2 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
                                                         >
                                                             <MoreHorizontal size={18} />
                                                         </button>
@@ -405,7 +405,7 @@ export default function ActiveConnectionsPage() {
                                                     <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
                                                         {acs ? <span className="font-medium text-gray-700 dark:text-gray-300 truncate max-w-[100px] block" title={acs.ssid}>{acs.ssid}</span> : '-'}
                                                     </td>
-                                                    <td className="px-3 md:px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
+                                                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-gray-500 text-xs">
                                                         {acs ? (
                                                             <span className={`font-bold ${parseFloat(acs.rx_power) < -25 ? 'text-red-600' : 'text-green-600'}`}>
                                                                 {acs.rx_power !== '-' ? acs.rx_power + ' dBm' : '-'}
@@ -425,14 +425,14 @@ export default function ActiveConnectionsPage() {
                                                     <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">
                                                         {conn['caller-id'] || '-'}
                                                     </td>
-                                                    <td className="hidden md:table-cell px-3 md:px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400 text-sm">
-                                                        <div className="flex flex-col">
+                                                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400 text-xs md:text-sm">
+                                                        <div className="flex flex-col gap-0.5">
                                                             <span className="text-green-600 dark:text-green-400">↓ {formatBytes(conn['tx-byte'])}</span>
                                                             <span className="text-blue-600 dark:text-blue-400">↑ {formatBytes(conn['rx-byte'])}</span>
                                                         </div>
                                                     </td>
 
-                                                    <td className="hidden md:table-cell px-3 md:px-6 py-4 whitespace-nowrap text-gray-500">
+                                                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-gray-500">
                                                         <div className="flex items-center gap-2">
                                                             {/* Group 1: Manage | Disconnect */}
                                                             <div className="flex items-center gap-1">

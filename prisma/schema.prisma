@@ -40,6 +40,7 @@ model User {
   payments              Payment[]  @relation("PaymentOwner")
   notifications         Notification[] @relation("NotificationOwner")
   registrations         Registration[] @relation("RegistrationOwner")
+  gatewayConfig         PaymentGatewayConfig? @relation("GatewayOwner")
 
   language     String   @default("id")
   profiles     Profile[]    @relation("ProfileOwner")
@@ -101,7 +102,15 @@ model Payment {
 
   // Multi-tenancy
   ownerId       String?
-  owner         User?    @relation("PaymentOwner", fields: [ownerId], references: [id])
+  owner         User?     @relation("PaymentOwner", fields: [ownerId], references: [id])
+
+  // Payment Gateway Extension
+  gatewayStatus   String?   // pending, settlement, expire, deny, cancel (Midtrans status)
+  paymentProvider String?   // midtrans, manual
+  paymentType     String?   // qris, bank_transfer, cstore
+  transactionId   String?   // Gateway's Transaction ID
+  paymentUrl      String?   // Snap URL or Invoice URL
+  expiryTime      DateTime? 
 
   commissions Commission[]
 }
@@ -305,4 +314,21 @@ model RadPostAuth {
 
   @@map("radpostauth")
   @@index([username, authdate], name: "postauth_idx")
+}
+
+model PaymentGatewayConfig {
+  id          String   @id @default(cuid())
+  ownerId     String   @unique
+  owner       User     @relation("GatewayOwner", fields: [ownerId], references: [id])
+  
+  provider    String   @default("midtrans") // midtrans, xendit
+  isSandbox   Boolean  @default(true)
+  merchantId  String?
+  clientKey   String?
+  serverKey   String?
+  
+  // Callback Token/Secret for verification
+  webhookSecret String?
+
+  updatedAt   DateTime @updatedAt
 }

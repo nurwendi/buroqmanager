@@ -251,7 +251,7 @@ export default function CustomerDashboard() {
                                     <AlertCircle className="text-red-600 dark:text-red-400" size={24} />
                                 </div>
                                 <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Tagihan Tersedia</h3>
-                                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl w-full text-left">
+                                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl w-full text-left mb-4">
                                     <div className="flex justify-between mb-1">
                                         <span className="text-xs text-gray-600 dark:text-gray-300">Invoice</span>
                                         <span className="text-xs font-mono">{stats.billing.invoice}</span>
@@ -263,6 +263,47 @@ export default function CustomerDashboard() {
                                         </span>
                                     </div>
                                 </div>
+
+                                <button
+                                    onClick={async () => {
+                                        // Payment Logic
+                                        try {
+                                            const btn = document.getElementById('pay-btn');
+                                            if (btn) { btn.disabled = true; btn.innerText = 'Memproses...'; }
+
+                                            const res = await fetch('/api/billing/pay', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                    invoiceNumber: stats.billing.invoice,
+                                                    amount: stats.billing.amount
+                                                })
+                                            });
+
+                                            if (res.ok) {
+                                                const data = await res.json();
+                                                if (data.redirect_url) {
+                                                    window.location.href = data.redirect_url; // Redirect to Midtrans
+                                                } else {
+                                                    alert('Gagal mendapatkan link pembayaran.');
+                                                }
+                                            } else {
+                                                const err = await res.json();
+                                                alert('Gagal memproses pembayaran: ' + (err.error || 'Unknown error'));
+                                            }
+                                        } catch (e) {
+                                            alert('Terjadi kesalahan koneksi.');
+                                        } finally {
+                                            const btn = document.getElementById('pay-btn');
+                                            if (btn) { btn.disabled = false; btn.innerText = 'Bayar Sekarang'; }
+                                        }
+                                    }}
+                                    id="pay-btn"
+                                    className="w-full py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg font-bold shadow-lg shadow-green-500/30 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <CreditCard size={18} />
+                                    Bayar Sekarang
+                                </button>
                             </div>
                         ) : (
                             <p className="text-gray-500 italic">Memuat tagihan...</p>

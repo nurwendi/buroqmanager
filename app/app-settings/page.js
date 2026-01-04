@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Upload, Save, User, Key, Image as ImageIcon, Palette, Clock, Gauge, Globe, LogOut, Bell, Shield, Moon, Sun, Monitor, Camera, MapPin, Phone, Mail } from 'lucide-react';
+import { Upload, Save, User, Key, Image as ImageIcon, Palette, Clock, Gauge, Globe, LogOut, Bell, Shield, Moon, Sun, Monitor, Camera, MapPin, Phone, Mail, CreditCard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDashboard } from '@/contexts/DashboardContext';
 import { useTheme, accentColors } from '@/contexts/ThemeContext';
 import { motion } from 'framer-motion';
+import PaymentGatewaySettings from '@/components/settings/PaymentGatewaySettings';
 
 export default function AppSettingsPage() {
     const { language, setLanguage, t } = useLanguage();
@@ -26,11 +27,16 @@ export default function AppSettingsPage() {
     const [activeTab, setActiveTab] = useState('profile');
 
     // Define restricted roles (Everyone except Superadmin)
-    const isRestricted = userRole !== 'superadmin';
+    // const isRestricted = userRole !== 'superadmin';
+
+    // ADJUSTED: Admin/Owner should be able to see settings related to them
+    const isRestricted = userRole === 'viewer' || userRole === 'technician' || userRole === 'agent';
+
 
     const tabs = [
         { id: 'profile', label: 'User Profile', icon: User },
         { id: 'appearance', label: 'Appearance', icon: Palette, hidden: isRestricted },
+        { id: 'payment', label: 'Payment Gateway', icon: CreditCard, hidden: isRestricted },
         { id: 'system', label: 'System', icon: Gauge, hidden: isRestricted },
         { id: 'security', label: 'Security', icon: Shield, hidden: isRestricted },
     ].filter(tab => !tab.hidden);
@@ -704,6 +710,10 @@ export default function AppSettingsPage() {
 
 
                     </>)}
+
+                    {activeTab === 'payment' && !isRestricted && (
+                        <PaymentGatewaySettings />
+                    )}
 
                     {/* Display Preferences */}
                     {
