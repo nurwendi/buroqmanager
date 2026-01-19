@@ -41,7 +41,7 @@ if [ -d "billing" ]; then
     echo -e "${YELLOW}Directory /opt/billing already exists. Removing...${NC}"
     rm -rf billing
 fi
-git clone https://github.com/nurwendi/mikrotikbilling.git billing
+git clone https://github.com/nurwendi/buroqmanager.git billing
 cd /opt/billing
 
 echo -e "${GREEN}[6/7]${NC} Installing dependencies and building..."
