@@ -50,6 +50,7 @@ npm run build
 
 echo -e "${GREEN}[7/7]${NC} Starting application with PM2..."
 pm2 start npm --name "billing" -- start
+pm2 start npm --name "isolir" -- run isolir
 pm2 save
 pm2 startup
 

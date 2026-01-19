@@ -114,6 +114,7 @@ npm run build
 
 # Start with PM2
 pm2 start npm --name "billing" -- start
+pm2 start npm --name "isolir" -- run isolir
 pm2 save
 pm2 startup
 ```
