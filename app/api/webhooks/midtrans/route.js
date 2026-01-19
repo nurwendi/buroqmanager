@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
+import { restoreUserConnection } from '@/lib/billing-actions';
 
 const prisma = new PrismaClient();
 
@@ -81,10 +82,11 @@ export async function POST(request) {
             }
         });
 
-        // 5. Trigger Reactivation if Success (Future Step: Integrate with Radius/Mikrotik)
+        // 5. Trigger Reactivation if Success
         if (newStatus === 'success') {
-            // TODO: Call activation logic
-            console.log(`Payment ${order_id} successful. Triggering activation for ${payment.username}...`);
+            console.log(`Payment ${order_id} successful. Restoring connection for ${payment.username}...`);
+            // Execute restoration in background or await depending on preference. Await is safer for now.
+            await restoreUserConnection(payment.username);
         }
 
         return NextResponse.json({ message: 'OK' });

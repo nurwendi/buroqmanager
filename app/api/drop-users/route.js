@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { getMikrotikClient } from '@/lib/mikrotik';
+import { restoreUserConnection } from '@/lib/billing-actions';
 import db from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -134,48 +135,13 @@ export async function POST(request) {
                     results.push(user.username);
 
                 } else if (action === 'restore') {
-                    // RESTORE LOGIC
-                    // 1. We need to get the secret again to be sure of the comment/profile
-                    const secrets = await client.write('/ppp/secret/print', [
-                        `?name=${user.username}`
-                    ]);
-
-                    if (secrets.length === 0) throw new Error('User not found in Mikrotik');
-                    const secret = secrets[0];
-
-                    // Parse profile
-                    let profileToRestore = 'default'; // Fallback
-                    if (secret.comment) {
-                        const match = secret.comment.match(/OLD:([^\s]+)/);
-                        if (match) {
-                            profileToRestore = match[1];
-                        }
+                    // RESTORE LOGIC using shared helper
+                    const result = await restoreUserConnection(user.username);
+                    if (result.success) {
+                        results.push(user.username);
+                    } else {
+                        throw new Error(result.error || 'Failed to restore');
                     }
-
-                    // Remove the AUTO-ISOLIR tag from comment
-                    // We'll set it to empty or just remove our tag? 
-                    // Let's just clear it or set it to "RESTORED" to avoid confusion? 
-                    // Usually cleaning it is best.
-                    const newComment = secret.comment.replace(/AUTO-ISOLIR \| OLD:[^\s]+/, '').trim();
-
-                    await client.write('/ppp/secret/set', [
-                        `=.id=${secret['.id']}`,
-                        `=profile=${profileToRestore}`,
-                        `=comment=${newComment}`
-                    ]);
-
-                    // Remove active connections to apply new profile
-                    const activeConnections = await client.write('/ppp/active/print', [
-                        `?name=${user.username}`
-                    ]);
-
-                    for (const conn of activeConnections) {
-                        await client.write('/ppp/active/remove', [
-                            `=.id=${conn['.id']}`
-                        ]);
-                    }
-
-                    results.push(user.username);
                 }
             } catch (err) {
                 console.error(`Error processing ${user.username}:`, err);
