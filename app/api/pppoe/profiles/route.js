@@ -76,6 +76,77 @@ export async function POST(request) {
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+}
+
+export async function DELETE(request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const name = searchParams.get('name');
+        const id = searchParams.get('id'); // Mikrotik ID (*1, *2 etc)
+
+        const client = await getClientForUser(request);
+        if (!client) {
+            return NextResponse.json({ error: "No router configured." }, { status: 400 });
+        }
+
+        if (!id && !name) {
+            return NextResponse.json({ error: "ID or Name required" }, { status: 400 });
+        }
+
+        // Prefer ID if available, else find by name
+        let targetId = id;
+        if (!targetId && name) {
+            const profiles = await client.write('/ppp/profile/print', [`?name=${name}`]);
+            if (profiles.length > 0) targetId = profiles[0]['.id'];
+        }
+
+        if (!targetId) {
+            return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+        }
+
+        await client.write('/ppp/profile/remove', [`=.id=${targetId}`]);
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function PATCH(request) {
+    try {
+        const body = await request.json();
+        const client = await getClientForUser(request);
+
+        if (!client) {
+            return NextResponse.json({ error: "No router configured." }, { status: 400 });
+        }
+
+        const { id, name, localAddress, remoteAddress, rateLimit, price } = body;
+
+        if (!id) {
+            return NextResponse.json({ error: "ID is required for update" }, { status: 400 });
+        }
+
+        const updateParams = [`=.id=${id}`];
+        if (name) updateParams.push(`=name=${name}`);
+        if (localAddress) updateParams.push(`=local-address=${localAddress}`);
+        if (remoteAddress) updateParams.push(`=remote-address=${remoteAddress}`);
+        if (rateLimit) updateParams.push(`=rate-limit=${rateLimit}`);
+
+        // Handle Price via Comment
+        if (price) {
+            // We need to preserve other comments if possible, but for now we enforce our format
+            // Or we could fetch first. Let's strictly update price format.
+            updateParams.push(`=comment=price:${price}`);
+        }
+
+        await client.write('/ppp/profile/set', updateParams);
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 }
 
 

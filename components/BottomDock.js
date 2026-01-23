@@ -51,13 +51,16 @@ export default function BottomDock() {
     const desktopNavItems = [
         { href: '/', icon: Home, hoverIcon: LayoutGrid, label: t('sidebar.dashboard'), roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/billing', icon: CreditCard, hoverIcon: Wallet, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/users', icon: Network, hoverIcon: Route, label: t('sidebar.pppoe'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] }, // Groups Users, Active, Offline, Profiles, Notifications
+
+        { href: '/users', icon: Users, hoverIcon: Route, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/offline', icon: WifiOff, hoverIcon: Network, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/profiles', icon: Gauge, hoverIcon: Settings, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
+        { href: '/notifications', icon: Bell, hoverIcon: MessageSquare, label: t('sidebar.notifications'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+
         { href: '/system-users', icon: UserCog, hoverIcon: ShieldCheck, label: t('sidebar.systemUsers'), roles: ['admin'] },
         { href: '/system-admin', icon: Shield, hoverIcon: UserCheck, label: t('sidebar.owners'), roles: ['superadmin'] },
         { href: '/routers', icon: Server, hoverIcon: HardDrive, label: 'NAT', roles: ['admin', 'manager'] },
 
-        // { href: '/radius/users', icon: Radio, hoverIcon: Wifi, label: 'Radius', roles: ['admin', 'manager'] }, // Merged into Users
-        // { href: '/profiles', icon: Gauge, hoverIcon: Settings, label: 'Profiles', roles: ['admin', 'manager'] },
         { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: 'GenieACS', roles: ['superadmin'] },
         { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
@@ -72,17 +75,13 @@ export default function BottomDock() {
         { href: '/', icon: Home, label: t('sidebar.dashboard'), roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/billing', icon: CreditCard, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/active', icon: Activity, label: t('sidebar.activeConnections'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/notifications', icon: Bell, label: t('sidebar.notifications'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/offline', icon: WifiOff, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        // { href: '/profiles', icon: Network, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
+        { href: '/profiles', icon: Network, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
         { href: '/system-users', icon: UserCog, label: t('sidebar.systemUsers'), roles: ['admin'] },
         { href: '/system-admin', icon: Shield, label: t('sidebar.owners'), roles: ['superadmin'] },
         { href: '/routers', icon: Server, label: 'NAT', roles: ['admin', 'manager'] },
 
-        // { href: '/radius/nas', icon: Server, label: 'NAS List', roles: ['admin', 'manager'] }, // Merged into NAT
-        // { href: '/radius/users', icon: Radio, label: 'Radius Users', roles: ['admin', 'manager'] }, // Merged into Users
-        // { href: '/radius/acct', icon: Activity, label: 'Radius Online', roles: ['admin', 'manager'] }, // Merged into Active Connections
         { href: '/genieacs', icon: Wifi, label: 'GenieACS', roles: ['superadmin'] },
         { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
@@ -103,7 +102,7 @@ export default function BottomDock() {
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings') },
     ] : [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
-        { href: '/active', icon: Activity, label: t('sidebar.activeConnections') },
+        { href: '/users', icon: Users, label: t('sidebar.users') },
         { href: '/billing', icon: CreditCard, label: t('sidebar.billing') },
     ];
 
@@ -126,22 +125,22 @@ export default function BottomDock() {
                 <div className="hidden lg:flex fixed bottom-0 left-0 right-0 z-50 justify-center pb-4 print:hidden pointer-events-none">
                     {/* macOS-style Dock Container */}
                     <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 px-4 py-3 pointer-events-auto">
-                        <div className="flex items-center gap-12">
+                        <div className="flex items-center gap-10">
                             {/* Menu / Launcher Button */}
                             <button
                                 onClick={() => setIsLauncherOpen(!isLauncherOpen)}
-                                className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-14"
+                                className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-10"
                             >
                                 <div className={`
                                     relative flex flex-col items-center justify-center
-                                    w-14 h-14 rounded-xl
+                                    w-10 h-10 rounded-xl
                                     transition-all duration-300
                                     bg-gray-100 dark:bg-gray-800
                                     ${isLauncherOpen ? 'bg-accent !text-white' : ''}
                                 `}>
                                     {isLauncherOpen ? (
                                         <X
-                                            size={24}
+                                            size={20}
                                             className={`
                                             transition-all duration-300
                                             ${isLauncherOpen ? 'text-white' : 'text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)]'}
@@ -149,7 +148,7 @@ export default function BottomDock() {
                                         />
                                     ) : (
                                         <LayoutGrid
-                                            size={24}
+                                            size={20}
                                             className="text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)] transition-colors duration-300"
                                         />
                                     )}
@@ -162,7 +161,7 @@ export default function BottomDock() {
                             </button>
 
                             {/* Separator */}
-                            <div className="w-px h-12 bg-gray-300 dark:bg-gray-600 mx-2" />
+                            <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2" />
 
                             {dockedNavItems.map((item) => {
                                 const isActive = pathname === item.href || (item.label === 'PPPoE' && ['/users', '/active', '/offline', '/profiles', '/notifications'].some(path => pathname.startsWith(path)));
@@ -173,12 +172,12 @@ export default function BottomDock() {
                                     <Link
                                         key={item.href}
                                         href={item.href}
-                                        className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-14"
+                                        className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-10"
                                     >
                                         {/* Icon Container */}
                                         <div className={`
                                         relative flex flex-col items-center justify-center
-                                        w-14 h-14 rounded-xl
+                                        w-10 h-10 rounded-xl
                                         transition-all duration-300
                                         ${isActive
                                                 ? 'bg-accent shadow-lg shadow-accent/50'
@@ -186,7 +185,7 @@ export default function BottomDock() {
                                             }
                                     `}>
                                             <Icon
-                                                size={24}
+                                                size={20}
                                                 className={`
                                                 transition-all duration-300
                                                 ${isActive
@@ -216,16 +215,16 @@ export default function BottomDock() {
                             })}
 
                             {/* Separator */}
-                            <div className="w-px h-12 bg-gray-300 dark:bg-gray-600 mx-2" />
+                            <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2" />
 
                             {/* Logout Button */}
                             <button
                                 onClick={handleLogout}
-                                className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-14"
+                                className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-10"
                             >
-                                <div className="relative flex flex-col items-center justify-center w-14 h-14 rounded-xl bg-gray-100 dark:bg-gray-800 group-hover:bg-white dark:group-hover:bg-gray-800 group-hover:text-red-500 group-hover:shadow-lg group-hover:shadow-red-400/20 transition-all duration-300">
+                                <div className="relative flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 group-hover:bg-white dark:group-hover:bg-gray-800 group-hover:text-red-500 group-hover:shadow-lg group-hover:shadow-red-400/20 transition-all duration-300">
                                     <LogOut
-                                        size={24}
+                                        size={20}
                                         className="text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)] transition-colors duration-300"
                                     />
                                 </div>

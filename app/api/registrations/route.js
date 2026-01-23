@@ -90,6 +90,15 @@ export async function POST(request) {
                     return NextResponse.json({ error: "Target username is required" }, { status: 400 });
                 }
 
+                // Resolve Owner ID
+                let ownerId = null;
+                if (agentId) {
+                    const agent = await db.user.findUnique({ where: { id: agentId } });
+                    if (agent) {
+                        ownerId = agent.role === 'admin' ? agent.id : agent.ownerId;
+                    }
+                }
+
                 await db.registration.create({
                     data: {
                         type: type,
@@ -97,6 +106,7 @@ export async function POST(request) {
                         username: `req_${Date.now()}_${targetUsername}`, // Unique ID for this request
                         targetUsername: targetUsername,
                         agentId: agentId,
+                        ownerId: ownerId, // Save Owner
                         newValues: newValues ? JSON.stringify(newValues) : null,
                         name: body.name || targetUsername // For display
                     }
@@ -284,9 +294,20 @@ export async function POST(request) {
                     newValues = { ...newValues, ...updatedData };
                 }
 
+                // Resolve Connection
+                let connectionId = null;
+                try {
+                    const { getConfig, getUserConnectionId } = await import('@/lib/config');
+                    const config = await getConfig();
+                    const mockUser = { role: 'agent', ownerId: registration.ownerId };
+                    connectionId = getUserConnectionId(mockUser, config);
+                } catch (e) {
+                    console.error('Failed to resolve connection for edit:', e);
+                }
+
                 // Update Mikrotik
                 try {
-                    const client = await getMikrotikClient();
+                    const client = await getMikrotikClient(connectionId);
                     const users = await client.write('/ppp/secret/print', [`?name=${targetUsername}`]);
                     if (users.length === 0) throw new Error(`User ${targetUsername} not found in Mikrotik`);
                     const userId = users[0]['.id'];
@@ -383,9 +404,20 @@ export async function POST(request) {
             } else if (requestType === 'delete') {
                 const targetUsername = registration.targetUsername;
 
+                // Resolve Connection
+                let connectionId = null;
+                try {
+                    const { getConfig, getUserConnectionId } = await import('@/lib/config');
+                    const config = await getConfig();
+                    const mockUser = { role: 'agent', ownerId: registration.ownerId };
+                    connectionId = getUserConnectionId(mockUser, config);
+                } catch (e) {
+                    console.error('Failed to resolve connection for delete:', e);
+                }
+
                 // Mikrotik
                 try {
-                    const client = await getMikrotikClient();
+                    const client = await getMikrotikClient(connectionId);
                     const users = await client.write('/ppp/secret/print', [`?name=${targetUsername}`]);
                     if (users.length > 0) {
                         await client.write('/ppp/secret/remove', [`=.id=${users[0]['.id']}`]);

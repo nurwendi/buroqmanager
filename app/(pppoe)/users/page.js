@@ -1,72 +1,239 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Edit2, Trash2, Users as UsersIcon, Shield, Globe, User, MapPin, Phone, Building, Search, Wifi, WifiOff, ArrowUpDown, Server, RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle, Mail, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users as UsersIcon, Shield, Globe, User, MapPin, Phone, Building, Search, ArrowUpDown, Server, RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle, Mail, Loader2, Activity, ExternalLink, Power, Wifi, RotateCcw, Smartphone, Database, Info, MoreHorizontal, X } from 'lucide-react';
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDashboard } from '@/contexts/DashboardContext';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 export default function UsersPage() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    // State
     const [users, setUsers] = useState([]);
     const [profiles, setProfiles] = useState([]);
-    const [systemUsers, setSystemUsers] = useState([]); // Agents and Technicians
-    const [pendingRegistrations, setPendingRegistrations] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
-    const [showReviewModal, setShowReviewModal] = useState(false);
-    const [selectedRegistration, setSelectedRegistration] = useState(null);
-    const [reviewFormData, setReviewFormData] = useState({});
-    const [editMode, setEditMode] = useState(false);
-    const [editingUserId, setEditingUserId] = useState(null);
-    const [currentUserId, setCurrentUserId] = useState(null);
-    const [userRole, setUserRole] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [customersData, setCustomersData] = useState({});
     const [activeConnections, setActiveConnections] = useState([]);
+    const [acsDevices, setAcsDevices] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(25);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+    const [showModal, setShowModal] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [currentUserId, setCurrentUserId] = useState(null);
+    const [selectedUsers, setSelectedUsers] = useState(new Set());
+
+    // Filter State
+    const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'online', 'offline'
+
+    // Form Data
     const [formData, setFormData] = useState({
         name: '',
         password: '',
-        profile: '', // Enforce selection
-        service: 'pppoe',
-        customerId: '',
-        customerName: '',
-        customerAddress: '',
-        customerPhone: '',
-        customerEmail: '',
-        agentId: '',
-        technicianId: '',
-        ownerId: ''
+        profile: '',
+        service: 'any',
+        comment: '',
+        disabled: false,
+        'customer-name': '',
+        'customer-id': '',
+        'agent-name': '',
+        'technician-name': '',
+        'coordinates': '',
+        'phone': '',
+        'address': ''
     });
+
+    const { preferences } = useDashboard();
+
+    // Fetch All Data
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [
+                usersRes,
+                profilesRes,
+                activeRes,
+                acsRes,
+                customersRes,
+                systemUsersRes,
+                settingsRes,
+                registrationsRes
+            ] = await Promise.all([
+                fetch('/api/pppoe/users'),
+                fetch('/api/pppoe/profiles'),
+                fetch('/api/pppoe/active'),
+                fetch('/api/genieacs/devices'),
+                fetch('/api/customers'),
+                fetch('/api/admin/users'),
+                fetch('/api/settings'),
+                fetch('/api/registrations')
+            ]);
+
+            if (!usersRes.ok || !profilesRes.ok) throw new Error('Failed to fetch initial data');
+
+            const usersData = await usersRes.json();
+            const profilesData = await profilesRes.json();
+            const activeData = activeRes.ok ? await activeRes.json() : [];
+            const acsData = acsRes.ok ? await acsRes.json() : [];
+            const customersDataVals = customersRes.ok ? await customersRes.json() : {};
+            const systemUsersData = systemUsersRes.ok ? await systemUsersRes.json() : [];
+            const settingsData = settingsRes.ok ? await settingsRes.json() : {};
+            const registrationsData = registrationsRes.ok ? await registrationsRes.json() : [];
+
+            setUsers(usersData);
+            setProfiles(profilesData);
+            setActiveConnections(activeData);
+            setAcsDevices(acsData);
+            setCustomersData(customersDataVals);
+            setSystemUsers(systemUsersData);
+            setPendingRegistrations(registrationsData);
+
+            if (settingsData.connections) {
+                setConnections(settingsData.connections);
+                if (settingsData.activeConnectionId) {
+                    setSelectedRouterIds([settingsData.activeConnectionId]);
+                }
+            }
+
+            setError(null);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Auto-refresh active connections only (every 10s)
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            if (document.hidden) return;
+            try {
+                const [activeRes, acsRes] = await Promise.all([
+                    fetch('/api/pppoe/active'),
+                    fetch('/api/genieacs/devices')
+                ]);
+                if (activeRes.ok) setActiveConnections(await activeRes.json());
+                if (acsRes.ok) setAcsDevices(await acsRes.json());
+            } catch (e) { console.error("Auto-refresh failed", e); }
+        }, 10000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    // Helper to get active connection for a user
+    const getActiveConnection = (username) => activeConnections.find(c => c.name === username);
+
+    // Helper to get ACS device for a user
+    const getAcsDevice = (username) => acsDevices.find(d => d.pppoe_user === username);
+    // State for System Users (Agents/Techs) & Registrations
+    const [systemUsers, setSystemUsers] = useState([]);
+    const [pendingRegistrations, setPendingRegistrations] = useState([]);
+
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [selectedRegistration, setSelectedRegistration] = useState(null);
+    const [reviewFormData, setReviewFormData] = useState({});
+
+    // Mobile Details Modal State
+    const [detailsModal, setDetailsModal] = useState(null);
+
+    const [editingUserId, setEditingUserId] = useState(null);
+    const [userRole, setUserRole] = useState(null);
+    const [customersData, setCustomersData] = useState({});
 
     const [connections, setConnections] = useState([]);
     const [selectedRouterIds, setSelectedRouterIds] = useState([]);
 
-    // Bulk Edit State
-    const [selectedUsers, setSelectedUsers] = useState(new Set());
+    // Bulk Actions
     const [showBulkEditModal, setShowBulkEditModal] = useState(false);
     const [bulkEditData, setBulkEditData] = useState({ agentId: '', technicianId: '' });
 
+    // Active Connection Actions State
+    const [editingDevice, setEditingDevice] = useState(null);
+    const [wifiForm, setWifiForm] = useState({ ssid: '', password: '' });
+
+    const openEditWifi = (device) => {
+        setEditingDevice(device);
+        setWifiForm({ ssid: device.ssid || '', password: '' });
+    };
+
+    // Device Details Modal State
+    const [selectedDevice, setSelectedDevice] = useState(null);
+    const [showDeviceModal, setShowDeviceModal] = useState(false);
+
+    const openDeviceDetails = (device) => {
+        setSelectedDevice(device);
+        setShowDeviceModal(true);
+    };
+
+    const handleSaveWifi = async (e) => {
+        e.preventDefault();
+        if (!confirm('This will update the device Wi-Fi settings. The device might reconnect. Continue?')) return;
+
+        try {
+            const res = await fetch('/api/genieacs/wifi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    deviceId: editingDevice.id,
+                    ssid: wifiForm.ssid,
+                    password: wifiForm.password
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                alert('Success: Wi-Fi update task queued.');
+                setEditingDevice(null);
+                setTimeout(() => fetchData(), 2000);
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    };
+
+    const handleDisconnect = async (id, name) => {
+        if (!confirm(`Are you sure you want to disconnect user ${name}?`)) return;
+        try {
+            const res = await fetch(`/api/pppoe/active/${encodeURIComponent(id)}`, { method: 'DELETE' });
+            if (res.ok) fetchData();
+            else {
+                const data = await res.json();
+                alert(`Failed to disconnect: ${data.error}`);
+            }
+        } catch (error) {
+            alert('Failed to disconnect user');
+        }
+    };
+
+    const handleReboot = async (deviceId, serial) => {
+        if (!confirm(`Are you sure you want to reboot device ${serial}?`)) return;
+        try {
+            const res = await fetch('/api/genieacs/reboot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deviceId })
+            });
+            if (res.ok) alert('Reboot task queued successfully.');
+            else alert('Failed to queue reboot.');
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    };
+
+    const formatUptime = (uptime) => uptime || '-';
+
 
     // Pagination
-    const { preferences } = useDashboard();
-    // Default to 25 if not set, allow changing via UI
-    const [rowsPerPage, setRowsPerPage] = useState(25);
-    const [currentPage, setCurrentPage] = useState(1);
-
-    useEffect(() => {
-        fetchUsers();
-        fetchProfiles();
-        fetchCustomersData();
-        fetchSystemUsers();
-        fetchActiveConnections();
-        fetchConnections();
-        fetchPendingRegistrations();
-
-        // Refresh active connections every 10 seconds
-        const interval = setInterval(fetchActiveConnections, 10000);
-        return () => clearInterval(interval);
-    }, []);
 
     const fetchConnections = async () => {
         try {
@@ -140,17 +307,7 @@ export default function UsersPage() {
         }
     };
 
-    const fetchActiveConnections = async () => {
-        try {
-            const res = await fetch('/api/pppoe/active');
-            if (res.ok) {
-                const data = await res.json();
-                setActiveConnections(data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch active connections', error);
-        }
-    };
+
 
     const fetchPendingRegistrations = async () => {
         try {
@@ -167,15 +324,16 @@ export default function UsersPage() {
         setSelectedRegistration(reg);
 
         if (reg.type === 'edit') {
+            const values = typeof reg.newValues === 'string' ? JSON.parse(reg.newValues) : (reg.newValues || {});
             setReviewFormData({
-                username: reg.newValues?.username || '',
-                password: reg.newValues?.password || '',
-                profile: reg.newValues?.profile || '',
-                service: reg.newValues?.service || 'pppoe',
-                name: reg.newValues?.name || '',
-                address: reg.newValues?.address || '',
-                phone: reg.newValues?.phone || '',
-                agentId: reg.newValues?.agentId || ''
+                username: values.username || '',
+                password: values.password || '',
+                profile: values.profile || '',
+                service: values.service || 'pppoe',
+                name: values.name || '',
+                address: values.address || '',
+                phone: values.phone || '',
+                agentId: values.agentId || ''
             });
         } else if (reg.type === 'delete') {
             setReviewFormData({});
@@ -229,18 +387,21 @@ export default function UsersPage() {
         }
     };
 
-    const onlineUserSet = useMemo(() => {
-        return new Set(activeConnections.map(conn => conn.name));
-    }, [activeConnections]);
 
-    const isUserOnline = (username) => {
-        return onlineUserSet.has(username);
-    };
 
     const filteredUsers = useMemo(() => {
         const searchLower = searchTerm.toLowerCase();
 
         return users.filter(user => {
+            // Online filter
+            // Note: We use getActiveConnection helper but it expects state which isn't in scope of this pure function?
+            // Actually it is in scope of the component.
+            // But getActiveConnection relies on 'activeConnections' state which needs to be in dependency array.
+            // Status filter
+            const isActive = activeConnections.some(c => c.name === user.name);
+            if (filterStatus === 'online' && !isActive) return false;
+            if (filterStatus === 'offline' && isActive) return false;
+
             const customerName = customersData[user.name]?.name || '';
             const customerId = customersData[user.name]?.customerId || '';
 
@@ -250,7 +411,8 @@ export default function UsersPage() {
                 customerName.toLowerCase().includes(searchLower) ||
                 customerId.toLowerCase().includes(searchLower);
         });
-    }, [users, searchTerm, customersData]);
+    }, [users, searchTerm, customersData, filterStatus, activeConnections]);
+
 
     const sortData = (key) => {
         let direction = 'asc';
@@ -268,10 +430,7 @@ export default function UsersPage() {
             let aVal, bVal;
 
             switch (sortConfig.key) {
-                case 'status':
-                    aVal = isUserOnline(a.name) ? 1 : 0;
-                    bVal = isUserOnline(b.name) ? 1 : 0;
-                    break;
+                // ... (rest of sort logic)
                 case 'username':
                     aVal = a.name.toLowerCase();
                     bVal = b.name.toLowerCase();
@@ -293,6 +452,13 @@ export default function UsersPage() {
                     aVal = (a.usage?.rx || 0) + (a.usage?.tx || 0);
                     bVal = (b.usage?.rx || 0) + (b.usage?.tx || 0);
                     break;
+                case 'connection':
+                    // Sort by active status/IP
+                    const aActive = activeConnections.find(c => c.name === a.name);
+                    const bActive = activeConnections.find(c => c.name === b.name);
+                    aVal = aActive ? (aActive.address || 'z') : 'z'; // 'z' to put offline at bottom (or top depending on asc/desc)
+                    bVal = bActive ? (bActive.address || 'z') : 'z';
+                    break;
                 default:
                     aVal = a[sortConfig.key] || '';
                     bVal = b[sortConfig.key] || '';
@@ -304,7 +470,7 @@ export default function UsersPage() {
         });
 
         return sorted;
-    }, [filteredUsers, sortConfig, onlineUserSet, customersData, systemUsers]); // dependencies including lookups
+    }, [filteredUsers, sortConfig, customersData, systemUsers, activeConnections]);
 
     // Pagination Logic
     const paginatedUsers = useMemo(() => {
@@ -338,8 +504,8 @@ export default function UsersPage() {
         }
 
 
-        // Staff/Editor Edit Request (Downgrade Editor to Request flow for active users)
-        if ((userRole === 'staff' || userRole === 'editor') && editMode) {
+        // Staff/Editor/Agent/Technician Edit Request
+        if (['staff', 'editor', 'agent', 'technician'].includes(userRole) && editMode) {
             try {
                 const res = await fetch('/api/registrations', {
                     method: 'POST',
@@ -506,8 +672,8 @@ export default function UsersPage() {
     const handleDelete = async (user) => {
         if (!confirm(`Are you sure you want to delete user ${user.name}?`)) return;
 
-        // Staff/Editor Delete Request
-        if (userRole === 'staff' || userRole === 'editor') {
+        // Staff/Editor/Agent/Technician Delete Request
+        if (['staff', 'editor', 'agent', 'technician'].includes(userRole)) {
             try {
                 const res = await fetch('/api/registrations', {
                     method: 'POST',
@@ -605,30 +771,7 @@ export default function UsersPage() {
         return parts.length > 0 ? parts.join(', ') : '-';
     };
 
-    const handleGenerateMissingNumbers = async () => {
-        if (!confirm('This will generate customer numbers for all users who don\'t have one. Continue?')) return;
 
-        setLoading(true);
-        try {
-            const res = await fetch('/api/customers/generate-missing', {
-                method: 'POST'
-            });
-            const data = await res.json();
-
-            if (res.ok) {
-                alert(data.message);
-                fetchCustomersData();
-                fetchUsers();
-            } else {
-                alert('Failed: ' + data.error);
-            }
-        } catch (error) {
-            console.error('Error generating numbers:', error);
-            alert('An error occurred.');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleSelectAll = (e) => {
         if (e.target.checked) {
@@ -700,7 +843,7 @@ export default function UsersPage() {
             <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">PPPoE Users</h1>
                 <div className="flex flex-col gap-2 md:flex-row md:gap-2">
-                    {selectedUsers.size > 0 && userRole !== 'staff' && userRole !== 'editor' && (
+                    {selectedUsers.size > 0 && !['staff', 'editor', 'agent', 'technician'].includes(userRole) && (
                         <button
                             onClick={() => setShowBulkEditModal(true)}
                             className="w-full md:w-auto bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors shadow-lg animate-pulse"
@@ -708,15 +851,7 @@ export default function UsersPage() {
                             <UsersIcon size={20} /> Bulk Edit ({selectedUsers.size})
                         </button>
                     )}
-                    {(userRole !== 'staff' && userRole !== 'editor') && (
-                        <button
-                            onClick={handleGenerateMissingNumbers}
-                            className="w-full md:w-auto bg-green-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-green-700 transition-colors"
-                            title="Generate missing customer numbers"
-                        >
-                            <RefreshCw size={20} /> Generate Numbers
-                        </button>
-                    )}
+
                     <button
                         onClick={() => setShowModal(true)}
                         className="w-full md:w-auto bg-accent text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all"
@@ -792,275 +927,434 @@ export default function UsersPage() {
                 </div>
             )}
 
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
-                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-3 md:p-6 border-l-4 border-blue-500 border-y border-r border-white/20 dark:border-white/5">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Users</p>
-                            <p className="text-2xl font-bold text-gray-800 dark:text-white">{users.length}</p>
-                        </div>
-                        <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                            <UsersIcon size={24} className="text-blue-600 dark:text-blue-400" />
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-3 md:p-6 border-l-4 border-green-500 border-y border-r border-white/20 dark:border-white/5">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Online</p>
-                            <p className="text-2xl font-bold text-gray-800 dark:text-white">
-                                {users.filter(u => isUserOnline(u.name)).length}
-                            </p>
-                        </div>
-                        <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full">
-                            <Wifi size={24} className="text-green-600 dark:text-green-400" />
-                        </div>
-                    </div>
-                </div>
-                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-3 md:p-6 border-l-4 border-red-500 border-y border-r border-white/20 dark:border-white/5">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Offline</p>
-                            <p className="text-2xl font-bold text-gray-800 dark:text-white">
-                                {users.length - users.filter(u => isUserOnline(u.name)).length}
-                            </p>
-                        </div>
-                        <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
-                            <WifiOff size={24} className="text-red-600 dark:text-red-400" />
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div className="space-y-6">
 
-            {/* Search Bar */}
-            <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-4 border border-white/20 dark:border-white/5">
-                <div className="relative">
-                    <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-                    <input
-                        type="text"
-                        placeholder="Search by username, profile, service, or customer name..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:placeholder-gray-400"
-                    />
-                </div>
-            </div>
+                {/* Stats Cards */}
+                {/* Stats Widget (Unified) */}
+                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl border border-white/20 dark:border-white/5 overflow-hidden">
+                    <div className="grid grid-cols-3 divide-x divide-gray-200/50 dark:divide-gray-700/50">
+                        {/* Total */}
+                        <div className="p-4 flex flex-col items-center justify-center text-center">
+                            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-2">
+                                <UsersIcon size={20} className="text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <p className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">{users.length}</p>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</p>
+                        </div>
 
-            {/* Users Table */}
-            <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-black/5 dark:bg-white/5">
-                            <tr>
-                                <th className="px-6 py-3 text-left">
-                                    <input
-                                        type="checkbox"
-                                        onChange={handleSelectAll}
-                                        checked={selectedUsers.size > 0 && selectedUsers.size === sortedUsers.length}
-                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                </th>
-                                <th
-                                    onClick={() => sortData('status')}
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                                >
-                                    <div className="flex items-center gap-1">
-                                        Status
-                                        <ArrowUpDown size={14} />
-                                    </div>
-                                </th>
-                                <th
-                                    onClick={() => sortData('username')}
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                                >
-                                    <div className="flex items-center gap-1">
-                                        Username <ArrowUpDown size={14} className="text-gray-400" />
-                                    </div>
-                                </th>
-                                <th
-                                    onClick={() => sortData('customer')}
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                                >
-                                    <div className="flex items-center gap-1">
-                                        Customer Name
-                                        <ArrowUpDown size={14} />
-                                    </div>
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                    Customer ID
-                                </th>
-                                <th
-                                    onClick={() => sortData('profile')}
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                                >
-                                    <div className="flex items-center gap-1">
-                                        Profile
-                                        <ArrowUpDown size={14} />
-                                    </div>
-                                </th>
-                                <th
-                                    onClick={() => sortData('partner')}
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                                >
-                                    <div className="flex items-center gap-1">
-                                        Staff
-                                        <ArrowUpDown size={14} />
-                                    </div>
-                                </th>
-                                <th
-                                    onClick={() => sortData('usage')}
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                                >
-                                    <div className="flex items-center gap-1">
-                                        Monthly Usage
-                                        <ArrowUpDown size={14} />
-                                    </div>
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
-                            {loading ? (
+                        {/* Online */}
+                        <div className="p-4 flex flex-col items-center justify-center text-center">
+                            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full mb-2">
+                                <Wifi size={20} className="text-green-600 dark:text-green-400" />
+                            </div>
+                            <p className="text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">{activeConnections.length}</p>
+                            <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider">Online</p>
+                        </div>
+
+                        {/* Offline */}
+                        <div className="p-4 flex flex-col items-center justify-center text-center">
+                            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full mb-2">
+                                <Power size={20} className="text-gray-500 dark:text-gray-400" />
+                            </div>
+                            <p className="text-xl md:text-2xl font-bold text-gray-600 dark:text-gray-300">{users.length - activeConnections.length}</p>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Offline</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Search Bar & Filters */}
+                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-4 border border-white/20 dark:border-white/5 flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <div className="relative w-full md:flex-1">
+                        <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+                        <input
+                            type="text"
+                            placeholder="Search by username, IP, profile, service, or customer..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:placeholder-gray-400"
+                        />
+                    </div>
+                    <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+                        <button
+                            onClick={() => setFilterStatus('all')}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'all'
+                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                }`}
+                        >
+                            <UsersIcon size={16} />
+                            All
+                        </button>
+                        <button
+                            onClick={() => setFilterStatus('online')}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'online'
+                                ? 'bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400'
+                                }`}
+                        >
+                            <Wifi size={16} />
+                            Online
+                        </button>
+                        <button
+                            onClick={() => setFilterStatus('offline')}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'offline'
+                                ? 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                }`}
+                        >
+                            <Power size={16} />
+                            Offline
+                        </button>
+                    </div>
+                </div>
+
+                {/* Unified Table */}
+                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead className="bg-black/5 dark:bg-white/5">
                                 <tr>
-                                    <td colSpan="7" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">Loading...</td>
-                                </tr>
-                            ) : sortedUsers.length === 0 ? (
-                                <tr>
-                                    <td colSpan="7" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No users found</td>
-                                </tr>
-                            ) : (
-                                paginatedUsers.map((user) => (
-                                    <tr key={user['.id']} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                    <th className="px-6 py-3 text-left w-10 relative">
+                                        <div className="hidden sm:block">
                                             <input
                                                 type="checkbox"
-                                                checked={selectedUsers.has(user.name)}
-                                                onChange={() => handleSelectUser(user.name)}
+                                                onChange={handleSelectAll}
+                                                checked={selectedUsers.size > 0 && selectedUsers.size === sortedUsers.length}
                                                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                             />
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {isUserOnline(user.name) ? (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300 border border-green-200 dark:border-green-500/30">
-                                                    <Wifi size={14} /> Online
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 border border-gray-200 dark:border-gray-600">
-                                                    <WifiOff size={14} /> Offline
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                            {user.name}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {getCustomerName(user.name)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {customersData[user.name]?.customerId || '-'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs font-medium border border-blue-100 dark:border-blue-800/50">
-                                                {user.profile || '-'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            <div className="flex flex-col text-xs">
-                                                {getPartnerName(user.name)}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            <div className="flex flex-col gap-1">
-                                                <div className="font-bold text-gray-800 dark:text-white text-sm">
-                                                    {formatBytes((user.usage?.rx || 0) + (user.usage?.tx || 0))}
-                                                </div>
-                                                <div className="flex items-center gap-3 text-xs">
-                                                    <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium" title="Download">
-                                                        <ArrowUpDown size={10} className="rotate-180" /> {formatBytes(user.usage?.tx || 0)}
-                                                    </span>
-                                                    <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium" title="Upload">
-                                                        <ArrowUpDown size={10} /> {formatBytes(user.usage?.rx || 0)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                            <button
-                                                onClick={() => handleEdit(user)}
-                                                className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
-                                            >
-                                                <Edit2 size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(user)}
-                                                className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </td>
+                                        </div>
+                                        <div className="sm:hidden text-gray-500 text-xs uppercase tracking-wider font-medium">
+                                            More
+                                        </div>
+                                    </th>
+                                    <th
+                                        onClick={() => sortData('username')}
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            User (Name/IP) <ArrowUpDown size={14} className="text-gray-400" />
+                                        </div>
+                                    </th>
+                                    <th
+                                        className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                                    >
+                                        Device
+                                    </th>
+                                    <th
+                                        onClick={() => sortData('profile')}
+                                        className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Plan <ArrowUpDown size={14} />
+                                        </div>
+                                    </th>
+                                    <th
+                                        onClick={() => sortData('staff')}
+                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Staff <ArrowUpDown size={14} />
+                                        </div>
+                                    </th>
+                                    <th
+                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                                    >
+                                        Session
+                                    </th>
+                                    <th
+                                        onClick={() => sortData('usage')}
+                                        className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            Usage <ArrowUpDown size={14} />
+                                        </div>
+                                    </th>
+                                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan="8" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">Loading...</td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                ) : sortedUsers.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="8" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No users found</td>
+                                    </tr>
+                                ) : (
+                                    paginatedUsers.map((user) => {
+                                        const active = getActiveConnection(user.name);
+                                        const acs = getAcsDevice(user.name);
+                                        const isOnline = !!active;
 
-                {/* Pagination Controls */}
-                <div className="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
-                    <div className="flex items-center gap-4">
-                        <div className="text-sm text-gray-700 dark:text-gray-300">
-                            Showing <span className="font-medium mx-1">
-                                {users.length === 0 ? 0 : (currentPage - 1) * (rowsPerPage === 'All' ? filteredUsers.length : rowsPerPage) + 1}
-                            </span>
-                            to
-                            <span className="font-medium mx-1">
-                                {rowsPerPage === 'All' ? filteredUsers.length : Math.min(currentPage * rowsPerPage, filteredUsers.length)}
-                            </span>
-                            of
-                            <span className="font-medium mx-1">{filteredUsers.length}</span> results
-                        </div>
+                                        return (
+                                            <tr key={user['.id']} className={`transition-colors ${isOnline ? 'bg-green-50/50 dark:bg-green-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
+                                                <td className="px-6 py-4 whitespace-nowrap relative">
+                                                    {/* Desktop: Checkbox */}
+                                                    <div className="hidden sm:block">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedUsers.has(user.name)}
+                                                            onChange={() => handleSelectUser(user.name)}
+                                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                        />
+                                                    </div>
 
-                        <select
-                            value={rowsPerPage}
-                            onChange={(e) => {
-                                const val = e.target.value === 'All' ? 'All' : parseInt(e.target.value);
-                                setRowsPerPage(val);
-                                setCurrentPage(1);
-                            }}
-                            className="text-sm border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
-                        >
-                            <option value={10}>10</option>
-                            <option value={25}>25</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                            <option value="All">All</option>
-                        </select>
+                                                    {/* Mobile: More Menu Button */}
+                                                    <div className="sm:hidden relative">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setDetailsModal({ ...user, acs, active });
+                                                            }}
+                                                            className="p-1.5 text-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors"
+                                                        >
+                                                            <MoreHorizontal size={18} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+
+                                                {/* Unified User Column */}
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}`} title={isOnline ? 'Online' : 'Offline'} />
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1">
+                                                                {user.name}
+                                                            </span>
+                                                            <span className="text-xs text-gray-500 dark:text-gray-400">{getCustomerName(user.name)}</span>
+                                                            {isOnline && (
+                                                                <span className="text-[10px] font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1 rounded mt-0.5 w-fit">
+                                                                    {active.address}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                {/* Device Column (ACS) */}
+                                                <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                                                    {acs ? (
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                                                                <Smartphone size={12} className="text-gray-400" /> {acs.ssid || '-'}
+                                                            </span>
+                                                            <div className="flex items-center gap-2 mt-0.5">
+                                                                <span className={`text-[10px] px-1 rounded ${(acs.rx_power >= -20) ? 'bg-green-100 text-green-800' :
+                                                                    (acs.rx_power >= -25) ? 'bg-blue-100 text-blue-800' :
+                                                                        'bg-red-100 text-red-800'
+                                                                    }`}>
+                                                                    {acs.rx_power ? `${acs.rx_power}dBm` : '-'}
+                                                                </span>
+                                                                {acs.temp && <span className="text-[10px] text-gray-500">{acs.temp}°C</span>}
+                                                            </div>
+                                                            <span className="text-[10px] text-gray-400 font-mono mt-0.5" title="Serial Number">SN: {acs.serial}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400">-</span>
+                                                    )}
+                                                </td>
+
+                                                {/* Plan Column */}
+                                                <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex flex-col">
+                                                        <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-xs font-medium border border-blue-100 dark:border-blue-800/50 w-fit">
+                                                            {user.profile || '-'}
+                                                        </span>
+                                                        {user.service && user.service !== 'pppoe' && (
+                                                            <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider pl-1">{user.service}</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+
+                                                {/* Staff Column */}
+                                                <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                    <div className="flex flex-col text-xs space-y-0.5">
+                                                        {(() => {
+                                                            const parts = getPartnerName(user.name).split(', ');
+                                                            if (getPartnerName(user.name) === '-') return <span className="text-gray-400">-</span>;
+                                                            return parts.map((part, i) => (
+                                                                <span key={i} className="block">{part}</span>
+                                                            ));
+                                                        })()}
+                                                    </div>
+                                                </td>
+
+                                                {/* Session Column */}
+                                                <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
+                                                    {isOnline ? (
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-medium text-green-600 dark:text-green-400 flex items-center gap-1">
+                                                                <Clock size={12} /> {formatUptime(active.uptime)}
+                                                            </span>
+                                                            <span className="text-[10px] text-gray-400 font-mono mt-0.5">{active['caller-id']}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400">-</span>
+                                                    )}
+                                                </td>
+
+                                                {/* Usage Column */}
+                                                <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="font-bold text-gray-800 dark:text-white text-sm">
+                                                            {formatBytes((user.usage?.rx || 0) + (user.usage?.tx || 0))}
+                                                        </div>
+                                                        <div className="flex items-center gap-3 text-xs">
+                                                            <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium" title="Upload">
+                                                                <ArrowUpDown size={10} className="rotate-180" /> {formatBytes(user.usage?.tx || 0)}
+                                                            </span>
+                                                            <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium" title="Download">
+                                                                <ArrowUpDown size={10} /> {formatBytes(user.usage?.rx || 0)}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                {/* Actions Column */}
+                                                <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <div className="flex items-center gap-1">
+                                                        {isOnline && (
+                                                            <>
+                                                                <a
+                                                                    href={`http://${active.address}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    title="Manage Device (WebFig)"
+                                                                    className="p-1 text-teal-600 hover:text-teal-800 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded transition-colors inline-block"
+                                                                >
+                                                                    <ExternalLink size={18} />
+                                                                </a>
+                                                                <button
+                                                                    onClick={() => handleDisconnect(active['.id'], user.name)}
+                                                                    title="Disconnect User"
+                                                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                                                >
+                                                                    <Power size={18} />
+                                                                </button>
+                                                                {acs && (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={() => openDeviceDetails(acs)}
+                                                                            title="Device Details"
+                                                                            className="p-1 text-teal-600 hover:text-teal-800 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded transition-colors"
+                                                                        >
+                                                                            <Info size={18} />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => openEditWifi(acs)}
+                                                                            title="Edit Wi-Fi"
+                                                                            className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                                                        >
+                                                                            <Wifi size={18} />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleReboot(acs.id, acs.serial)}
+                                                                            title="Reboot Device"
+                                                                            className="p-1 text-orange-500 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded transition-colors"
+                                                                        >
+                                                                            <RotateCcw size={18} />
+                                                                        </button>
+                                                                    </>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                        <button
+                                                            onClick={() => handleEdit(user)}
+                                                            title="Edit User"
+                                                            className="p-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                                                        >
+                                                            <Edit2 size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(user)}
+                                                            title="Delete User"
+                                                            className="p-1 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
                     </div>
 
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                            className="px-3 py-1 rounded bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Previous
-                        </button>
-                        <button
-                            onClick={() => setCurrentPage(prev => {
-                                const maxPage = rowsPerPage === 'All' ? 1 : Math.ceil(filteredUsers.length / rowsPerPage);
-                                return Math.min(prev + 1, maxPage);
-                            })}
-                            disabled={rowsPerPage === 'All' || currentPage >= Math.ceil(filteredUsers.length / rowsPerPage)}
-                            className="px-3 py-1 rounded bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Next
-                        </button>
+                    {/* Pagination Controls */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 gap-4">
+                        <div className="flex items-center gap-4 text-sm text-gray-700 dark:text-gray-300">
+                            <div>
+                                Showing <span className="font-medium mx-1">
+                                    {users.length === 0 ? 0 : (currentPage - 1) * (rowsPerPage === 'All' ? filteredUsers.length : rowsPerPage) + 1}
+                                </span>
+                                to
+                                <span className="font-medium mx-1">
+                                    {rowsPerPage === 'All' ? filteredUsers.length : Math.min(currentPage * rowsPerPage, filteredUsers.length)}
+                                </span>
+                                of
+                                <span className="font-medium mx-1">{filteredUsers.length}</span> results
+                            </div>
+                            {rowsPerPage !== 'All' && (
+                                <button
+                                    onClick={() => setRowsPerPage('All')}
+                                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium underline"
+                                >
+                                    Show All
+                                </button>
+                            )}
+                            {rowsPerPage === 'All' && (
+                                <button
+                                    onClick={() => setRowsPerPage(25)}
+                                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium underline"
+                                >
+                                    Pagination
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-700 dark:text-gray-300">Rows per page:</span>
+                            <select
+                                value={rowsPerPage}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setRowsPerPage(val === 'All' ? 'All' : Number(val));
+                                    setCurrentPage(1);
+                                }}
+                                className="px-2 py-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value={25}>25</option>
+                                <option value={50}>50</option>
+                                <option value={100}>100</option>
+                                <option value="All">All</option>
+                            </select>
+
+                            <div className="flex gap-1 ml-4">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1 || rowsPerPage === 'All'}
+                                    className="px-3 py-1 rounded bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredUsers.length / (rowsPerPage === 'All' ? filteredUsers.length : rowsPerPage)), p + 1))}
+                                    disabled={rowsPerPage === 'All' || currentPage >= Math.ceil(filteredUsers.length / rowsPerPage)}
+                                    className="px-3 py-1 rounded bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Add/Edit User Modal */}
+            {/* Note: Modals are effectively outside the Tabs.Root logical restriction now, but we kept structure consistent */}
             <AnimatePresence>
                 {showModal && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
@@ -1243,37 +1537,39 @@ export default function UsersPage() {
                                     </div>
                                 </div>
 
-                                {/* Agent and Technician Selection */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Agent <span className="text-red-500">*</span></label>
-                                        <select
-                                            required
-                                            value={formData.agentId}
-                                            onChange={(e) => setFormData({ ...formData, agentId: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        >
-                                            <option value="">-- Select Agent --</option>
-                                            {systemUsers.filter(u => u.isAgent).map(user => (
-                                                <option key={user.id} value={user.id}>{user.username}</option>
-                                            ))}
-                                        </select>
+                                {/* Agent and Technician Selection - Restricted to Admin/Manager */}
+                                {['superadmin', 'admin', 'manager'].includes(userRole) && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Agent <span className="text-red-500">*</span></label>
+                                            <select
+                                                required
+                                                value={formData.agentId}
+                                                onChange={(e) => setFormData({ ...formData, agentId: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                            >
+                                                <option value="">-- Select Agent --</option>
+                                                {systemUsers.filter(u => u.isAgent).map(user => (
+                                                    <option key={user.id} value={user.id}>{user.username}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Technician <span className="text-red-500">*</span></label>
+                                            <select
+                                                required
+                                                value={formData.technicianId}
+                                                onChange={(e) => setFormData({ ...formData, technicianId: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                            >
+                                                <option value="">-- Select Technician --</option>
+                                                {systemUsers.filter(u => u.isTechnician).map(user => (
+                                                    <option key={user.id} value={user.id}>{user.username}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Technician <span className="text-red-500">*</span></label>
-                                        <select
-                                            required
-                                            value={formData.technicianId}
-                                            onChange={(e) => setFormData({ ...formData, technicianId: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        >
-                                            <option value="">-- Select Technician --</option>
-                                            {systemUsers.filter(u => u.isTechnician).map(user => (
-                                                <option key={user.id} value={user.id}>{user.username}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
+                                )}
 
                                 <div className="flex justify-end gap-2 pt-4 border-t mt-4">
                                     <button
@@ -1657,6 +1953,310 @@ export default function UsersPage() {
                     </div>
                 )}
             </AnimatePresence>
-        </div >
+            {/* Edit Wi-Fi Modal */}
+            <AnimatePresence>
+                {editingDevice && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-100 dark:border-gray-700"
+                        >
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                <Wifi className="text-blue-500" /> Edit Wi-Fi Settings
+                            </h3>
+                            <form onSubmit={handleSaveWifi} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SSID (Network Name)</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={wifiForm.ssid}
+                                        onChange={(e) => setWifiForm({ ...wifiForm, ssid: e.target.value })}
+                                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                                    <input
+                                        type="text"
+                                        value={wifiForm.password}
+                                        onChange={(e) => setWifiForm({ ...wifiForm, password: e.target.value })}
+                                        placeholder="Leave blank to keep current"
+                                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Leave blank to keep existing password.</p>
+                                </div>
+                                <div className="flex justify-end gap-2 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditingDevice(null)}
+                                        className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                    >
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Device Details Modal */}
+            <AnimatePresence>
+                {showDeviceModal && selectedDevice && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-100 dark:border-gray-700"
+                        >
+                            <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                    <Smartphone className="text-teal-500" /> Device Details
+                                </h3>
+                                <button
+                                    onClick={() => setShowDeviceModal(false)}
+                                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                >
+                                    <XCircle size={24} />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-3">
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">Model & Manufacturer</p>
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedDevice.manufacturer} - {selectedDevice.model}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">Serial Number (SN)</p>
+                                        <p className="text-sm font-mono text-gray-900 dark:text-white bg-white dark:bg-gray-800 px-2 py-1 rounded border dark:border-gray-600 inline-block mt-1">
+                                            {selectedDevice.serial}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                        <p className="text-xs text-blue-600 dark:text-blue-400 uppercase font-semibold mb-1">SSID</p>
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate" title={selectedDevice.ssid}>
+                                            {selectedDevice.ssid || '-'}
+                                        </p>
+                                    </div>
+                                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                        <p className="text-xs text-green-600 dark:text-green-400 uppercase font-semibold mb-1">Signal (Rx)</p>
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                            {selectedDevice.rx_power ? `${selectedDevice.rx_power}dBm` : '-'}
+                                        </p>
+                                    </div>
+                                    <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                                        <p className="text-xs text-orange-600 dark:text-orange-400 uppercase font-semibold mb-1">Temperature</p>
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                            {selectedDevice.temp ? `${selectedDevice.temp}°C` : '-'}
+                                        </p>
+                                    </div>
+                                    <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                                        <p className="text-xs text-purple-600 dark:text-purple-400 uppercase font-semibold mb-1">IP Address</p>
+                                        <p className="text-sm font-mono font-bold text-gray-900 dark:text-white truncate">
+                                            {selectedDevice.ip || '-'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="text-xs text-gray-400 text-center pt-2">
+                                    Last Inform: {selectedDevice.lastInform ? new Date(selectedDevice.lastInform).toLocaleString() : '-'}
+                                </div>
+                            </div>
+
+                            <div className="mt-6">
+                                <button
+                                    onClick={() => setShowDeviceModal(false)}
+                                    className="w-full py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            {/* Mobile Details Modal */}
+            <AnimatePresence>
+                {detailsModal && (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[90vh]">
+                            {/* Header */}
+                            <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+                                <div>
+                                    <h3 className="font-bold text-lg text-gray-900 dark:text-white">{detailsModal.name}</h3>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                                        {detailsModal.active?.address || 'Offline'}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setDetailsModal(null)}
+                                    className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                >
+                                    <X size={20} className="text-gray-500" />
+                                </button>
+                            </div>
+
+                            {/* Body Scroller */}
+                            <div className="p-5 overflow-y-auto space-y-4">
+                                {/* Connection Stats */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                                        <span className="text-xs text-blue-600 dark:text-blue-400 block mb-1">Download</span>
+                                        <span className="font-bold text-gray-800 dark:text-white">
+                                            {formatBytes(detailsModal.usage?.rx || 0)}
+                                        </span>
+                                    </div>
+                                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                                        <span className="text-xs text-green-600 dark:text-green-400 block mb-1">Upload</span>
+                                        <span className="font-bold text-gray-800 dark:text-white">
+                                            {formatBytes(detailsModal.usage?.tx || 0)}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                                        <span className="text-sm text-gray-500">Profile</span>
+                                        <span className="text-sm font-medium dark:text-gray-200">{detailsModal.profile}</span>
+                                    </div>
+                                    <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                                        <span className="text-sm text-gray-500">Uptime</span>
+                                        <span className="text-sm font-medium dark:text-gray-200">
+                                            {detailsModal.active ? formatUptime(detailsModal.active.uptime) : '-'}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                                        <span className="text-sm text-gray-500">Caller ID</span>
+                                        <span className="text-sm font-medium dark:text-gray-200">
+                                            {detailsModal.active ? detailsModal.active['caller-id'] : '-'}
+                                        </span>
+                                    </div>
+
+                                    {/* ACS Details Section */}
+                                    {detailsModal.acs ? (
+                                        <div className="pt-2">
+                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Device Info</span>
+                                            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 space-y-2 text-sm">
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500">SSID</span>
+                                                    <span className="font-medium dark:text-gray-200">{detailsModal.acs.ssid || '-'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500">Signal</span>
+                                                    <span className={`font-bold ${parseFloat(detailsModal.acs.rx_power) < -25 ? 'text-red-500' : 'text-green-500'}`}>
+                                                        {detailsModal.acs.rx_power} dBm
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500">Temp</span>
+                                                    <span className="font-medium dark:text-gray-200">{detailsModal.acs.temp}°C</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500">S/N</span>
+                                                    <span className="font-mono text-xs dark:text-gray-200">{detailsModal.acs.serial}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg text-center text-sm text-gray-500 italic">
+                                            No GenieACS device linked.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Actions Footer */}
+                            <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => {
+                                        const user = detailsModal;
+                                        setDetailsModal(null);
+                                        handleEdit(user);
+                                    }}
+                                    className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-xl font-medium hover:bg-blue-200 transition-colors"
+                                >
+                                    <Edit2 size={18} /> Edit
+                                </button>
+
+                                {detailsModal.active?.address && (
+                                    <a
+                                        href={`http://${detailsModal.active.address}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center gap-2 px-4 py-3 bg-teal-100 text-teal-700 rounded-xl font-medium hover:bg-teal-200 transition-colors"
+                                    >
+                                        <ExternalLink size={18} /> Manage
+                                    </a>
+                                )}
+
+                                {detailsModal.active ? (
+                                    <button
+                                        onClick={() => {
+                                            const id = detailsModal.active['.id'];
+                                            const name = detailsModal.name;
+                                            setDetailsModal(null);
+                                            handleDisconnect(id, name);
+                                        }}
+                                        className="flex items-center justify-center gap-2 px-4 py-3 bg-red-100 text-red-700 rounded-xl font-medium hover:bg-red-200 transition-colors"
+                                    >
+                                        <Power size={18} /> Disconnect
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => {
+                                            const user = detailsModal;
+                                            setDetailsModal(null);
+                                            handleDelete(user);
+                                        }}
+                                        className="flex items-center justify-center gap-2 px-4 py-3 bg-red-100 text-red-700 rounded-xl font-medium hover:bg-red-200 transition-colors"
+                                    >
+                                        <Trash2 size={18} /> Delete
+                                    </button>
+                                )}
+
+                                {detailsModal.acs && (
+                                    <>
+                                        <button
+                                            onClick={() => {
+                                                const acs = detailsModal.acs;
+                                                setDetailsModal(null);
+                                                openEditWifi(acs);
+                                            }}
+                                            className="flex items-center justify-center gap-2 px-4 py-3 bg-indigo-100 text-indigo-700 rounded-xl font-medium hover:bg-indigo-200 transition-colors"
+                                        >
+                                            <Wifi size={18} /> WiFi
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const acs = detailsModal.acs;
+                                                setDetailsModal(null);
+                                                handleReboot(acs.id, acs.serial);
+                                            }}
+                                            className="flex items-center justify-center gap-2 px-4 py-3 bg-orange-100 text-orange-700 rounded-xl font-medium hover:bg-orange-200 transition-colors"
+                                        >
+                                            <RotateCcw size={18} /> Reboot
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </AnimatePresence>
+        </div>
     );
 }

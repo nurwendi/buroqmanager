@@ -633,27 +633,6 @@ Terima Kasih
 
 
 
-                {/* Admin Agent Stats Section */}
-                {agentStats && agentStats.role === 'admin' && (
-                    <div className="space-y-4">
-                        {/* Grand Totals - Smaller on mobile */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
-                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-3 md:p-5 text-white shadow-md">
-                                <p className="text-blue-100 font-medium text-xs md:text-sm mb-1">Total Gross</p>
-                                <h3 className="text-lg md:text-2xl font-bold">{formatCurrency(agentStats.grandTotal.revenue)}</h3>
-                            </div>
-                            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-3 md:p-5 text-white shadow-md">
-                                <p className="text-orange-100 font-medium text-xs md:text-sm mb-1">Komisi Staff</p>
-                                <h3 className="text-lg md:text-2xl font-bold">{formatCurrency(agentStats.grandTotal.commission)}</h3>
-                            </div>
-                            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-3 md:p-5 text-white shadow-md">
-                                <p className="text-green-100 font-medium text-xs md:text-sm mb-1">Net Revenue</p>
-                                <h3 className="text-lg md:text-2xl font-bold">{formatCurrency(agentStats.grandTotal.netRevenue)}</h3>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 {/* Staff Link for Staff */}
                 {agentStats && agentStats.role === 'staff' && (
                     <div className="bg-blue-50/30 dark:bg-blue-900/30 backdrop-blur-xl border border-blue-200/50 dark:border-blue-800/50 rounded-lg p-4 flex justify-between items-center shadow-lg">
@@ -666,60 +645,6 @@ Terima Kasih
                                 Go to Staff Dashboard
                             </button>
                         </Link>
-                    </div>
-                )}
-
-                {/* Stats Cards - Admin Only */}
-                {userRole === 'admin' && (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-6">
-                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg p-4 md:p-6 shadow-xl border-l-4 border-green-500 border-y border-r border-white/20 dark:border-white/5">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full text-green-600 dark:text-green-400">
-                                    <DollarSign size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Revenue (This Month)</p>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{formatCurrency(getMonthStats().totalRevenue)}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg p-4 md:p-6 shadow-xl border-l-4 border-blue-500 border-y border-r border-white/20 dark:border-white/5">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
-                                    <Calendar size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Pending Invoices</p>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{getMonthStats().pendingCount}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg p-4 md:p-6 shadow-xl border-l-4 border-purple-500 border-y border-r border-white/20 dark:border-white/5">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full text-purple-600 dark:text-purple-400">
-                                    <FileText size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Transactions</p>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{getMonthStats().totalTransactions}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg p-4 md:p-6 shadow-xl border-l-4 border-red-500 border-y border-r border-white/20 dark:border-white/5">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full text-red-600 dark:text-red-400">
-                                    <CreditCard size={24} />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Unpaid</p>
-                                    <p className="text-xl font-bold text-gray-900 dark:text-white">{formatCurrency(getMonthStats().totalUnpaid)}</p>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                 )}
 

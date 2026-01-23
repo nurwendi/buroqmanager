@@ -122,7 +122,7 @@ pm2 startup
 ### 7. File Permissions (Important)
 Ensure public images are accessible:
 ```bash
-chmod -R 755 /opt/billing/public
+chmod -R 755 /opt/billing/public/uploads
 ```
 
 ---

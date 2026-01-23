@@ -82,9 +82,8 @@ export default function DashboardContent() {
 
                     if (agentStatsRes.ok) {
                         const data = await agentStatsRes.json();
-                        if (data.role === 'staff') {
-                            newStats.agentStats = data.stats;
-                        }
+                        // Store agent stats for both admin (grandTotal) and staff (myStats)
+                        newStats.agentStats = data;
                     }
 
                     if (regsRes.ok) {
