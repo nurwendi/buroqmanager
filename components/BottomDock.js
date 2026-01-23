@@ -59,9 +59,9 @@ export default function BottomDock() {
 
         { href: '/system-users', icon: UserCog, hoverIcon: ShieldCheck, label: t('sidebar.systemUsers'), roles: ['admin'] },
         { href: '/system-admin', icon: Shield, hoverIcon: UserCheck, label: t('sidebar.owners'), roles: ['superadmin'] },
-        { href: '/routers', icon: Server, hoverIcon: HardDrive, label: 'NAT', roles: ['admin', 'manager'] },
+        { href: '/routers', icon: Server, hoverIcon: HardDrive, label: t('sidebar.nat'), roles: ['admin', 'manager'] },
 
-        { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: 'GenieACS', roles: ['superadmin'] },
+        { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
         { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
@@ -80,9 +80,9 @@ export default function BottomDock() {
         { href: '/profiles', icon: Network, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
         { href: '/system-users', icon: UserCog, label: t('sidebar.systemUsers'), roles: ['admin'] },
         { href: '/system-admin', icon: Shield, label: t('sidebar.owners'), roles: ['superadmin'] },
-        { href: '/routers', icon: Server, label: 'NAT', roles: ['admin', 'manager'] },
+        { href: '/routers', icon: Server, label: t('sidebar.nat'), roles: ['admin', 'manager'] },
 
-        { href: '/genieacs', icon: Wifi, label: 'GenieACS', roles: ['superadmin'] },
+        { href: '/genieacs', icon: Wifi, label: t('sidebar.genieacs'), roles: ['superadmin'] },
         { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
@@ -154,7 +154,7 @@ export default function BottomDock() {
                                     )}
                                 </div>
                                 <span className="text-[10px] font-medium mt-2 whitespace-nowrap px-2 rounded-md transition-all duration-300 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200">
-                                    {isLauncherOpen ? 'Close' : 'App'}
+                                    {isLauncherOpen ? t('sidebar.close') : t('sidebar.app')}
                                 </span>
                                 {/* Hover glow effect */}
                                 <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-accent/20 blur-xl" />
@@ -229,7 +229,7 @@ export default function BottomDock() {
                                     />
                                 </div>
                                 <span className="text-[10px] font-medium mt-2 whitespace-nowrap px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 shadow-lg transition-all duration-300">
-                                    Logout
+                                    {t('sidebar.logout')}
                                 </span>
                                 {/* Hover glow effect */}
                                 <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-red-400/10 blur-xl" />
@@ -312,7 +312,7 @@ export default function BottomDock() {
                                         : 'text-accent'
                                     }
                                 `}>
-                                    {isLauncherOpen ? 'Close' : 'App'}
+                                    {isLauncherOpen ? t('sidebar.close') : t('sidebar.app')}
                                 </span>
                             </button>
 
@@ -366,7 +366,7 @@ export default function BottomDock() {
                                     <LogOut size={24} className="text-gray-600 dark:text-gray-400" />
                                 </div>
                                 <span className="text-[10px] font-medium mt-1 text-gray-600 dark:text-gray-400">
-                                    Logout
+                                    {t('sidebar.logout')}
                                 </span>
                             </button>
                         </div>

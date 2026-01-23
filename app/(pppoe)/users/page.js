@@ -7,7 +7,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useDashboard } from '@/contexts/DashboardContext';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
+import { useLanguage } from '@/contexts/LanguageContext';
+
 export default function UsersPage() {
+    const { t } = useLanguage();
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
@@ -39,13 +42,15 @@ export default function UsersPage() {
         service: 'any',
         comment: '',
         disabled: false,
-        'customer-name': '',
-        'customer-id': '',
-        'agent-name': '',
-        'technician-name': '',
-        'coordinates': '',
-        'phone': '',
-        'address': ''
+        customerId: '',
+        customerName: '',
+        customerAddress: '',
+        customerPhone: '',
+        customerEmail: '',
+        agentId: '',
+        technicianId: '',
+        coordinates: '',
+        ownerId: ''
     });
 
     const { preferences } = useDashboard();
@@ -175,7 +180,7 @@ export default function UsersPage() {
 
     const handleSaveWifi = async (e) => {
         e.preventDefault();
-        if (!confirm('This will update the device Wi-Fi settings. The device might reconnect. Continue?')) return;
+        if (!confirm(t('messages.confirmWifiUpdate'))) return;
 
         try {
             const res = await fetch('/api/genieacs/wifi', {
@@ -202,7 +207,7 @@ export default function UsersPage() {
     };
 
     const handleDisconnect = async (id, name) => {
-        if (!confirm(`Are you sure you want to disconnect user ${name}?`)) return;
+        if (!confirm(t('messages.confirmDisconnect') + ' ' + name + '?')) return;
         try {
             const res = await fetch(`/api/pppoe/active/${encodeURIComponent(id)}`, { method: 'DELETE' });
             if (res.ok) fetchData();
@@ -216,7 +221,7 @@ export default function UsersPage() {
     };
 
     const handleReboot = async (deviceId, serial) => {
-        if (!confirm(`Are you sure you want to reboot device ${serial}?`)) return;
+        if (!confirm(t('messages.confirmReboot') + ' ' + serial + '?')) return;
         try {
             const res = await fetch('/api/genieacs/reboot', {
                 method: 'POST',
@@ -495,8 +500,15 @@ export default function UsersPage() {
         if (!formData.profile || formData.profile === '' || formData.profile === 'default') missingFields.push("Profile");
         if (!formData.customerName) missingFields.push("Nama Customer");
         if (!formData.customerAddress) missingFields.push("Alamat");
-        if (!formData.agentId) missingFields.push("Agent");
-        if (!formData.technicianId) missingFields.push("Teknisi");
+        // Determine effective Agent/Tech IDs based on role
+        const effectiveAgentId = userRole === 'agent' ? currentUserId : formData.agentId;
+        const effectiveTechnicianId = userRole === 'technician' ? currentUserId : formData.technicianId;
+
+        if (missingFields.length === 0) {
+            // Check specific role-based requirements
+            if (!effectiveAgentId && ['superadmin', 'admin', 'manager', 'agent'].includes(userRole)) missingFields.push("Agent");
+            if (!effectiveTechnicianId && ['superadmin', 'admin', 'manager', 'technician'].includes(userRole)) missingFields.push("Teknisi");
+        }
 
         if (missingFields.length > 0) {
             alert(`Mohon lengkapi data wajib berikut:\n- ${missingFields.join('\n- ')}`);
@@ -530,8 +542,8 @@ export default function UsersPage() {
                             name: formData.customerName,
                             address: formData.customerAddress,
                             phone: formData.customerPhone,
-                            agentId: formData.agentId,
-                            technicianId: formData.technicianId
+                            agentId: effectiveAgentId,
+                            technicianId: effectiveTechnicianId
                         },
                         agentId: currentUserId
                     }),
@@ -570,8 +582,8 @@ export default function UsersPage() {
                     customerAddress: formData.customerAddress,
                     customerPhone: formData.customerPhone,
                     customerEmail: formData.customerEmail,
-                    agentId: formData.agentId,
-                    technicianId: formData.technicianId
+                    agentId: effectiveAgentId,
+                    technicianId: effectiveTechnicianId
                 }),
             });
 
@@ -595,8 +607,8 @@ export default function UsersPage() {
                         address: formData.customerAddress,
                         phone: formData.customerPhone,
                         email: formData.customerEmail,
-                        agentId: formData.agentId,
-                        technicianId: formData.technicianId,
+                        agentId: effectiveAgentId,
+                        technicianId: effectiveTechnicianId,
                         ownerId: formData.ownerId
                     })
                 });
@@ -841,14 +853,14 @@ export default function UsersPage() {
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">PPPoE Users</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('users.title')}</h1>
                 <div className="flex flex-col gap-2 md:flex-row md:gap-2">
                     {selectedUsers.size > 0 && !['staff', 'editor', 'agent', 'technician'].includes(userRole) && (
                         <button
                             onClick={() => setShowBulkEditModal(true)}
                             className="w-full md:w-auto bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors shadow-lg animate-pulse"
                         >
-                            <UsersIcon size={20} /> Bulk Edit ({selectedUsers.size})
+                            <UsersIcon size={20} /> {t('users.bulkEdit')} ({selectedUsers.size})
                         </button>
                     )}
 
@@ -856,7 +868,7 @@ export default function UsersPage() {
                         onClick={() => setShowModal(true)}
                         className="w-full md:w-auto bg-accent text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all"
                     >
-                        <Plus size={20} /> Register User
+                        <Plus size={20} /> {t('users.addUser')}
                     </button>
                 </div>
             </div>
@@ -939,7 +951,7 @@ export default function UsersPage() {
                                 <UsersIcon size={20} className="text-blue-600 dark:text-blue-400" />
                             </div>
                             <p className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">{users.length}</p>
-                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</p>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('users.all')}</p>
                         </div>
 
                         {/* Online */}
@@ -948,7 +960,7 @@ export default function UsersPage() {
                                 <Wifi size={20} className="text-green-600 dark:text-green-400" />
                             </div>
                             <p className="text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">{activeConnections.length}</p>
-                            <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider">Online</p>
+                            <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider">{t('users.online')}</p>
                         </div>
 
                         {/* Offline */}
@@ -957,7 +969,7 @@ export default function UsersPage() {
                                 <Power size={20} className="text-gray-500 dark:text-gray-400" />
                             </div>
                             <p className="text-xl md:text-2xl font-bold text-gray-600 dark:text-gray-300">{users.length - activeConnections.length}</p>
-                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Offline</p>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('users.offline')}</p>
                         </div>
                     </div>
                 </div>
@@ -968,7 +980,7 @@ export default function UsersPage() {
                         <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                         <input
                             type="text"
-                            placeholder="Search by username, IP, profile, service, or customer..."
+                            placeholder={t('users.searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:placeholder-gray-400"
@@ -983,7 +995,7 @@ export default function UsersPage() {
                                 }`}
                         >
                             <UsersIcon size={16} />
-                            All
+                            {t('users.all')}
                         </button>
                         <button
                             onClick={() => setFilterStatus('online')}
@@ -993,7 +1005,7 @@ export default function UsersPage() {
                                 }`}
                         >
                             <Wifi size={16} />
-                            Online
+                            {t('users.online')}
                         </button>
                         <button
                             onClick={() => setFilterStatus('offline')}
@@ -1003,7 +1015,7 @@ export default function UsersPage() {
                                 }`}
                         >
                             <Power size={16} />
-                            Offline
+                            {t('users.offline')}
                         </button>
                     </div>
                 </div>
@@ -1032,7 +1044,7 @@ export default function UsersPage() {
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
-                                            User (Name/IP) <ArrowUpDown size={14} className="text-gray-400" />
+                                            {t('users.username')} <ArrowUpDown size={14} className="text-gray-400" />
                                         </div>
                                     </th>
                                     <th
@@ -1045,7 +1057,7 @@ export default function UsersPage() {
                                         className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
-                                            Plan <ArrowUpDown size={14} />
+                                            {t('users.profile')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th
@@ -1053,7 +1065,7 @@ export default function UsersPage() {
                                         className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
-                                            Staff <ArrowUpDown size={14} />
+                                            {t('users.partner')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th
@@ -1365,7 +1377,7 @@ export default function UsersPage() {
                             className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-lg shadow-2xl p-6 pb-24 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/20 dark:border-white/10"
                         >
                             <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
-                                {editMode ? 'Edit User' : 'Register New User'}
+                                {editMode ? t('users.editUser') : t('users.addUser')}
                             </h2>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 {/* PPPoE Details */}
@@ -1375,7 +1387,7 @@ export default function UsersPage() {
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username <span className="text-red-500">*</span></label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.username')} <span className="text-red-500">*</span></label>
                                             <input
                                                 type="text"
                                                 required
@@ -1386,7 +1398,7 @@ export default function UsersPage() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password <span className="text-red-500">*</span></label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.password')} <span className="text-red-500">*</span></label>
                                             <input
                                                 type="password"
                                                 required={!editMode}
@@ -1397,7 +1409,7 @@ export default function UsersPage() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Profile <span className="text-red-500">*</span></label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.profile')} <span className="text-red-500">*</span></label>
                                             <select
                                                 required
                                                 value={formData.profile}
@@ -1412,7 +1424,7 @@ export default function UsersPage() {
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Service</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.service')}</label>
                                             <select
                                                 value={formData.service}
                                                 onChange={(e) => setFormData({ ...formData, service: e.target.value })}
@@ -1468,12 +1480,12 @@ export default function UsersPage() {
                                 {/* Customer Details */}
                                 <div>
                                     <h3 className="text-lg font-semibold mb-3 text-gray-700 flex items-center gap-2">
-                                        <User size={20} /> Customer Details
+                                        <User size={20} /> {t('users.customerInfo')}
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                                <Building size={16} /> Customer Name <span className="text-red-500">*</span>
+                                                <Building size={16} /> {t('users.fullName')} <span className="text-red-500">*</span>
                                             </label>
                                             <input
                                                 type="text"
@@ -1499,7 +1511,7 @@ export default function UsersPage() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                                <Phone size={16} /> Phone Number
+                                                <Phone size={16} /> {t('users.phone')}
                                             </label>
                                             <input
                                                 type="text"
@@ -1523,7 +1535,7 @@ export default function UsersPage() {
                                         </div>
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                                <MapPin size={16} /> Address <span className="text-red-500">*</span>
+                                                <MapPin size={16} /> {t('users.address')} <span className="text-red-500">*</span>
                                             </label>
                                             <textarea
                                                 required
@@ -1541,7 +1553,7 @@ export default function UsersPage() {
                                 {['superadmin', 'admin', 'manager'].includes(userRole) && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Agent <span className="text-red-500">*</span></label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('users.agent')} <span className="text-red-500">*</span></label>
                                             <select
                                                 required
                                                 value={formData.agentId}
@@ -1555,7 +1567,7 @@ export default function UsersPage() {
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Technician <span className="text-red-500">*</span></label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('users.technician')} <span className="text-red-500">*</span></label>
                                             <select
                                                 required
                                                 value={formData.technicianId}
@@ -1577,7 +1589,7 @@ export default function UsersPage() {
                                         onClick={handleCloseModal}
                                         className="px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                     >
-                                        Cancel
+                                        {t('users.cancel')}
                                     </button>
                                     <button
                                         type="submit"
@@ -1605,7 +1617,7 @@ export default function UsersPage() {
                             <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
                                 <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                                     <UsersIcon className="text-purple-500" />
-                                    Bulk Edit Staff
+                                    {t('users.bulkEditStaff')}
                                 </h3>
                             </div>
 
@@ -1617,7 +1629,7 @@ export default function UsersPage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign Agent</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.assignAgent')}</label>
                                         <select
                                             value={bulkEditData.agentId}
                                             onChange={(e) => setBulkEditData({ ...bulkEditData, agentId: e.target.value })}
@@ -1631,7 +1643,7 @@ export default function UsersPage() {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign Technician</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.assignTechnician')}</label>
                                         <select
                                             value={bulkEditData.technicianId}
                                             onChange={(e) => setBulkEditData({ ...bulkEditData, technicianId: e.target.value })}
@@ -1656,7 +1668,7 @@ export default function UsersPage() {
                                             type="submit"
                                             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/30"
                                         >
-                                            Update Staff
+                                            {t('users.updateStaff')}
                                         </button>
                                     </div>
                                 </div>
@@ -1797,10 +1809,10 @@ export default function UsersPage() {
 
                                     {/* Customer Details */}
                                     <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                                        <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">Customer Details</h3>
+                                        <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('users.customerInfo')}</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">Name</label>
+                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.fullName')}</label>
                                                 <input
                                                     type="text"
                                                     value={reviewFormData.name}
@@ -1809,7 +1821,7 @@ export default function UsersPage() {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">Phone</label>
+                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.phone')}</label>
                                                 <input
                                                     type="text"
                                                     value={reviewFormData.phone}
@@ -1818,7 +1830,7 @@ export default function UsersPage() {
                                                 />
                                             </div>
                                             <div className="col-span-2">
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">Address</label>
+                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.address')}</label>
                                                 <input
                                                     type="text"
                                                     value={reviewFormData.address}
@@ -1964,7 +1976,7 @@ export default function UsersPage() {
                             className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-sm border border-gray-100 dark:border-gray-700"
                         >
                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                                <Wifi className="text-blue-500" /> Edit Wi-Fi Settings
+                                <Wifi className="text-blue-500" /> {t('users.editWifi')}
                             </h3>
                             <form onSubmit={handleSaveWifi} className="space-y-4">
                                 <div>
@@ -2021,7 +2033,7 @@ export default function UsersPage() {
                         >
                             <div className="flex justify-between items-start mb-4">
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                    <Smartphone className="text-teal-500" /> Device Details
+                                    <Smartphone className="text-teal-500" /> {t('users.deviceDetails')}
                                 </h3>
                                 <button
                                     onClick={() => setShowDeviceModal(false)}
@@ -2213,7 +2225,7 @@ export default function UsersPage() {
                                         }}
                                         className="flex items-center justify-center gap-2 px-4 py-3 bg-red-100 text-red-700 rounded-xl font-medium hover:bg-red-200 transition-colors"
                                     >
-                                        <Power size={18} /> Disconnect
+                                        <Power size={18} /> {t('users.disconnect')}
                                     </button>
                                 ) : (
                                     <button
@@ -2224,7 +2236,7 @@ export default function UsersPage() {
                                         }}
                                         className="flex items-center justify-center gap-2 px-4 py-3 bg-red-100 text-red-700 rounded-xl font-medium hover:bg-red-200 transition-colors"
                                     >
-                                        <Trash2 size={18} /> Delete
+                                        <Trash2 size={18} /> {t('common.delete')}
                                     </button>
                                 )}
 

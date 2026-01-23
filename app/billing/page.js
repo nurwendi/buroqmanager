@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { DollarSign, CreditCard, Calendar, Plus, Search, FileText, Settings, Printer, ArrowUpDown, UserX, MessageCircle, X, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function BillingPage() {
+    const { t } = useLanguage();
     const [payments, setPayments] = useState([]);
     const [stats, setStats] = useState({ totalRevenue: 0, todaysRevenue: 0, pendingCount: 0, totalTransactions: 0 });
     const [agentStats, setAgentStats] = useState(null); // New state for agent stats
@@ -586,7 +588,7 @@ Terima Kasih
         <div>
             <div className="space-y-6 print:hidden">
                 <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">Billing & Payments</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('billing.title')}</h1>
                     <select
                         value={`${selectedYear}-${selectedMonth}`}
                         onChange={(e) => {
@@ -611,14 +613,14 @@ Terima Kasih
                                     onClick={handleGenerateInvoices}
                                     className="w-full md:w-auto bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors shadow-sm"
                                 >
-                                    <FileText size={20} /> Generate Invoices
+                                    <FileText size={20} /> {t('billing.generateInvoices')}
                                 </button>
 
                                 <button
                                     onClick={handleAutoDrop}
                                     className="w-full md:w-auto bg-red-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700 transition-colors shadow-sm"
                                 >
-                                    <UserX size={20} /> Auto-Drop Unpaid
+                                    <UserX size={20} /> {t('billing.autoDropUnpaid')}
                                 </button>
                             </>
                         )}
@@ -626,7 +628,7 @@ Terima Kasih
                             onClick={() => setShowModal(true)}
                             className="w-full md:w-auto bg-accent text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-sm"
                         >
-                            <Plus size={20} /> Record Payment
+                            <Plus size={20} /> {t('billing.recordPayment')}
                         </button>
                     </div>
                 </div>
@@ -637,12 +639,12 @@ Terima Kasih
                 {agentStats && agentStats.role === 'staff' && (
                     <div className="bg-blue-50/30 dark:bg-blue-900/30 backdrop-blur-xl border border-blue-200/50 dark:border-blue-800/50 rounded-lg p-4 flex justify-between items-center shadow-lg">
                         <div>
-                            <h3 className="font-bold text-blue-800">Staff Dashboard Available</h3>
-                            <p className="text-blue-600 text-sm">View your personal performance statistics.</p>
+                            <h3 className="font-bold text-blue-800">{t('billing.staffDashboard')}</h3>
+                            <p className="text-blue-600 text-sm">{t('billing.viewStats')}</p>
                         </div>
                         <Link href="/billing/staff">
                             <button className="bg-accent text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all">
-                                Go to Staff Dashboard
+                                {t('billing.goToStaff')}
                             </button>
                         </Link>
                     </div>
@@ -662,13 +664,13 @@ Terima Kasih
                                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                     <thead className="bg-black/5 dark:bg-white/5">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Staff</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rate</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Paid</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unpaid</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total Revenue</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Commission</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Net Revenue</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.partner')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.rate')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.paid')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.unpaid')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.totalGross')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.partnerCommission')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.netRevenue')}</th>
                                         </tr>
                                     </thead>
 
@@ -676,7 +678,7 @@ Terima Kasih
                                         {(!agentStats || !agentStats.agents || agentStats.agents.length === 0) ? (
                                             <tr>
                                                 <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
-                                                    No partners with transactions this month
+                                                    {t('billing.noPartners')}
                                                 </td>
                                             </tr>
                                         ) : (
@@ -743,20 +745,20 @@ Terima Kasih
                 {selectedIds.size > 0 && userRole === 'admin' && (
                     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-indigo-200 dark:border-indigo-900 flex justify-between items-center mb-4 animate-in fade-in slide-in-from-top-2">
                         <span className="font-semibold text-gray-700 dark:text-gray-200">
-                            {selectedIds.size} items selected
+                            {selectedIds.size} {t('billing.itemsSelected')}
                         </span>
                         <div className="flex gap-2">
                             <button
                                 onClick={handleBulkMarkPaid}
                                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2"
                             >
-                                <DollarSign size={18} /> Mark Paid
+                                <DollarSign size={18} /> {t('billing.markPaid')}
                             </button>
                             <button
                                 onClick={handleBulkDelete}
                                 className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-2"
                             >
-                                <Trash2 size={18} /> Delete
+                                <Trash2 size={18} /> {t('common.delete')}
                             </button>
                         </div>
                     </div>
@@ -765,13 +767,13 @@ Terima Kasih
                 {/* Payment List */}
                 <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
                     <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Payment History</h2>
+                        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t('billing.paymentHistory')}</h2>
 
                         <div className="relative">
                             <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search user or notes..."
+                                placeholder={t('billing.searchPlaceholder')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
