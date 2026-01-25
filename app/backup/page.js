@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Save, Download, RotateCcw, Trash2, ArrowLeft, Database, AlertCircle } from 'lucide-react';
+import { Save, Download, RotateCcw, Trash2, ArrowLeft, Database, AlertCircle, Upload } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BackupPage() {
@@ -55,6 +55,37 @@ export default function BackupPage() {
             setMessage({ type: 'error', text: 'Error creating backup' });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setLoading(true);
+        setMessage({ type: '', text: '' });
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('/api/backup/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (res.ok) {
+                setMessage({ type: 'success', text: 'Backup uploaded successfully!' });
+                await fetchBackups();
+            } else {
+                const data = await res.json();
+                setMessage({ type: 'error', text: data.error || 'Failed to upload backup' });
+            }
+        } catch (error) {
+            setMessage({ type: 'error', text: 'Error uploading backup' });
+        } finally {
+            setLoading(false);
+            e.target.value = ''; // Reset input
         }
     };
 
@@ -138,14 +169,27 @@ export default function BackupPage() {
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola backup data aplikasi Anda</p>
                     </div>
                 </div>
-                <button
-                    onClick={handleCreateBackup}
-                    disabled={loading}
-                    className="w-full md:w-auto flex items-center justify-center gap-2 bg-accent text-white px-4 py-2 rounded-lg hover:opacity-90 disabled:bg-gray-400 disabled:dark:bg-gray-600 transition-all shadow-lg shadow-accent/30"
-                >
-                    <Database size={18} />
-                    {loading ? 'Creating...' : 'Create Backup'}
-                </button>
+                <div className="flex gap-2 w-full md:w-auto">
+                    <label className="cursor-pointer w-full md:w-auto flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm">
+                        <Upload size={18} />
+                        <span>Upload Backup</span>
+                        <input
+                            type="file"
+                            accept=".zip"
+                            className="hidden"
+                            onChange={handleFileUpload}
+                            disabled={loading}
+                        />
+                    </label>
+                    <button
+                        onClick={handleCreateBackup}
+                        disabled={loading}
+                        className="w-full md:w-auto flex items-center justify-center gap-2 bg-accent text-white px-4 py-2 rounded-lg hover:opacity-90 disabled:bg-gray-400 disabled:dark:bg-gray-600 transition-all shadow-lg shadow-accent/30"
+                    >
+                        <Database size={18} />
+                        {loading ? 'Creating...' : 'Create Backup'}
+                    </button>
+                </div>
             </div>
 
             {message.text && (

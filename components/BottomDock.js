@@ -125,7 +125,7 @@ export default function BottomDock() {
                 <div className="hidden lg:flex fixed bottom-0 left-0 right-0 z-50 justify-center pb-4 print:hidden pointer-events-none">
                     {/* macOS-style Dock Container */}
                     <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 px-4 py-3 pointer-events-auto">
-                        <div className="flex items-center gap-10">
+                        <div className="flex items-center gap-14">
                             {/* Menu / Launcher Button */}
                             <button
                                 onClick={() => setIsLauncherOpen(!isLauncherOpen)}
@@ -220,6 +220,7 @@ export default function BottomDock() {
                             {/* Logout Button */}
                             <button
                                 onClick={handleLogout}
+                                title={t('sidebar.logout')}
                                 className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-10"
                             >
                                 <div className="relative flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 group-hover:bg-white dark:group-hover:bg-gray-800 group-hover:text-red-500 group-hover:shadow-lg group-hover:shadow-red-400/20 transition-all duration-300">
@@ -228,7 +229,7 @@ export default function BottomDock() {
                                         className="text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)] transition-colors duration-300"
                                     />
                                 </div>
-                                <span className="text-[10px] font-medium mt-2 whitespace-nowrap px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 shadow-lg transition-all duration-300">
+                                <span className="text-[10px] font-medium mt-2 whitespace-nowrap px-2 rounded-md transition-all duration-300 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200">
                                     {t('sidebar.logout')}
                                 </span>
                                 {/* Hover glow effect */}
@@ -360,6 +361,7 @@ export default function BottomDock() {
                             {/* Logout Button */}
                             <button
                                 onClick={handleLogout}
+                                title={t('sidebar.logout')}
                                 className="flex flex-col items-center justify-center min-w-[60px]"
                             >
                                 <div className="p-1 rounded-xl bg-transparent transition-all duration-300">
