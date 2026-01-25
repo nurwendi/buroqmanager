@@ -216,6 +216,25 @@ export async function GET(request) {
             }
         }
 
+        // Attach Customer IDs (Standard Mode)
+        const usernames = [...new Set(users.map(u => u.name))];
+        if (usernames.length > 0) {
+            const customers = await db.customer.findMany({
+                where: { username: { in: usernames } },
+                select: { username: true, customerId: true }
+            });
+
+            const customerMap = {};
+            customers.forEach(c => {
+                customerMap[c.username] = c.customerId;
+            });
+
+            users = users.map(u => ({
+                ...u,
+                _customerId: customerMap[u.name] || '-'
+            }));
+        }
+
         // Attach monthly usage data
         const { getAllMonthlyUsage } = await import('@/lib/usage-tracker');
         const allUsageData = await getAllMonthlyUsage();
