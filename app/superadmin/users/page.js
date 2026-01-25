@@ -138,8 +138,8 @@ export default function SuperadminUsersPage() {
                                                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                                         {user._sourceRouterName || 'Unknown'}
                                                     </p>
-                                                    <p className="text-xs text-gray-400 truncate w-32" title={user._ownerId}>
-                                                        {user._ownerId || '-'}
+                                                    <p className="text-xs text-gray-400 truncate w-32" title={user._ownerName}>
+                                                        {user._ownerName || '-'}
                                                     </p>
                                                 </div>
                                             </div>

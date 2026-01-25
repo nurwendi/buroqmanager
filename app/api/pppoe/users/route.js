@@ -23,6 +23,20 @@ export async function GET(request) {
             const connections = config.connections || [];
             let allUsers = [];
 
+            // Fetch all unique owner IDs from connections
+            const ownerIds = [...new Set(connections.map(c => c.ownerId).filter(id => id))];
+
+            // Allow looking up owner details
+            const owners = await db.user.findMany({
+                where: { id: { in: ownerIds } },
+                select: { id: true, username: true, fullName: true }
+            });
+
+            const ownerMap = {};
+            owners.forEach(o => {
+                ownerMap[o.id] = o.username || o.fullName || 'Unknown';
+            });
+
             // Execute parallel fetches for performance, but handle failures gracefully
             const promises = connections.map(async (conn) => {
                 try {
@@ -35,6 +49,7 @@ export async function GET(request) {
                         _sourceRouterId: conn.id,
                         _sourceRouterName: conn.name || conn.host, // Use name or IP as label
                         _ownerId: conn.ownerId,
+                        _ownerName: ownerMap[conn.ownerId] || conn.ownerId || '-', // Fallback to ID if name not found
                         // Ensure unique ID for frontend keying if needed (though Mikrotik ID is usually unique per router)
                         id: `${conn.id}_${u['.id']}`
                     }));
