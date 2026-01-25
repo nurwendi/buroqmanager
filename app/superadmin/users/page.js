@@ -85,7 +85,7 @@ export default function SuperadminUsersPage() {
                                     {t('users.username')}
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Router / Owner
+                                    Customer ID
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     User ID
@@ -143,6 +143,9 @@ export default function SuperadminUsersPage() {
                                                     </p>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white font-medium">
+                                            {user._customerId || '-'}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 font-mono">
                                             {user['.id']}

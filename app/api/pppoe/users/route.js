@@ -37,6 +37,12 @@ export async function GET(request) {
                 ownerMap[o.id] = o.username || o.fullName || 'Unknown';
             });
 
+            // Fetch Customers to map Customer IDs (Login ID)
+            // Note: We don't have the list of usernames yet.
+            // Querying ALL customers might be heavy if getting thousands?
+            // But getting users first then querying might be cleaner.
+            // Let's do it AFTER getting users.
+
             // Execute parallel fetches for performance, but handle failures gracefully
             const promises = connections.map(async (conn) => {
                 try {
@@ -51,7 +57,8 @@ export async function GET(request) {
                         _ownerId: conn.ownerId,
                         _ownerName: ownerMap[conn.ownerId] || conn.ownerId || '-', // Fallback to ID if name not found
                         // Ensure unique ID for frontend keying if needed (though Mikrotik ID is usually unique per router)
-                        id: `${conn.id}_${u['.id']}`
+                        id: `${conn.id}_${u['.id']}`,
+                        _rawUsername: u.name // Keep raw for matching
                     }));
                 } catch (err) {
                     console.error(`Failed to fetch users from router ${conn.name || conn.id}:`, err);
@@ -63,6 +70,25 @@ export async function GET(request) {
             results.forEach(users => {
                 allUsers = [...allUsers, ...users];
             });
+
+            // Attach Customer IDs (Login ID)
+            const usernames = [...new Set(allUsers.map(u => u.name))];
+            if (usernames.length > 0) {
+                const customers = await db.customer.findMany({
+                    where: { username: { in: usernames } },
+                    select: { username: true, customerId: true }
+                });
+
+                const customerMap = {};
+                customers.forEach(c => {
+                    customerMap[c.username] = c.customerId;
+                });
+
+                allUsers = allUsers.map(u => ({
+                    ...u,
+                    _customerId: customerMap[u.name] || '-'
+                }));
+            }
 
             // Attach Usage Data (Global)
             const { getAllMonthlyUsage } = await import('@/lib/usage-tracker');
