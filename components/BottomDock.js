@@ -58,6 +58,7 @@ export default function BottomDock() {
         { href: '/notifications', icon: Bell, hoverIcon: MessageSquare, label: t('sidebar.notifications'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
 
         { href: '/system-users', icon: UserCog, hoverIcon: ShieldCheck, label: t('sidebar.systemUsers'), roles: ['admin'] },
+        { href: '/superadmin/users', icon: Users, hoverIcon: Globe, label: t('sidebar.allUsers'), roles: ['superadmin'] },
         { href: '/system-admin', icon: Shield, hoverIcon: UserCheck, label: t('sidebar.owners'), roles: ['superadmin'] },
         { href: '/routers', icon: Server, hoverIcon: HardDrive, label: t('sidebar.nat'), roles: ['admin', 'manager'] },
 
@@ -79,6 +80,7 @@ export default function BottomDock() {
         { href: '/offline', icon: WifiOff, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/profiles', icon: Network, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
         { href: '/system-users', icon: UserCog, label: t('sidebar.systemUsers'), roles: ['admin'] },
+        { href: '/superadmin/users', icon: Users, label: t('sidebar.allUsers'), roles: ['superadmin'] },
         { href: '/system-admin', icon: Shield, label: t('sidebar.owners'), roles: ['superadmin'] },
         { href: '/routers', icon: Server, label: t('sidebar.nat'), roles: ['admin', 'manager'] },
 

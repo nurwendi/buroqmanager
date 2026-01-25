@@ -47,6 +47,11 @@ model User {
   
   // Radius Configuration
   radiusPool   String?  @default("") // Name of the Mikrotik IP Pool for this owner's customers
+
+  // Auto-Isolation Configuration
+  isAutoIsolationEnabled Boolean @default(false)
+  autoIsolationDate      Int     @default(20) // Day of month (1-31)
+  isolationType          String  @default("disable") // disable, profile
 }
 
 

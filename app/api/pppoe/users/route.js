@@ -7,8 +7,77 @@ import { getConfig, getUserConnectionId } from '@/lib/config';
 
 export async function GET(request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const mode = searchParams.get('mode');
         const user = await getUserFromRequest(request);
         const config = await getConfig();
+
+        // ------------------------------------------------------------------
+        // MODE: ALL (Superadmin Aggregation)
+        // ------------------------------------------------------------------
+        if (mode === 'all') {
+            if (!user || user.role !== 'superadmin') {
+                return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            }
+
+            const connections = config.connections || [];
+            let allUsers = [];
+
+            // Execute parallel fetches for performance, but handle failures gracefully
+            const promises = connections.map(async (conn) => {
+                try {
+                    const client = await getMikrotikClient(conn.id);
+                    const routerUsers = await client.write('/ppp/secret/print');
+
+                    // Augment user data with source router info
+                    return routerUsers.map(u => ({
+                        ...u,
+                        _sourceRouterId: conn.id,
+                        _sourceRouterName: conn.name || conn.host, // Use name or IP as label
+                        _ownerId: conn.ownerId,
+                        // Ensure unique ID for frontend keying if needed (though Mikrotik ID is usually unique per router)
+                        id: `${conn.id}_${u['.id']}`
+                    }));
+                } catch (err) {
+                    console.error(`Failed to fetch users from router ${conn.name || conn.id}:`, err);
+                    return []; // Return empty array on failure so one down router doesn't break the view
+                }
+            });
+
+            const results = await Promise.all(promises);
+            results.forEach(users => {
+                allUsers = [...allUsers, ...users];
+            });
+
+            // Attach Usage Data (Global)
+            const { getAllMonthlyUsage } = await import('@/lib/usage-tracker');
+            const allUsageData = await getAllMonthlyUsage();
+            const currentMonth = new Date().toISOString().slice(0, 7);
+
+            const usageMapLowerCase = {};
+            Object.keys(allUsageData).forEach(key => {
+                usageMapLowerCase[key.toLowerCase()] = allUsageData[key];
+            });
+
+            const usersWithUsage = allUsers.map(u => {
+                const userData = allUsageData[u.name] || usageMapLowerCase[u.name.toLowerCase()];
+                let usage = { rx: 0, tx: 0 };
+
+                if (userData && userData.month === currentMonth) {
+                    usage = {
+                        rx: userData.accumulated_rx + userData.last_session_rx,
+                        tx: userData.accumulated_tx + userData.last_session_tx
+                    };
+                }
+                return { ...u, usage };
+            });
+
+            return NextResponse.json(usersWithUsage);
+        }
+
+        // ------------------------------------------------------------------
+        // MODE: STANDARD (Single Router / Scoped)
+        // ------------------------------------------------------------------
 
         const connectionId = getUserConnectionId(user, config);
 

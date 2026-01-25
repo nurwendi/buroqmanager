@@ -28,12 +28,20 @@ export async function PUT(request) {
         body = await request.json();
 
         // Allowed fields for update
-        const allowedFields = ['username', 'password', 'fullName', 'phone', 'address', 'avatar', 'language'];
+        const allowedFields = ['username', 'password', 'fullName', 'phone', 'address', 'avatar', 'language', 'isAutoIsolationEnabled', 'autoIsolationDate'];
         const updates = {};
 
         for (const field of allowedFields) {
             if (body[field] !== undefined) {
-                updates[field] = body[field];
+                // Parse numbers for date
+                if (field === 'autoIsolationDate') {
+                    updates[field] = parseInt(body[field]);
+                } else if (field === 'isAutoIsolationEnabled') {
+                    // Ensure boolean
+                    updates[field] = body[field] === true || body[field] === 'true';
+                } else {
+                    updates[field] = body[field];
+                }
             }
         }
 
@@ -59,6 +67,13 @@ export async function PUT(request) {
             const existingUser = await getUserByUsername(updates.username);
             if (existingUser && existingUser.id !== user.id) {
                 return NextResponse.json({ error: 'Username already taken' }, { status: 409 });
+            }
+        }
+
+        // Validate Auto Isolation Date
+        if (updates.autoIsolationDate !== undefined) {
+            if (updates.autoIsolationDate < 1 || updates.autoIsolationDate > 28) {
+                return NextResponse.json({ error: 'Auto-isolation date must be between 1 and 28' }, { status: 400 });
             }
         }
 
