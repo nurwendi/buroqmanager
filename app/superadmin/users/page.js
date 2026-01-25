@@ -88,9 +88,6 @@ export default function SuperadminUsersPage() {
                                     Customer ID
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    User ID
-                                </th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     {t('users.profile')}
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -146,9 +143,6 @@ export default function SuperadminUsersPage() {
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-900 dark:text-white font-medium">
                                             {user._customerId || '-'}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 font-mono">
-                                            {user['.id']}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
                                             <span className="px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-800 text-xs">
