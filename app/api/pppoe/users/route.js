@@ -47,7 +47,18 @@ export async function GET(request) {
             const promises = connections.map(async (conn) => {
                 try {
                     const client = await getMikrotikClient(conn.id);
-                    const routerUsers = await client.write('/ppp/secret/print');
+                    const [routerUsers, activeConnections] = await Promise.all([
+                        client.write('/ppp/secret/print'),
+                        client.write('/ppp/active/print')
+                    ]);
+
+                    // Map active connections for quick lookup
+                    const activeMap = {};
+                    if (Array.isArray(activeConnections)) {
+                        activeConnections.forEach(a => {
+                            activeMap[a.name] = a;
+                        });
+                    }
 
                     // Augment user data with source router info
                     return routerUsers.map(u => ({
@@ -58,7 +69,9 @@ export async function GET(request) {
                         _ownerName: ownerMap[conn.ownerId] || conn.ownerId || '-', // Fallback to ID if name not found
                         // Ensure unique ID for frontend keying if needed (though Mikrotik ID is usually unique per router)
                         id: `${conn.id}_${u['.id']}`,
-                        _rawUsername: u.name // Keep raw for matching
+                        _rawUsername: u.name, // Keep raw for matching
+                        _active: !!activeMap[u.name],
+                        _activeData: activeMap[u.name] || null
                     }));
                 } catch (err) {
                     console.error(`Failed to fetch users from router ${conn.name || conn.id}:`, err);

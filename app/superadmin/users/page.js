@@ -11,6 +11,7 @@ export default function SuperadminUsersPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [rowsPerPage, setRowsPerPage] = useState(50);
     const [currentPage, setCurrentPage] = useState(1);
+    const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'online', 'offline'
 
     const fetchData = async () => {
         try {
@@ -33,11 +34,18 @@ export default function SuperadminUsersPage() {
     // Filter Logic
     const filteredUsers = users.filter(user => {
         const term = searchTerm.toLowerCase();
-        return (
+        const matchesSearch = (
             user.name?.toLowerCase().includes(term) ||
             user._sourceRouterName?.toLowerCase().includes(term) ||
             user.service?.toLowerCase().includes(term)
         );
+
+        if (!matchesSearch) return false;
+
+        if (filterStatus === 'online' && !user._active) return false;
+        if (filterStatus === 'offline' && user._active) return false;
+
+        return true;
     });
 
     // Pagination
@@ -64,15 +72,50 @@ export default function SuperadminUsersPage() {
                         {users.length} {t('users.totalUsers')} | {users.filter(u => u._sourceRouterName).length} {t('sidebar.routers')}
                     </p>
                 </div>
-                <div className="relative w-72">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder={t('users.searchPlaceholder')}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
+                <div className="flex flex-col md:flex-row gap-4 items-center">
+                    <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+                        <button
+                            onClick={() => setFilterStatus('all')}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'all'
+                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                }`}
+                        >
+                            <User size={16} />
+                            {t('users.all')}
+                        </button>
+                        <button
+                            onClick={() => setFilterStatus('online')}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'online'
+                                ? 'bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400'
+                                }`}
+                        >
+                            <Wifi size={16} />
+                            {t('users.online')}
+                        </button>
+                        <button
+                            onClick={() => setFilterStatus('offline')}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'offline'
+                                ? 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                                }`}
+                        >
+                            <WifiOff size={16} />
+                            {t('users.offline')}
+                        </button>
+                    </div>
+
+                    <div className="relative w-72">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder={t('users.searchPlaceholder')}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -117,8 +160,8 @@ export default function SuperadminUsersPage() {
                                     <tr key={user.id || idx} className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
-                                                    <User size={14} className="text-blue-500" />
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${user._active ? 'bg-green-100 dark:bg-green-900/30' : 'bg-blue-50 dark:bg-blue-900/30'}`}>
+                                                    <User size={14} className={user._active ? 'text-green-600' : 'text-blue-500'} />
                                                 </div>
                                                 <div>
                                                     <p className="font-medium text-gray-900 dark:text-white text-sm">
@@ -163,17 +206,27 @@ export default function SuperadminUsersPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            {/* Note: Active status is harder to aggregate without fetching active connections everywhere. 
-                                                For now we just show basic status if disabled */}
-                                            {user.disabled === 'true' || user.disabled === true ? (
+                                            {user._active ? (
+                                                <span className="inline-flex flex-col items-start gap-0.5">
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400">
+                                                        <Wifi size={12} />
+                                                        Online
+                                                    </span>
+                                                    {user._activeData?.address && (
+                                                        <span className="text-[10px] font-mono text-gray-500 dark:text-gray-400 pl-1">
+                                                            {user._activeData.address}
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            ) : (user.disabled === 'true' || user.disabled === true) ? (
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400">
                                                     <WifiOff size={12} />
                                                     Disabled
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400">
-                                                    <Wifi size={12} />
-                                                    Enabled
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                                                    <WifiOff size={12} />
+                                                    Offline
                                                 </span>
                                             )}
                                         </td>
