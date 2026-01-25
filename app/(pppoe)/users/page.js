@@ -1140,13 +1140,9 @@ export default function UsersPage() {
                                                                         {user._customerId || customersData[user.name]?.customerId}
                                                                     </span>
                                                                 )}
+                                                                <span className="text-xs text-gray-400 font-mono tracking-wide">{user.password}</span>
                                                                 <span className="text-xs text-gray-500 dark:text-gray-400">{getCustomerName(user.name)}</span>
                                                             </div>
-                                                            {isOnline && (
-                                                                <span className="text-[10px] font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1 rounded mt-0.5 w-fit">
-                                                                    {active.address}
-                                                                </span>
-                                                            )}
                                                         </div>
                                                     </div>
                                                 </td>
@@ -1182,6 +1178,11 @@ export default function UsersPage() {
                                                         </span>
                                                         {user.service && user.service !== 'pppoe' && (
                                                             <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider pl-1">{user.service}</span>
+                                                        )}
+                                                        {isOnline && (
+                                                            <span className="text-[10px] font-mono text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded mt-1 w-fit border border-green-100 dark:border-green-800/30">
+                                                                {active.address}
+                                                            </span>
                                                         )}
                                                     </div>
                                                 </td>
