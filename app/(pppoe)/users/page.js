@@ -1134,7 +1134,14 @@ export default function UsersPage() {
                                                             <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1">
                                                                 {user.name}
                                                             </span>
-                                                            <span className="text-xs text-gray-500 dark:text-gray-400">{getCustomerName(user.name)}</span>
+                                                            <div className="flex flex-col gap-0.5">
+                                                                {(user._customerId || customersData[user.name]?.customerId) && (user._customerId !== '-' && customersData[user.name]?.customerId !== '-') && (
+                                                                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-1.5 py-0.5 rounded-md inline-block w-fit">
+                                                                        {user._customerId || customersData[user.name]?.customerId}
+                                                                    </span>
+                                                                )}
+                                                                <span className="text-xs text-gray-500 dark:text-gray-400">{getCustomerName(user.name)}</span>
+                                                            </div>
                                                             {isOnline && (
                                                                 <span className="text-[10px] font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1 rounded mt-0.5 w-fit">
                                                                     {active.address}
