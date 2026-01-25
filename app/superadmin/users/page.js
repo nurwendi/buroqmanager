@@ -130,7 +130,6 @@ export default function SuperadminUsersPage() {
                                                                 {user._customerId}
                                                             </span>
                                                         )}
-                                                        <p className="text-xs text-gray-500">{user.password}</p>
                                                     </div>
                                                 </div>
                                             </div>
