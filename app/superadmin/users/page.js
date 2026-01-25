@@ -186,9 +186,14 @@ export default function SuperadminUsersPage() {
 
                 {/* Footer Pagination */}
                 <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
-                    <p className="text-xs text-gray-500">
-                        Showing {paginatedUsers.length} of {filteredUsers.length} users
-                    </p>
+                    <div className="flex items-center gap-4">
+                        <p className="text-xs text-gray-500">
+                            Showing {paginatedUsers.length} of {filteredUsers.length} users
+                        </p>
+                        <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                            Page {currentPage} of {totalPages}
+                        </p>
+                    </div>
                     <div className="flex gap-2">
                         <button
                             disabled={currentPage === 1}
