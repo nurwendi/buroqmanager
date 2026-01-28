@@ -137,7 +137,33 @@ npm install
 npx prisma generate
 npx prisma migrate deploy
 npm run build
-npx ---
+npx pm2 restart billing
+
+
+## 🛡️ Preventing Deployment Issues (Database Sync)
+
+To ensure your database is always in sync with your code and prevent "missing column" errors:
+
+1.  **Always Check Sync Before Deploying:**
+    Run this checks script locally before pushing changes:
+    ```bash
+    npm run db:check
+    ```
+
+2.  **Handling Schema Changes:**
+    Whenever you modify `prisma/schema.prisma`, you **MUST** run:
+    ```bash
+    npx prisma migrate dev --name describe_your_change
+    ```
+    *This generates the `migrations` folder.*
+
+3.  **On The Server:**
+    Always run `migrate deploy` before starting the app:
+    ```bash
+    npx prisma migrate deploy
+    ```
+
+---
 
 ## ⏰ Cron Job Setup (Auto-Isolation)
 

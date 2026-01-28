@@ -8,7 +8,8 @@
     "build": "next build",
     "build:mobile": "node scripts/build-mobile.js",
     "start": "next start -p 80",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:check": "node scripts/check-db-sync.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
