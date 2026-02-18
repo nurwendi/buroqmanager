@@ -43,8 +43,11 @@ export async function GET(request) {
 
         // 1. CUSTOMER: Strict One-to-One Match
         if (user.role === 'customer') {
-            // Only return device if the extracted PPPoE username EXACTLY matches their login username
-            const myDevice = cleanedDevices.find(d => d.pppoe_user === user.username);
+            // Only return device if the extracted PPPoE username matches their login username (case-insensitive)
+            const myDevice = cleanedDevices.find(d =>
+                d.pppoe_user &&
+                d.pppoe_user.toLowerCase() === user.username.toLowerCase()
+            );
 
             return NextResponse.json(myDevice ? [myDevice] : []);
         }
