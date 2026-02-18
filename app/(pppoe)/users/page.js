@@ -39,7 +39,7 @@ export default function UsersPage() {
         name: '',
         password: '',
         profile: '',
-        service: 'any',
+        service: 'pppoe',
         comment: '',
         disabled: false,
         customerId: '',
@@ -955,31 +955,76 @@ export default function UsersPage() {
                 <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl border border-white/20 dark:border-white/5 overflow-hidden">
                     <div className="grid grid-cols-3 divide-x divide-gray-200/50 dark:divide-gray-700/50">
                         {/* Total */}
-                        <div className="p-4 flex flex-col items-center justify-center text-center">
-                            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-2">
-                                <UsersIcon size={20} className="text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <p className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">{users.length}</p>
-                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('users.all')}</p>
-                        </div>
+                        <button
+                            onClick={() => setFilterStatus('all')}
+                            className={`p-4 flex flex-col items-center justify-center text-center transition-all duration-200 relative overflow-hidden group
+                                ${filterStatus === 'all'
+                                    ? 'bg-blue-50/80 dark:bg-blue-900/40 ring-2 ring-inset ring-blue-500/50 z-10 scale-[1.02]'
+                                    : 'hover:bg-white/10 dark:hover:bg-white/5 hover:scale-[1.02]'
+                                }`}
+                        >
+                            <UsersIcon
+                                size={80}
+                                className={`absolute -bottom-4 -right-4 opacity-5 transition-opacity duration-300
+                                    ${filterStatus === 'all' ? 'opacity-10 text-blue-600 dark:text-blue-400' : 'text-gray-400 group-hover:opacity-10'}
+                                `}
+                            />
+
+                            {filterStatus === 'all' && (
+                                <div className="absolute inset-x-0 bottom-0 h-1 bg-blue-500 z-20" />
+                            )}
+
+                            <p className={`text-xl md:text-2xl font-bold transition-colors z-10 ${filterStatus === 'all' ? 'text-blue-700 dark:text-blue-200' : 'text-gray-800 dark:text-white'}`}>{users.length}</p>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider z-10">{t('users.all')}</p>
+                        </button>
 
                         {/* Online */}
-                        <div className="p-4 flex flex-col items-center justify-center text-center">
-                            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full mb-2">
-                                <Wifi size={20} className="text-green-600 dark:text-green-400" />
-                            </div>
-                            <p className="text-xl md:text-2xl font-bold text-green-600 dark:text-green-400">{activeConnections.length}</p>
-                            <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider">{t('users.online')}</p>
-                        </div>
+                        <button
+                            onClick={() => setFilterStatus('online')}
+                            className={`p-4 flex flex-col items-center justify-center text-center transition-all duration-200 relative overflow-hidden group
+                                ${filterStatus === 'online'
+                                    ? 'bg-green-50/80 dark:bg-green-900/40 ring-2 ring-inset ring-green-500/50 z-10 scale-[1.02]'
+                                    : 'hover:bg-white/10 dark:hover:bg-white/5 hover:scale-[1.02]'
+                                }`}
+                        >
+                            <Wifi
+                                size={80}
+                                className={`absolute -bottom-4 -right-4 opacity-5 transition-opacity duration-300
+                                    ${filterStatus === 'online' ? 'opacity-10 text-green-600 dark:text-green-400' : 'text-gray-400 group-hover:opacity-10'}
+                                `}
+                            />
+
+                            {filterStatus === 'online' && (
+                                <div className="absolute inset-x-0 bottom-0 h-1 bg-green-500 z-20" />
+                            )}
+
+                            <p className={`text-xl md:text-2xl font-bold transition-colors z-10 ${filterStatus === 'online' ? 'text-green-700 dark:text-green-200' : 'text-green-600 dark:text-green-400'}`}>{activeConnections.length}</p>
+                            <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider z-10">{t('users.online')}</p>
+                        </button>
 
                         {/* Offline */}
-                        <div className="p-4 flex flex-col items-center justify-center text-center">
-                            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full mb-2">
-                                <Power size={20} className="text-gray-500 dark:text-gray-400" />
-                            </div>
-                            <p className="text-xl md:text-2xl font-bold text-gray-600 dark:text-gray-300">{users.length - activeConnections.length}</p>
-                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('users.offline')}</p>
-                        </div>
+                        <button
+                            onClick={() => setFilterStatus('offline')}
+                            className={`p-4 flex flex-col items-center justify-center text-center transition-all duration-200 relative overflow-hidden group
+                                ${filterStatus === 'offline'
+                                    ? 'bg-gray-50/80 dark:bg-gray-800/60 ring-2 ring-inset ring-gray-500/50 z-10 scale-[1.02]'
+                                    : 'hover:bg-white/10 dark:hover:bg-white/5 hover:scale-[1.02]'
+                                }`}
+                        >
+                            <Power
+                                size={80}
+                                className={`absolute -bottom-4 -right-4 opacity-5 transition-opacity duration-300
+                                    ${filterStatus === 'offline' ? 'opacity-10 text-gray-500 dark:text-gray-400' : 'text-gray-400 group-hover:opacity-10'}
+                                `}
+                            />
+
+                            {filterStatus === 'offline' && (
+                                <div className="absolute inset-x-0 bottom-0 h-1 bg-gray-500 z-20" />
+                            )}
+
+                            <p className={`text-xl md:text-2xl font-bold transition-colors z-10 ${filterStatus === 'offline' ? 'text-gray-700 dark:text-gray-200' : 'text-gray-600 dark:text-gray-300'}`}>{users.length - activeConnections.length}</p>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider z-10">{t('users.offline')}</p>
+                        </button>
                     </div>
                 </div>
 
@@ -995,38 +1040,7 @@ export default function UsersPage() {
                             className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:placeholder-gray-400"
                         />
                     </div>
-                    <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
-                        <button
-                            onClick={() => setFilterStatus('all')}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'all'
-                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                                }`}
-                        >
-                            <UsersIcon size={16} />
-                            {t('users.all')}
-                        </button>
-                        <button
-                            onClick={() => setFilterStatus('online')}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'online'
-                                ? 'bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 shadow-sm'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400'
-                                }`}
-                        >
-                            <Wifi size={16} />
-                            {t('users.online')}
-                        </button>
-                        <button
-                            onClick={() => setFilterStatus('offline')}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'offline'
-                                ? 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 shadow-sm'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                                }`}
-                        >
-                            <Power size={16} />
-                            {t('users.offline')}
-                        </button>
-                    </div>
+
                 </div>
 
                 {/* Unified Table */}
