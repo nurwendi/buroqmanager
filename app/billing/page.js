@@ -606,7 +606,7 @@ Terima Kasih
                     </select>
 
                     <div className="flex flex-col gap-2 md:flex-row md:gap-2">
-                        {userRole === 'admin' && (
+                        {(userRole === 'admin' || userRole === 'superadmin') && (
                             <>
 
                                 <button
@@ -651,7 +651,7 @@ Terima Kasih
                 )}
 
                 {/* Partner Earnings Section */}
-                {userRole === 'admin' && (
+                {(userRole === 'admin' || userRole === 'superadmin') && (
                     <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
 
 
@@ -742,7 +742,7 @@ Terima Kasih
                 )}
 
                 {/* Bulk Action Toolbar */}
-                {selectedIds.size > 0 && userRole === 'admin' && (
+                {selectedIds.size > 0 && (userRole === 'admin' || userRole === 'superadmin') && (
                     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-indigo-200 dark:border-indigo-900 flex justify-between items-center mb-4 animate-in fade-in slide-in-from-top-2">
                         <span className="font-semibold text-gray-700 dark:text-gray-200">
                             {selectedIds.size} {t('billing.itemsSelected')}
@@ -786,7 +786,7 @@ Terima Kasih
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-black/5 dark:bg-white/5">
                                 <tr>
-                                    {userRole === 'admin' && (
+                                    {(userRole === 'admin' || userRole === 'superadmin') && (
                                         <th className="px-6 py-3 w-10">
                                             <input
                                                 type="checkbox"
