@@ -141,6 +141,16 @@ export async function GET(request) {
             let grandTotalRevenue = 0;
             let grandTotalCommission = 0;
 
+            // Get unique agent IDs involved in these payments
+            const involvedAgentIds = new Set();
+            filteredPayments.forEach(p => p.commissions.forEach(c => involvedAgentIds.add(c.userId)));
+
+            const involvedAgents = await db.user.findMany({
+                where: { id: { in: Array.from(involvedAgentIds) } },
+                select: { id: true, agentRate: true, technicianRate: true, role: true }
+            });
+            const agentMap = involvedAgents.reduce((acc, a) => { acc[a.id] = a; return acc; }, {});
+
             for (const p of filteredPayments) {
                 if (p.status === 'completed') {
                     grandTotalRevenue += p.amount;
@@ -175,10 +185,13 @@ export async function GET(request) {
                     for (const comm of p.commissions) {
                         // Start/Update partner stats
                         if (!partnerStats[comm.userId]) {
+                            const agentDetails = agentMap[comm.userId] || {};
                             partnerStats[comm.userId] = {
                                 id: comm.userId,
                                 name: comm.username,
-                                role: 'staff',
+                                role: agentDetails.role || 'staff',
+                                rate: agentDetails.agentRate || 0,
+                                technicianRate: agentDetails.technicianRate || 0,
                                 paidCount: 0,
                                 unpaidCount: 0,
                                 totalRevenue: 0,
