@@ -34,14 +34,16 @@ export async function GET(request) {
         const profiles = await client.write('/ppp/profile/print');
 
         // Parse price from comment
-        const profilesWithPrice = profiles.map(p => {
-            let price = '';
-            if (p.comment && p.comment.includes('price:')) {
-                const match = p.comment.match(/price:(\d+)/);
-                if (match) price = match[1];
-            }
-            return { ...p, price };
-        });
+        const profilesWithPrice = profiles
+            .filter(p => !['default', 'default-encryption', 'default-encription'].includes(p.name))
+            .map(p => {
+                let price = '';
+                if (p.comment && p.comment.includes('price:')) {
+                    const match = p.comment.match(/price:(\d+)/);
+                    if (match) price = match[1];
+                }
+                return { ...p, price };
+            });
 
         return NextResponse.json(profilesWithPrice);
     } catch (error) {

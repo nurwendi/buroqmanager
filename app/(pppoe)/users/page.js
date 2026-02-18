@@ -345,10 +345,10 @@ export default function UsersPage() {
         } else {
             // Register (default)
             setReviewFormData({
-                username: reg.registrationData?.name || reg.username,
-                password: reg.registrationData?.password || '',
-                profile: reg.registrationData?.profile || '',
-                service: reg.registrationData?.service || 'pppoe',
+                username: reg.username,
+                password: reg.password || '',
+                profile: reg.profile || '',
+                service: reg.service || 'pppoe',
                 name: reg.name || '',
                 address: reg.address || '',
                 phone: reg.phone || '',
@@ -636,7 +636,16 @@ export default function UsersPage() {
 
     const handleEdit = async (user) => {
         setEditMode(true);
-        setEditingUserId(user['.id']);
+        // Robust ID extraction: use .id if available, otherwise try to parse from composite id
+        let targetId = user['.id'];
+        if (!targetId && user.id && user.id.includes('_')) {
+            const parts = user.id.split('_');
+            targetId = parts[parts.length - 1]; // Assume last part is the Mikrotik ID (often starts with *)
+        }
+
+        console.log('Editing user:', user.name, 'Target ID:', targetId);
+        setEditingUserId(targetId);
+
         // Store original name for edit request
         setFormData(prev => ({ ...prev, originalName: user.name }));
 
@@ -1408,7 +1417,7 @@ export default function UsersPage() {
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.password')} <span className="text-red-500">*</span></label>
                                             <input
-                                                type="password"
+                                                type="text"
                                                 required={!editMode}
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}

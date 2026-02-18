@@ -231,12 +231,13 @@ To update the application to the latest version:
 
 ```bash
 cd /opt/billing
-git pull origin master
+git fetch --all
+git reset --hard origin/master
 npm install
 npx prisma generate
 npx prisma db push
 npm run build
-pm2 restart billing
+npx pm2 restart billing
 ```
 
 ---

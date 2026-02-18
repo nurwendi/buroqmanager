@@ -51,6 +51,11 @@ export async function POST(request) {
         const { month, year } = body;
 
         const result = await generateInvoices(month, year, connectionId, targetOwnerId);
+
+        if (!result.success) {
+            throw new Error(result.error || 'Failed to generate invoices');
+        }
+
         const monthName = new Date(result.year, result.month, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
 
         return NextResponse.json({
