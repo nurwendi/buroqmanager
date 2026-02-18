@@ -1,3 +1,4 @@
+
 // Indonesian translations
 const id = {
     // Common
@@ -63,25 +64,6 @@ const id = {
         genieacs: 'GenieACS',
     },
 
-    // Dashboard
-    dashboard: {
-        title: 'Dashboard',
-        welcome: 'Selamat Datang',
-        totalUsers: 'Total Pengguna',
-        activeUsers: 'Pengguna Aktif',
-        onlineUsers: 'Pengguna Online',
-        revenue: 'Pendapatan',
-        revenueToday: 'Pendapatan Hari Ini',
-        revenueMonth: 'Pendapatan Bulan Ini',
-        pendingPayments: 'Pembayaran Tertunda',
-        systemHealth: 'Kesehatan Sistem',
-        cpuUsage: 'Penggunaan CPU',
-        memoryUsage: 'Penggunaan Memori',
-        uptime: 'Waktu Operasional',
-        recentPayments: 'Pembayaran Terakhir',
-        quickActions: 'Aksi Cepat',
-    },
-
     // Billing Additions
     billing: {
         title: 'Pembayaran & Tagihan',
@@ -145,7 +127,6 @@ const id = {
         wifiSettings: 'Pengaturan Wi-Fi',
         reboot: 'Reboot Perangkat',
         disconnect: 'Putuskan Koneksi',
-        cancel: 'Batal',
         username: 'Username',
         password: 'Password',
         profile: 'Profil',

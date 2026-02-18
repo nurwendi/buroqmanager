@@ -32,7 +32,14 @@ export default function UsersPage() {
     const [selectedUsers, setSelectedUsers] = useState(new Set());
 
     // Filter State
-    const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'online', 'offline'
+    const [filterStatus, setFilterStatus] = useState(searchParams.get('status') || 'all'); // 'all', 'online', 'offline'
+
+    useEffect(() => {
+        const status = searchParams.get('status');
+        if (status && ['all', 'online', 'offline'].includes(status)) {
+            setFilterStatus(status);
+        }
+    }, [searchParams]);
 
     // Form Data
     const [formData, setFormData] = useState({
@@ -464,6 +471,16 @@ export default function UsersPage() {
                     aVal = aActive ? (aActive.address || 'z') : 'z'; // 'z' to put offline at bottom (or top depending on asc/desc)
                     bVal = bActive ? (bActive.address || 'z') : 'z';
                     break;
+                case 'device_signal':
+                    const aDevice = getAcsDevice(a.name);
+                    const bDevice = getAcsDevice(b.name);
+                    // Extract numeric value, default to very low if missing
+                    // rx_power is typically negative, so -999 is a safe "no signal" value
+                    const aSignal = aDevice && aDevice.rx_power ? parseFloat(aDevice.rx_power) : -999;
+                    const bSignal = bDevice && bDevice.rx_power ? parseFloat(bDevice.rx_power) : -999;
+                    aVal = aSignal;
+                    bVal = bSignal;
+                    break;
                 default:
                     aVal = a[sortConfig.key] || '';
                     bVal = b[sortConfig.key] || '';
@@ -475,7 +492,7 @@ export default function UsersPage() {
         });
 
         return sorted;
-    }, [filteredUsers, sortConfig, customersData, systemUsers, activeConnections]);
+    }, [filteredUsers, sortConfig, customersData, systemUsers, activeConnections, acsDevices]);
 
     // Pagination Logic
     const paginatedUsers = useMemo(() => {
@@ -1062,6 +1079,7 @@ export default function UsersPage() {
                                             More
                                         </div>
                                     </th>
+                                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                     <th
                                         onClick={() => sortData('username')}
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
@@ -1071,9 +1089,12 @@ export default function UsersPage() {
                                         </div>
                                     </th>
                                     <th
-                                        className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                                        onClick={() => sortData('device_signal')}
+                                        className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                     >
-                                        Device
+                                        <div className="flex items-center gap-1">
+                                            Device <ArrowUpDown size={14} />
+                                        </div>
                                     </th>
                                     <th
                                         onClick={() => sortData('profile')}
@@ -1104,17 +1125,16 @@ export default function UsersPage() {
                                             Usage <ArrowUpDown size={14} />
                                         </div>
                                     </th>
-                                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan="8" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">Loading...</td>
+                                        <td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">Loading...</td>
                                     </tr>
                                 ) : sortedUsers.length === 0 ? (
                                     <tr>
-                                        <td colSpan="8" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No users found</td>
+                                        <td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No users found</td>
                                     </tr>
                                 ) : (
                                     paginatedUsers.map((user) => {
@@ -1145,6 +1165,71 @@ export default function UsersPage() {
                                                             className="p-1.5 text-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors"
                                                         >
                                                             <MoreHorizontal size={18} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+
+                                                {/* Actions Column (Moved) */}
+                                                <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <div className="flex items-center gap-1">
+                                                        {isOnline && (
+                                                            <>
+                                                                <a
+                                                                    href={`http://${active.address}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    title="Manage Device (WebFig)"
+                                                                    className="p-1 text-teal-600 hover:text-teal-800 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded transition-colors inline-block"
+                                                                >
+                                                                    <ExternalLink size={18} />
+                                                                </a>
+                                                                <button
+                                                                    onClick={() => handleDisconnect(active['.id'], user.name)}
+                                                                    title="Disconnect User"
+                                                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                                                >
+                                                                    <Power size={18} />
+                                                                </button>
+                                                                {acs && (
+                                                                    <>
+                                                                        <button
+                                                                            onClick={() => openDeviceDetails(acs)}
+                                                                            title="Device Details"
+                                                                            className="p-1 text-teal-600 hover:text-teal-800 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded transition-colors"
+                                                                        >
+                                                                            <Info size={18} />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => openEditWifi(acs)}
+                                                                            title="Edit Wi-Fi"
+                                                                            className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                                                        >
+                                                                            <Wifi size={18} />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleReboot(acs.id, acs.serial)}
+                                                                            title="Reboot Device"
+                                                                            className="p-1 text-orange-500 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded transition-colors"
+                                                                        >
+                                                                            <RotateCcw size={18} />
+                                                                        </button>
+                                                                    </>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                        <button
+                                                            onClick={() => handleEdit(user)}
+                                                            title="Edit User"
+                                                            className="p-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                                                        >
+                                                            <Edit2 size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(user)}
+                                                            title="Delete User"
+                                                            className="p-1 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                                                        >
+                                                            <Trash2 size={18} />
                                                         </button>
                                                     </div>
                                                 </td>
@@ -1251,71 +1336,6 @@ export default function UsersPage() {
                                                                 <ArrowUpDown size={10} /> {formatBytes(user.usage?.rx || 0)}
                                                             </span>
                                                         </div>
-                                                    </div>
-                                                </td>
-
-                                                {/* Actions Column */}
-                                                <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                    <div className="flex items-center gap-1">
-                                                        {isOnline && (
-                                                            <>
-                                                                <a
-                                                                    href={`http://${active.address}`}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    title="Manage Device (WebFig)"
-                                                                    className="p-1 text-teal-600 hover:text-teal-800 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded transition-colors inline-block"
-                                                                >
-                                                                    <ExternalLink size={18} />
-                                                                </a>
-                                                                <button
-                                                                    onClick={() => handleDisconnect(active['.id'], user.name)}
-                                                                    title="Disconnect User"
-                                                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                                                >
-                                                                    <Power size={18} />
-                                                                </button>
-                                                                {acs && (
-                                                                    <>
-                                                                        <button
-                                                                            onClick={() => openDeviceDetails(acs)}
-                                                                            title="Device Details"
-                                                                            className="p-1 text-teal-600 hover:text-teal-800 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded transition-colors"
-                                                                        >
-                                                                            <Info size={18} />
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => openEditWifi(acs)}
-                                                                            title="Edit Wi-Fi"
-                                                                            className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                                                                        >
-                                                                            <Wifi size={18} />
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => handleReboot(acs.id, acs.serial)}
-                                                                            title="Reboot Device"
-                                                                            className="p-1 text-orange-500 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded transition-colors"
-                                                                        >
-                                                                            <RotateCcw size={18} />
-                                                                        </button>
-                                                                    </>
-                                                                )}
-                                                            </>
-                                                        )}
-                                                        <button
-                                                            onClick={() => handleEdit(user)}
-                                                            title="Edit User"
-                                                            className="p-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                                                        >
-                                                            <Edit2 size={18} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(user)}
-                                                            title="Delete User"
-                                                            className="p-1 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>

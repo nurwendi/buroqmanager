@@ -16,17 +16,50 @@ export async function GET(request) {
         }
 
         let where = {};
+
+        // NEW: Contextual Filtering based on Active Router
+        const config = await (await import('@/lib/config')).getConfig();
+        const { getUserConnectionId } = await import('@/lib/config');
+        const connectionId = getUserConnectionId(currentUser, config);
+
+        // Determine effective connection/owner
+        let effectiveConnectionId = connectionId;
+
+        // Fallback for staff/managers if not set directly
+        if (!effectiveConnectionId && currentUser.ownerId) {
+            const ownerConn = config.connections?.find(c => c.ownerId === currentUser.ownerId);
+            if (ownerConn) effectiveConnectionId = ownerConn.id;
+        }
+
+        // Superadmin Fallback Logic (Align with Dashboard Stats)
+        if (!effectiveConnectionId && currentUser.role === 'superadmin' && config.connections?.length > 0) {
+            effectiveConnectionId = config.connections[0].id; // Default to first if none selected
+        }
+
+        // Apply filtering
+        // 1. Admin/Manager: Always limited to their own scope
         if (currentUser.role === 'admin') {
             where = { ownerId: currentUser.id };
-        } else if (currentUser.role === 'superadmin') {
-            // Superadmin sees all
-        } else {
-            // Staff?
+        } else if (currentUser.role === 'manager' && currentUser.ownerId) {
+            where = { ownerId: currentUser.ownerId };
+        }
+        // 2. Staff: Limited to their owner
+        else if (['agent', 'partner', 'technician', 'staff'].includes(currentUser.role)) {
             if (currentUser.ownerId) {
                 where = { ownerId: currentUser.ownerId };
             } else {
-                // Fallback
-                where = { ownerId: 'nothing' }; // block access or show empty
+                where = { ownerId: 'nothing' }; // Invalid state
+            }
+        }
+        // 3. Superadmin: Context-aware
+        else if (currentUser.role === 'superadmin') {
+            // If we have an effective connection, filter by its owner
+            const activeConnection = config.connections?.find(c => c.id === effectiveConnectionId);
+            if (activeConnection && activeConnection.ownerId) {
+                where = { ownerId: activeConnection.ownerId };
+            } else {
+                // Global view (or no owner assigned to router)
+                where = {};
             }
         }
 

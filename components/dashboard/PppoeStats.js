@@ -24,7 +24,7 @@ export default function PppoeStats({ stats }) {
                 PPPoE Users
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
-                <Link href="/active" className="block">
+                <Link href="/users?status=online" className="block">
                     <StatCard
                         icon={Wifi}
                         title="PPPoE Active"
@@ -33,7 +33,7 @@ export default function PppoeStats({ stats }) {
                         color="green"
                     />
                 </Link>
-                <Link href="/offline" className="block">
+                <Link href="/users?status=offline" className="block">
                     <StatCard
                         icon={WifiOff}
                         title="PPPoE Offline"

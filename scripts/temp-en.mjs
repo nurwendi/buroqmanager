@@ -1,3 +1,4 @@
+
 // English translations
 const en = {
     // Common
@@ -165,46 +166,6 @@ const en = {
         cancel: 'Cancel',
         disconnect: 'Disconnect',
         editWifi: 'Edit Wi-Fi Settings',
-        manage: 'Manage',
-        wifiSettings: 'Wi-Fi Settings',
-        reboot: 'Reboot Device',
-        bulkEditStaff: 'Bulk Edit Staff',
-        updateStaff: 'Update Staff',
-        assignAgent: 'Assign Agent',
-        assignTechnician: 'Assign Technician',
-        reviewDelete: 'Review Delete Request',
-        warningDelete: 'Warning: Delete User',
-        deviceDetails: 'Device Details',
-    },
-
-    // Device / GenieACS
-    device: {
-        details: 'Device Details',
-        model: 'Model & Manufacturer',
-        sn: 'Serial Number',
-        ssid: 'SSID',
-        signal: 'Signal (Rx)',
-        temp: 'Temperature',
-        ip: 'IP Address',
-        lastInform: 'Last Inform',
-        editWifi: 'Edit Wi-Fi Settings',
-        saveChanges: 'Save Changes',
-        leaveBlank: 'Leave blank if you do not want to change',
-    },
-
-    // Common Messages
-    messages: {
-        confirmDelete: 'Are you sure you want to delete this?',
-        confirmAction: 'Are you sure?',
-        success: 'Success!',
-        error: 'An error occurred',
-        loading: 'Loading...',
-        required: 'Required',
-        saved: 'Data saved',
-        confirmWifiUpdate: 'This will update Wi-Fi settings. The device might disconnect. Continue?',
-        confirmDisconnect: 'Are you sure you want to disconnect user',
-        confirmReboot: 'Are you sure you want to reboot device',
-        confirmDeleteUser: 'Are you sure you want to approve user deletion',
     },
 
     // Profiles
