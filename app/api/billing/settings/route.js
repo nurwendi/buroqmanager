@@ -28,7 +28,7 @@ async function getBillingSettings() {
                 poolRange: '10.100.1.2-10.100.254',
                 gatewayIp: '10.100.1.1',
                 billingIp: '192.168.1.100',
-                appPort: '3000'
+                appPort: '80'
             }
         };
     } catch (error) {

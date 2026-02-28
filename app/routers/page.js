@@ -34,7 +34,7 @@ export default function SettingsPage() {
         gatewayIp: '10.100.1.1',
         networkCidr: '10.100.1.0/24',
         billingIp: '192.168.1.100',
-        appPort: '3000'
+        appPort: '80'
     });
     const [savingConfig, setSavingConfig] = useState(false);
     const [copied, setCopied] = useState(false);
