@@ -2,8 +2,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Router, Hourglass, Power, Search, Wifi } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function GenieAcsPage() {
+    const { t } = useLanguage();
     const [devices, setDevices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -58,7 +60,7 @@ export default function GenieAcsPage() {
     };
 
     const handleReboot = async (deviceId, serial) => {
-        if (!confirm(`Are you sure you want to reboot device ${serial}?`)) return;
+        if (!confirm(t('genieacs.rebootConfirm', { sn: serial }))) return;
 
         try {
             const res = await fetch('/api/genieacs/reboot', {
@@ -68,9 +70,9 @@ export default function GenieAcsPage() {
             });
 
             if (res.ok) {
-                alert('Reboot task queued successfully.');
+                alert(t('genieacs.rebootSuccess'));
             } else {
-                alert('Failed to queue reboot.');
+                alert(t('genieacs.rebootError'));
             }
         } catch (e) {
             alert('Error: ' + e.message);
@@ -87,7 +89,7 @@ export default function GenieAcsPage() {
 
     const handleSaveWifi = async (e) => {
         e.preventDefault();
-        if (!confirm('This will update the device Wi-Fi settings. The device might reconnect. Continue?')) return;
+        if (!confirm(t('genieacs.wifiConfirm'))) return;
 
         try {
             const res = await fetch('/api/genieacs/wifi', {
@@ -102,10 +104,10 @@ export default function GenieAcsPage() {
 
             const data = await res.json();
             if (res.ok) {
-                alert('Success: Wi-Fi update task queued.');
+                alert(t('genieacs.wifiSuccess'));
                 setEditingDevice(null);
             } else {
-                alert('Error: ' + data.error);
+                alert(t('genieacs.wifiError'));
             }
         } catch (err) {
             alert('Error: ' + err.message);
@@ -117,8 +119,8 @@ export default function GenieAcsPage() {
             <div className="p-8 text-center">
                 <div className="bg-red-50 text-red-600 p-4 rounded-xl inline-block border border-red-100 mb-4">
                     <Power size={48} className="mx-auto mb-2" />
-                    <h2 className="text-xl font-bold">Access Denied</h2>
-                    <p>This page is restricted to Management users only.</p>
+                    <h2 className="text-xl font-bold">{t('genieacs.accessDenied')}</h2>
+                    <p>{t('genieacs.restricted')}</p>
                 </div>
             </div>
         );
@@ -130,7 +132,7 @@ export default function GenieAcsPage() {
         <div className="p-6">
             <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                 <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <Router className="text-orange-500" /> GenieACS Devices
+                    <Router className="text-orange-500" /> {t('genieacs.title')}
                 </h1>
 
                 <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-auto">
@@ -138,7 +140,7 @@ export default function GenieAcsPage() {
                         <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
                         <input
                             className="pl-10 pr-4 py-2 border rounded-lg w-full md:w-64"
-                            placeholder="Serial No / PPPoE User..."
+                            placeholder={t('genieacs.placeholder')}
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                         />
@@ -147,13 +149,13 @@ export default function GenieAcsPage() {
                         type="submit"
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                     >
-                        Search
+                        {t('common.search')}
                     </button>
                     <button
                         type="button"
                         onClick={() => { setSearch(''); fetchDevices(); }}
                         className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-200"
-                        title="Refresh"
+                        title={t('common.refresh')}
                     >
                         <Hourglass size={20} className={loading ? 'animate-spin' : ''} />
                     </button>
@@ -180,7 +182,7 @@ export default function GenieAcsPage() {
                                             <Router size={22} />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-800 text-base leading-tight">{device.model || 'Unknown Device'}</h3>
+                                            <h3 className="font-bold text-gray-800 text-base leading-tight">{device.model || t('genieacs.unknownDevice')}</h3>
                                             <p className="text-xs text-gray-500 font-medium">{device.manufacturer}</p>
                                         </div>
                                     </div>
@@ -253,13 +255,13 @@ export default function GenieAcsPage() {
                                     onClick={() => openEditWifi(device)}
                                     className="flex-1 flex justify-center items-center gap-2 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 py-2.5 rounded-xl transition-colors border border-blue-100"
                                 >
-                                    <Wifi size={14} /> WiFi
+                                    <Wifi size={14} /> {t('users.wifiSettingsShort') || 'WiFi'}
                                 </button>
                                 <button
                                     onClick={() => handleReboot(device.id, device.serial)}
                                     className="flex-1 flex justify-center items-center gap-2 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 py-2.5 rounded-xl transition-colors border border-red-100"
                                 >
-                                    <Power size={14} /> Reboot
+                                    <Power size={14} /> {t('users.rebootShort') || 'Reboot'}
                                 </button>
                             </div>
                         </div>
@@ -268,7 +270,7 @@ export default function GenieAcsPage() {
 
                 {!loading && devices.length === 0 && (
                     <div className="col-span-full p-8 text-center text-gray-500 bg-gray-50 rounded-xl border border-dashed">
-                        No devices found. Try searching or check GenieACS connection.
+                        {t('genieacs.noDevices')}
                     </div>
                 )}
             </div>
@@ -277,15 +279,15 @@ export default function GenieAcsPage() {
             {editingDevice && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-                        <h2 className="text-xl font-bold mb-4">Edit Wi-Fi Settings</h2>
+                        <h2 className="text-xl font-bold mb-4">{t('genieacs.editWifiTitle')}</h2>
                         <p className="text-sm text-gray-500 mb-4">
-                            Device: {editingDevice.serial} <br />
-                            Note: Changing SSID/Password may disconnect devices properly.
+                            {t('genieacs.deviceInfo')}: {editingDevice.serial} <br />
+                            {t('genieacs.wifiNote')}
                         </p>
 
                         <form onSubmit={handleSaveWifi} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1">SSID Name</label>
+                                <label className="block text-sm font-medium mb-1">{t('genieacs.ssidName')}</label>
                                 <input
                                     className="w-full border rounded-lg px-3 py-2"
                                     value={wifiForm.ssid}
@@ -294,16 +296,16 @@ export default function GenieAcsPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">New Password</label>
+                                <label className="block text-sm font-medium mb-1">{t('genieacs.newPassword')}</label>
                                 <input
                                     className="w-full border rounded-lg px-3 py-2"
                                     type="text"
-                                    placeholder="Leave empty to keep current"
+                                    placeholder={t('genieacs.leaveEmpty')}
                                     value={wifiForm.password}
                                     onChange={e => setWifiForm({ ...wifiForm, password: e.target.value })}
                                     minLength={8}
                                 />
-                                <p className="text-xs text-gray-400 mt-1">Min 8 characters.</p>
+                                <p className="text-xs text-gray-400 mt-1">{t('genieacs.minChars')}</p>
                             </div>
 
                             <div className="flex justify-end gap-3 mt-6">
@@ -312,13 +314,13 @@ export default function GenieAcsPage() {
                                     onClick={() => setEditingDevice(null)}
                                     className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </button>
                                 <button
                                     type="submit"
                                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                                 >
-                                    Save Changes
+                                    {t('genieacs.saveChanges') || t('common.save')}
                                 </button>
                             </div>
                         </form>

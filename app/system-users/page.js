@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Edit2, Plus, Trash2, Shield, ShieldAlert, User } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SystemUsersPage() {
+    const { t, resolvedLanguage } = useLanguage();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -77,10 +79,10 @@ export default function SystemUsersPage() {
                 resetForm();
                 fetchUsers();
             } else {
-                setError(data.error || 'Operation failed');
+                setError(data.error || t('messages.unknownError'));
             }
         } catch (error) {
-            setError('Failed to save user');
+            setError(t('messages.errorSavingUser'));
         }
     };
 
@@ -122,11 +124,11 @@ export default function SystemUsersPage() {
                 setUserToDelete(null);
                 fetchUsers();
             } else {
-                alert('Failed to delete user');
+                alert(t('messages.failedToDeleteUser'));
             }
         } catch (error) {
             console.error('Failed to delete user', error);
-            alert('Failed to delete user');
+            alert(t('messages.failedToDeleteUser'));
         }
     };
 
@@ -166,9 +168,9 @@ export default function SystemUsersPage() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="p-6 space-y-6">
             <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">System Users</h1>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('systemUsers.title')}</h1>
                 <button
                     onClick={() => {
                         setEditMode(false);
@@ -178,7 +180,7 @@ export default function SystemUsersPage() {
                     }}
                     className="w-full md:w-auto bg-accent text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all"
                 >
-                    <Plus size={20} /> Add User
+                    <Plus size={20} /> {t('systemUsers.addUser')}
                 </button>
             </div>
 
@@ -186,19 +188,19 @@ export default function SystemUsersPage() {
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-black/5 dark:bg-white/5">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">User</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Role</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Business Roles</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rates</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created At</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.username')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.role')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.businessRoles')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.rates')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.createdAt')}</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.actions')}</th>
                         </tr>
                     </thead>
                     <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
                         {loading ? (
-                            <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">Loading...</td></tr>
+                            <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('messages.loading')}</td></tr>
                         ) : users.length === 0 ? (
-                            <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No users found</td></tr>
+                            <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('systemUsers.noUsers')}</td></tr>
                         ) : (
                             users.map((user) => (
                                 <tr key={user.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
@@ -216,19 +218,23 @@ export default function SystemUsersPage() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
-                                            {user.role}
+                                            {user.role === 'admin' ? t('systemUsers.adminOwner') :
+                                                user.role === 'manager' ? t('systemUsers.managerNoUsers') :
+                                                    user.role === 'editor' ? t('systemUsers.editorCanEdit') :
+                                                        user.role === 'staff' ? t('systemUsers.staffAgentTech') :
+                                                            user.role === 'viewer' ? t('systemUsers.viewerReadOnly') : user.role}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         <div className="flex gap-2">
                                             {user.isAgent && (
                                                 <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                    Agent
+                                                    {t('systemUsers.agent')}
                                                 </span>
                                             )}
                                             {user.isTechnician && (
                                                 <span className="px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
-                                                    Tech
+                                                    {t('systemUsers.tech')}
                                                 </span>
                                             )}
                                             {!user.isAgent && !user.isTechnician && (
@@ -239,31 +245,31 @@ export default function SystemUsersPage() {
                                     <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400 text-sm">
                                         <div className="flex flex-col gap-1">
                                             {user.isAgent && (
-                                                <span className="text-xs">Agent: {user.agentRate}%</span>
+                                                <span className="text-xs">{t('systemUsers.agent')}: {user.agentRate}%</span>
                                             )}
                                             {user.isTechnician && (
-                                                <span className="text-xs">Tech: {user.technicianRate}%</span>
+                                                <span className="text-xs">{t('systemUsers.tech')}: {user.technicianRate}%</span>
                                             )}
                                             {!user.isAgent && !user.isTechnician && (
                                                 <span className="text-gray-400 dark:text-gray-500">-</span>
                                             )}
                                             {user.prefix && (
-                                                <span className="text-xs text-gray-500 dark:text-gray-400">Prefix: {user.prefix}</span>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400">{t('systemUsers.prefix')}: {user.prefix}</span>
                                             )}
                                             {user.agentNumber && (
-                                                <span className="text-xs text-blue-600">ID: {user.agentNumber}</span>
+                                                <span className="text-xs text-blue-600">{t('systemUsers.id')}: {user.agentNumber}</span>
                                             )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                        {new Date(user.createdAt).toLocaleDateString()}
+                                        {new Date(user.createdAt).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US')}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end gap-2">
                                             <button
                                                 onClick={() => handleEdit(user)}
                                                 className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                                                title="Edit User"
+                                                title={t('common.edit')}
                                             >
                                                 <Edit2 size={18} />
                                             </button>
@@ -271,7 +277,7 @@ export default function SystemUsersPage() {
                                                 <button
                                                     onClick={() => handleDelete(user)}
                                                     className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                                                    title="Delete User"
+                                                    title={t('common.delete')}
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -290,7 +296,7 @@ export default function SystemUsersPage() {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
                     <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl p-6 pb-24 rounded-lg w-full max-w-md shadow-2xl border border-white/20 dark:border-white/10 max-h-[90vh] overflow-y-auto">
                         <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-                            {editMode ? 'Edit User' : 'Add New User'}
+                            {editMode ? t('systemUsers.editUserTitle') : t('systemUsers.addNewUserTitle')}
                         </h2>
 
                         {error && (
@@ -303,7 +309,7 @@ export default function SystemUsersPage() {
                         <form onSubmit={handleSubmit}>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Username</label>
+                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('systemUsers.username')}</label>
                                     <input
                                         type="text"
                                         required
@@ -314,50 +320,50 @@ export default function SystemUsersPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Full Name</label>
+                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('systemUsers.fullName')}</label>
                                     <input
                                         type="text"
                                         value={formData.fullName ?? ''}
                                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                         className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        placeholder="John Doe"
+                                        placeholder={t('systemUsers.namePlaceholder')}
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Phone</label>
+                                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('systemUsers.phone')}</label>
                                         <input
                                             type="text"
                                             value={formData.phone ?? ''}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                             className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                            placeholder="08123456789"
+                                            placeholder={t('systemUsers.phonePlaceholder')}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Agent Number</label>
+                                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('systemUsers.agentNumber')}</label>
                                         <input
                                             type="text"
                                             value={formData.agentNumber ?? ''}
                                             onChange={(e) => setFormData({ ...formData, agentNumber: e.target.value })}
                                             className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                            placeholder="AG-001"
+                                            placeholder={t('systemUsers.agentNumberPlaceholder')}
                                         />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Address</label>
+                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('systemUsers.address')}</label>
                                     <textarea
                                         value={formData.address ?? ''}
                                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                         className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                        placeholder="Full address..."
+                                        placeholder={t('systemUsers.addressPlaceholder')}
                                         rows="2"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                                        Password {editMode && <span className="text-gray-500 dark:text-gray-400 text-xs">(leave blank to keep current)</span>}
+                                        {t('systemUsers.password')} {editMode && <span className="text-gray-500 dark:text-gray-400 text-xs">({t('systemUsers.keepBlank')})</span>}
                                     </label>
                                     <input
                                         type="password"
@@ -368,7 +374,7 @@ export default function SystemUsersPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">System Role</label>
+                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('systemUsers.systemRole')}</label>
                                     <select
                                         value={formData.role ?? (currentUserRole === 'superadmin' ? 'admin' : 'viewer')}
                                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -377,26 +383,26 @@ export default function SystemUsersPage() {
                                     >
                                         {currentUserRole === 'superadmin' ? (
                                             <>
-                                                <option value="admin">Admin (Owner)</option>
+                                                <option value="admin">{t('systemUsers.adminOwner')}</option>
                                             </>
                                         ) : (
                                             <>
-                                                <option value="manager">Manager (No System Users)</option>
-                                                <option value="editor">Editor (Can Edit)</option>
-                                                <option value="staff">Staff (Agent/Technician)</option>
-                                                <option value="viewer">Viewer (Read Only)</option>
+                                                <option value="manager">{t('systemUsers.managerNoUsers')}</option>
+                                                <option value="editor">{t('systemUsers.editorCanEdit')}</option>
+                                                <option value="staff">{t('systemUsers.staffAgentTech')}</option>
+                                                <option value="viewer">{t('systemUsers.viewerReadOnly')}</option>
                                             </>
                                         )}
                                     </select>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                         {currentUserRole === 'superadmin'
-                                            ? "Superadmin can only create Admins (Owners)."
-                                            : "Admins manage operational roles."}
+                                            ? t('systemUsers.superadminInfo')
+                                            : t('systemUsers.adminInfo')}
                                     </p>
                                 </div>
 
                                 <div className="mb-6 space-y-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">Business Roles</h3>
+                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t('systemUsers.businessRoles')}</h3>
 
                                     {/* Agent Role Checkbox */}
                                     <div className="flex items-start gap-3">
@@ -410,10 +416,10 @@ export default function SystemUsersPage() {
                                             />
                                         </div>
                                         <div className="flex-1">
-                                            <label htmlFor="isAgent" className="text-sm text-gray-700 dark:text-gray-300">Is Agent</label>
+                                            <label htmlFor="isAgent" className="text-sm text-gray-700 dark:text-gray-300">{t('systemUsers.isAgent')}</label>
                                             {formData.isAgent && (
                                                 <div className="mt-2">
-                                                    <label className="block text-xs font-medium mb-1 text-gray-500">Agent Commission Rate (%)</label>
+                                                    <label className="block text-xs font-medium mb-1 text-gray-500">{t('systemUsers.commissionRate', { type: t('systemUsers.agent') })}</label>
                                                     <input
                                                         type="number"
                                                         min="0"
@@ -442,10 +448,10 @@ export default function SystemUsersPage() {
                                             />
                                         </div>
                                         <div className="flex-1">
-                                            <label htmlFor="isTechnician" className="text-sm text-gray-700 dark:text-gray-300">Is Technician</label>
+                                            <label htmlFor="isTechnician" className="text-sm text-gray-700 dark:text-gray-300">{t('systemUsers.isTechnician')}</label>
                                             {formData.isTechnician && (
                                                 <div className="mt-2">
-                                                    <label className="block text-xs font-medium mb-1 text-gray-500 dark:text-gray-400">Technician Commission Rate (%)</label>
+                                                    <label className="block text-xs font-medium mb-1 text-gray-500 dark:text-gray-400">{t('systemUsers.commissionRate', { type: t('systemUsers.tech') })}</label>
                                                     <input
                                                         type="number"
                                                         min="0"
@@ -467,13 +473,13 @@ export default function SystemUsersPage() {
                                     onClick={() => setShowModal(false)}
                                     className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </button>
                                 <button
                                     type="submit"
                                     className="px-4 py-2 bg-accent text-white rounded hover:opacity-90 transition-all"
                                 >
-                                    {editMode ? 'Update' : 'Create'}
+                                    {editMode ? t('systemUsers.update') : t('systemUsers.create')}
                                 </button>
                             </div>
                         </form>
@@ -487,10 +493,10 @@ export default function SystemUsersPage() {
                     <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl p-6 rounded-lg w-full max-w-sm shadow-2xl border border-white/20 dark:border-white/10">
                         <div className="flex items-center gap-3 mb-4 text-red-600 dark:text-red-400">
                             <ShieldAlert size={24} />
-                            <h2 className="text-xl font-bold">Delete User?</h2>
+                            <h2 className="text-xl font-bold">{t('systemUsers.deleteUser')}</h2>
                         </div>
                         <p className="text-gray-600 dark:text-gray-400 mb-6">
-                            Are you sure you want to delete user <span className="font-semibold text-gray-900 dark:text-white">{userToDelete?.username}</span>? This action cannot be undone.
+                            {t('systemUsers.confirmDeleteUser', { name: userToDelete?.username })}
                         </p>
                         <div className="flex justify-end gap-2">
                             <button
@@ -500,13 +506,13 @@ export default function SystemUsersPage() {
                                 }}
                                 className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                             <button
                                 onClick={confirmDelete}
                                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                             >
-                                Delete User
+                                {t('systemUsers.deleteUser')}
                             </button>
                         </div>
                     </div>

@@ -1,11 +1,13 @@
 'use client';
 
 import { UserPlus, Clock } from 'lucide-react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
 import StatCard from './StatCard';
 
 export default function PendingRegistrationStats({ stats }) {
+    const { t } = useLanguage();
     const itemVariants = {
         hidden: { opacity: 0, y: 20 },
         visible: {
@@ -25,15 +27,15 @@ export default function PendingRegistrationStats({ stats }) {
                 <div className="p-2 bg-gradient-to-br from-orange-100 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/20 rounded-lg shadow-lg shadow-orange-500/20 text-orange-600 dark:text-orange-400">
                     <UserPlus size={20} />
                 </div>
-                Registration
+                {t('dashboard.registration')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
                 <Link href="/users" className="block">
                     <StatCard
                         icon={Clock}
-                        title="Pending Approvals"
+                        title={t('dashboard.pendingApprovals')}
                         value={stats.pendingRegistrations || 0}
-                        subtitle="New users awaiting validation"
+                        subtitle={t('dashboard.awaitingValidation')}
                         color="orange"
                     />
                 </Link>

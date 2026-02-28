@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { Save, ArrowLeft, Building, MapPin, Phone, FileText, Image, Calendar, Mail, FileCheck } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function InvoiceSettingsPage() {
+    const { t } = useLanguage();
     const [settings, setSettings] = useState({
         companyName: '',
         companyAddress: '',
@@ -80,7 +82,7 @@ export default function InvoiceSettingsPage() {
                     const { logoUrl: newLogoUrl } = await uploadRes.json();
                     logoUrl = newLogoUrl;
                 } else {
-                    setMessage({ type: 'error', text: 'Failed to upload logo' });
+                    setMessage({ type: 'error', text: t('billing.saveError') });
                     setLoading(false);
                     setUploading(false);
                     return;
@@ -95,14 +97,14 @@ export default function InvoiceSettingsPage() {
             });
 
             if (res.ok) {
-                setMessage({ type: 'success', text: 'Invoice settings saved successfully!' });
+                setMessage({ type: 'success', text: t('billing.saveSuccess') });
                 setLogoFile(null);
                 fetchSettings();
             } else {
-                setMessage({ type: 'error', text: 'Failed to save settings' });
+                setMessage({ type: 'error', text: t('billing.saveError') });
             }
         } catch (error) {
-            setMessage({ type: 'error', text: 'Error saving settings' });
+            setMessage({ type: 'error', text: t('billing.saveError') });
         } finally {
             setLoading(false);
         }
@@ -123,8 +125,8 @@ export default function InvoiceSettingsPage() {
                         <FileCheck size={28} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Centralized Invoice Settings</h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Configure global invoice templates and billing parameters</p>
+                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('billing.centralizedSettings')}</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('billing.settingsSubtitle')}</p>
                     </div>
                 </div>
             </div>
@@ -145,12 +147,12 @@ export default function InvoiceSettingsPage() {
                         {/* Company Settings */}
                         <div className="md:col-span-2">
                             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
-                                <Building size={20} className="text-blue-500" /> Company Information
+                                <Building size={20} className="text-blue-500" /> {t('billing.companyInfo')}
                             </h3>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Name</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('billing.companyName')}</label>
                             <input
                                 type="text"
                                 value={settings.companyName}
@@ -162,7 +164,7 @@ export default function InvoiceSettingsPage() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                                <Mail size={16} /> Company Email
+                                <Mail size={16} /> {t('billing.companyEmail')}
                             </label>
                             <input
                                 type="email"
@@ -174,7 +176,7 @@ export default function InvoiceSettingsPage() {
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Address</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('billing.companyAddress')}</label>
                             <textarea
                                 value={settings.companyAddress}
                                 onChange={(e) => setSettings({ ...settings, companyAddress: e.target.value })}
@@ -187,12 +189,12 @@ export default function InvoiceSettingsPage() {
                         {/* Invoice Template */}
                         <div className="md:col-span-2 pt-4 border-t border-gray-200 dark:border-gray-700">
                             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
-                                <FileText size={20} className="text-purple-500" /> Invoice Template
+                                <FileText size={20} className="text-purple-500" /> {t('billing.template')}
                             </h3>
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Invoice Footer Note</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('billing.footerNote')}</label>
                             <textarea
                                 value={settings.invoiceFooter}
                                 onChange={(e) => setSettings({ ...settings, invoiceFooter: e.target.value })}
@@ -200,15 +202,15 @@ export default function InvoiceSettingsPage() {
                                 rows="2"
                                 placeholder="Thank you for your business..."
                             />
-                            <p className="text-xs text-gray-500 mt-1">This text will appear at the bottom of every invoice.</p>
+                            <p className="text-xs text-gray-500 mt-1">{t('billing.footerDesc')}</p>
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Logo</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('billing.companyLogo')}</label>
                             <div className="space-y-3">
                                 {(settings.logoUrl || logoFile) && (
                                     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800/50">
-                                        <p className="text-xs text-gray-500 mb-2">Current Logo:</p>
+                                        <p className="text-xs text-gray-500 mb-2">{t('billing.currentLogo')}</p>
                                         <img
                                             src={logoFile ? URL.createObjectURL(logoFile) : settings.logoUrl}
                                             alt="Company Logo"
@@ -222,19 +224,19 @@ export default function InvoiceSettingsPage() {
                                     onChange={(e) => setLogoFile(e.target.files[0])}
                                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                 />
-                                <p className="text-xs text-gray-500">Upload your company logo (PNG, JPG, max 2MB)</p>
+                                <p className="text-xs text-gray-500">{t('billing.uploadLogo')}</p>
                             </div>
                         </div>
 
                         {/* Automation */}
                         <div className="md:col-span-2 pt-4 border-t border-gray-200 dark:border-gray-700">
                             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
-                                <Calendar size={20} className="text-red-500" /> Automation
+                                <Calendar size={20} className="text-red-500" /> {t('billing.automation')}
                             </h3>
                         </div>
 
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Auto-Drop Date</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('billing.autoDropDate')}</label>
                             <input
                                 type="number"
                                 min="1"
@@ -244,17 +246,17 @@ export default function InvoiceSettingsPage() {
                                 className="w-full md:w-1/3 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                 placeholder="10"
                             />
-                            <p className="text-xs text-gray-500 mt-1">Day of the month (1-31) when the system should automatically drop users with unpaid invoices</p>
+                            <p className="text-xs text-gray-500 mt-1">{t('billing.autoDropDesc')}</p>
                         </div>
 
                         {/* Email Settings */}
                         <div className="md:col-span-2 pt-6 border-t border-gray-200 dark:border-gray-700">
                             <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6 flex items-center gap-2">
-                                <Mail size={20} className="text-orange-500" /> Email Configuration (SMTP)
+                                <Mail size={20} className="text-orange-500" /> {t('billing.emailSmtp')}
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SMTP Host</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('billing.smtpHost')}</label>
                                     <input
                                         type="text"
                                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
@@ -264,7 +266,7 @@ export default function InvoiceSettingsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SMTP Port</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('billing.smtpPort')}</label>
                                     <input
                                         type="number"
                                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
@@ -274,7 +276,7 @@ export default function InvoiceSettingsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SMTP Email/User</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('billing.smtpUser')}</label>
                                     <input
                                         type="email"
                                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
@@ -284,7 +286,7 @@ export default function InvoiceSettingsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SMTP Password / App Password</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('billing.smtpPass')}</label>
                                     <input
                                         type="password"
                                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
@@ -301,7 +303,7 @@ export default function InvoiceSettingsPage() {
                                         onChange={(e) => setSettings({ ...settings, email: { ...settings.email, secure: e.target.checked } })}
                                         className="rounded text-blue-600 focus:ring-blue-500"
                                     />
-                                    <label htmlFor="secure" className="text-sm text-gray-700 dark:text-gray-300">Use Secure Connection (SSL/TLS - Usually for port 465)</label>
+                                    <label htmlFor="secure" className="text-sm text-gray-700 dark:text-gray-300">{t('billing.secureConn')}</label>
                                 </div>
                             </div>
                         </div>
@@ -314,7 +316,7 @@ export default function InvoiceSettingsPage() {
                             className="flex items-center gap-2 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-70 transition-all shadow-md"
                         >
                             <Save size={18} />
-                            {loading ? 'Saving...' : 'Save Global Invoice Settings'}
+                            {loading ? t('billing.saving') : t('billing.saveGlobalSettings')}
                         </button>
                     </div>
                 </form>

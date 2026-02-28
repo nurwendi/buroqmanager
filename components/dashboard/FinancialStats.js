@@ -2,9 +2,11 @@
 
 import { DollarSign, Activity, CreditCard } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
 import StatCard from './StatCard';
 
-export default function FinancialStats({ stats, formatCurrency }) {
+export default function FinancialStats({ stats, formatCurrency, resolvedLanguage = 'id' }) {
+    const { t } = useLanguage();
     const itemVariants = {
         hidden: { opacity: 0, y: 20 },
         visible: {
@@ -20,7 +22,7 @@ export default function FinancialStats({ stats, formatCurrency }) {
                 <div className="p-2 bg-gradient-to-br from-green-100 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/20 rounded-lg shadow-lg shadow-green-500/20 text-green-600 dark:text-green-400">
                     <DollarSign size={20} />
                 </div>
-                Financial Overview
+                {t('dashboard.financialOverview')}
             </h2>
 
             <div className="space-y-4">
@@ -28,15 +30,15 @@ export default function FinancialStats({ stats, formatCurrency }) {
                 {stats.agentStats && stats.agentStats.role === 'admin' && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-lg">
-                            <p className="text-blue-100 font-medium text-xs md:text-sm mb-1">Total Gross</p>
+                            <p className="text-blue-100 font-medium text-xs md:text-sm mb-1">{t('dashboard.totalGross')}</p>
                             <h3 className="text-xl md:text-2xl font-bold">{formatCurrency(stats.agentStats.grandTotal?.revenue || 0)}</h3>
                         </div>
                         <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 text-white shadow-lg">
-                            <p className="text-orange-100 font-medium text-xs md:text-sm mb-1">Komisi Staff</p>
+                            <p className="text-orange-100 font-medium text-xs md:text-sm mb-1">{t('dashboard.komisiStaff')}</p>
                             <h3 className="text-xl md:text-2xl font-bold">{formatCurrency(stats.agentStats.grandTotal?.commission || 0)}</h3>
                         </div>
                         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white shadow-lg">
-                            <p className="text-green-100 font-medium text-xs md:text-sm mb-1">Net Revenue</p>
+                            <p className="text-green-100 font-medium text-xs md:text-sm mb-1">{t('dashboard.netRevenue')}</p>
                             <h3 className="text-xl md:text-2xl font-bold">{formatCurrency(stats.agentStats.grandTotal?.netRevenue || 0)}</h3>
                         </div>
                     </div>
@@ -46,30 +48,30 @@ export default function FinancialStats({ stats, formatCurrency }) {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4">
                     <StatCard
                         icon={DollarSign}
-                        title="Revenue (This Month)"
+                        title={t('dashboard.revenueMonth')}
                         value={formatCurrency(stats.billing.thisMonthRevenue)}
-                        subtitle={`Revenue for ${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}`}
+                        subtitle={`${t('dashboard.revenueFor')} ${new Date().toLocaleString(resolvedLanguage, { month: 'long', year: 'numeric' })}`}
                         color="green"
                     />
                     <StatCard
                         icon={Activity}
-                        title="Pending Invoices"
+                        title={t('dashboard.pendingPayments')}
                         value={stats.billing.pendingCount}
-                        subtitle="Invoices waiting payment"
+                        subtitle={t('dashboard.invoicesWaiting')}
                         color="blue"
                     />
                     <StatCard
                         icon={Activity}
-                        title="Transactions"
+                        title={t('dashboard.transactions')}
                         value={stats.billing.totalTransactions}
-                        subtitle="Total transactions this month"
+                        subtitle={t('dashboard.totalTransactionsMonth')}
                         color="purple"
                     />
                     <StatCard
                         icon={CreditCard}
-                        title="Total Unpaid"
+                        title={t('dashboard.totalUnpaid')}
                         value={formatCurrency(stats.billing.totalUnpaid)}
-                        subtitle="Total outstanding amount"
+                        subtitle={t('dashboard.totalOutstanding')}
                         color="red"
                     />
                 </div>

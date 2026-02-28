@@ -42,7 +42,7 @@ model User {
   registrations         Registration[] @relation("RegistrationOwner")
   gatewayConfig         PaymentGatewayConfig? @relation("GatewayOwner")
 
-  language     String   @default("id")
+  language     String   @default("auto")
   profiles     Profile[]    @relation("ProfileOwner")
   
   // Radius Configuration
@@ -89,6 +89,7 @@ model Customer {
   technician User? @relation("TechnicianCustomers", fields: [technicianId], references: [id])
   profile    Profile? @relation(fields: [profileId], references: [id])
   profileId  String?
+  language   String   @default("auto")
 
   @@unique([username, ownerId]) // Username is unique only within an owner
 }

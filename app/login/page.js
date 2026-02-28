@@ -56,7 +56,7 @@ export default function LoginPage() {
                 setError(data.error || t('login.loginFailed'));
             }
         } catch (err) {
-            setError('An error occurred');
+            setError(t('login.error'));
         } finally {
             setLoading(false);
         }
@@ -76,7 +76,7 @@ export default function LoginPage() {
 
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('login.username')} / Customer ID</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('login.usernamePlaceholder')}</label>
                         <input
                             type="text"
                             required

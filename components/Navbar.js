@@ -57,19 +57,19 @@ export default function Navbar() {
     };
 
     const navItems = [
-        { href: '/', icon: Home, label: 'Dashboard' },
+        { href: '/', icon: Home, label: t('sidebar.dashboard') },
     ];
 
     const pppoeItems = [
-        { href: '/users', icon: Users, label: 'Users' },
-        { href: '/active', icon: Activity, label: 'Active Connections' },
-        { href: '/profiles', icon: Settings, label: 'Profiles' },
-        { href: '/drop-users', icon: ShieldAlert, label: 'Drop / Isolir' },
+        { href: '/users', icon: Users, label: t('sidebar.users') },
+        { href: '/active', icon: Activity, label: t('sidebar.activeConnections') },
+        { href: '/profiles', icon: Settings, label: t('sidebar.profiles') },
+        { href: '/drop-users', icon: ShieldAlert, label: t('sidebar.dropIsolir') },
     ];
 
     const settingsItems = [
-        { href: '/app-settings', icon: Settings, label: 'App Settings' },
-        { href: '/routers', icon: Server, label: 'Routers' },
+        { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings') },
+        { href: '/routers', icon: Server, label: t('sidebar.routers') },
     ].filter(item => {
         if (userRole === 'editor') {
             return !['/app-settings', '/routers'].includes(item.href);
@@ -173,7 +173,7 @@ export default function Navbar() {
                                 ? 'bg-accent/10 text-accent'
                                 : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-accent dark:hover:text-accent'
                                 }`}
-                            title="Notifications"
+                            title={t('sidebar.notifications')}
                         >
                             <Bell size={20} />
                         </Link>
@@ -185,7 +185,7 @@ export default function Navbar() {
                                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ml-2"
                             >
                                 <LogOut size={18} />
-                                <span>Keluar</span>
+                                <span>{t('sidebar.logout')}</span>
                             </button>
                         )}
                     </div>
@@ -275,7 +275,7 @@ export default function Navbar() {
                             className="flex items-center gap-2 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-colors w-full mt-2"
                         >
                             <LogOut size={18} />
-                            <span>Logout</span>
+                            <span>{t('sidebar.logout')}</span>
                         </button>
                     </div>
                 )}

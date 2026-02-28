@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, X, Eye, EyeOff, RotateCcw, Clock } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useDashboard } from '@/contexts/DashboardContext';
 
 export default function DashboardCustomizer() {
+    const { t } = useLanguage();
     const { preferences, toggleWidget, setRefreshInterval, resetDefaults } = useDashboard();
     const [isOpen, setIsOpen] = useState(false);
 
@@ -18,11 +20,11 @@ export default function DashboardCustomizer() {
     ];
 
     const refreshOptions = [
-        { value: 0, label: 'Disabled' },
-        { value: 5000, label: '5 Seconds' },
-        { value: 10000, label: '10 Seconds' },
-        { value: 30000, label: '30 Seconds' },
-        { value: 60000, label: '1 Minute' },
+        { value: 0, label: t('dashboard.disabled') },
+        { value: 5000, label: `5 ${t('dashboard.seconds')}` },
+        { value: 10000, label: `10 ${t('dashboard.seconds')}` },
+        { value: 30000, label: `30 ${t('dashboard.seconds')}` },
+        { value: 60000, label: `1 ${t('dashboard.minutes')}` },
     ];
 
     return (
@@ -33,7 +35,7 @@ export default function DashboardCustomizer() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(true)}
                 className="fixed right-6 bottom-24 md:bottom-6 z-40 p-3 rounded-full bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                title="Customize Dashboard"
+                title={t('dashboard.customizeDashboard')}
             >
                 <Settings size={24} />
             </motion.button>
@@ -59,7 +61,7 @@ export default function DashboardCustomizer() {
                             <div className="flex items-center justify-between mb-8">
                                 <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                                     <Settings size={20} className="text-blue-500" />
-                                    Customize
+                                    {t('dashboard.customize')}
                                 </h2>
                                 <button
                                     onClick={() => setIsOpen(false)}
@@ -72,7 +74,7 @@ export default function DashboardCustomizer() {
                             {/* Widget Visibility Section */}
                             <div className="mb-8">
                                 <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                                    Widget Visibility
+                                    {t('dashboard.widgetVisibility')}
                                 </h3>
                                 <div className="space-y-3">
                                     {widgets.map((widget) => (
@@ -107,7 +109,7 @@ export default function DashboardCustomizer() {
                             {/* Refresh Interval Section */}
                             <div className="mb-8">
                                 <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                                    Refresh Rate
+                                    {t('dashboard.refreshRate')}
                                 </h3>
                                 <div className="flex flex-col gap-2">
                                     {refreshOptions.map((option) => (
@@ -138,7 +140,7 @@ export default function DashboardCustomizer() {
                                     className="w-full flex items-center justify-center gap-2 p-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors font-medium"
                                 >
                                     <RotateCcw size={18} />
-                                    Reset to Defaults
+                                    {t('dashboard.resetDefaults')}
                                 </button>
                             </div>
                         </motion.div>

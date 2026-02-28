@@ -22,13 +22,14 @@ export async function GET(request) {
                 username: customer.customerId, // Use customerId as username
                 fullName: customer.name,
                 role: 'customer',
-                ownerId: customer.ownerId
+                ownerId: customer.ownerId,
+                language: customer.language
             };
         }
     } else {
         freshUser = await db.user.findUnique({
             where: { id: user.id },
-            select: { id: true, username: true, fullName: true, role: true, ownerId: true }
+            select: { id: true, username: true, fullName: true, role: true, ownerId: true, language: true }
         });
     }
 
@@ -39,7 +40,8 @@ export async function GET(request) {
         fullName: freshUser.fullName,
         role: freshUser.role,
         id: freshUser.id,
-        ownerId: freshUser.ownerId
+        ownerId: freshUser.ownerId,
+        language: freshUser.language
     })).toString('base64');
 
     return NextResponse.json({ user: freshUser, token });

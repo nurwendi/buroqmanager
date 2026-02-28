@@ -19,7 +19,7 @@ import PendingRegistrationStats from './PendingRegistrationStats';
 
 
 export default function DashboardContent() {
-    const { t } = useLanguage();
+    const { t, resolvedLanguage } = useLanguage();
     const { preferences } = useDashboard();
     const { dashboard = {}, notifications = {} } = preferences || {};
     const { visibleWidgets = {}, refreshInterval } = dashboard;
@@ -255,15 +255,15 @@ export default function DashboardContent() {
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('dashboard.title')}</h1>
                     <p className="text-lg text-gray-600 dark:text-gray-300 mt-1">
-                        Selamat datang <span className="font-semibold text-blue-600 dark:text-blue-400 capitalize">{username}</span>
+                        {t('dashboard.welcome')} <span className="font-semibold text-blue-600 dark:text-blue-400 capitalize">{username}</span>
                     </p>
                 </div>
                 <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-4">
                     <span className="text-sm text-gray-500 dark:text-gray-400 sm:hidden">
-                        Updated: {lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {t('dashboard.updated')}: {lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
-                        Last update: {lastUpdate.toLocaleTimeString()}
+                        {t('dashboard.lastUpdate')}: {lastUpdate.toLocaleTimeString()}
                     </span>
                     <button
                         onClick={fetchStats}
@@ -282,7 +282,7 @@ export default function DashboardContent() {
                 ) : (
                     <>
                         {visibleWidgets.financial && userRole !== 'staff' && (
-                            <FinancialStats key="financial" stats={stats} formatCurrency={formatCurrency} />
+                            <FinancialStats key="financial" stats={stats} formatCurrency={formatCurrency} resolvedLanguage={resolvedLanguage} />
                         )}
 
                         <PendingRegistrationStats key="pending" stats={stats} />

@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { DollarSign, Calendar, Users, ArrowLeft } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 
 export default function CommissionsPage() {
+    const { t, resolvedLanguage } = useLanguage();
     const [payments, setPayments] = useState([]);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -83,7 +85,7 @@ export default function CommissionsPage() {
     };
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
+        return new Intl.NumberFormat(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', { style: 'currency', currency: 'IDR' }).format(amount);
     };
 
     const commissionData = calculateCommissions();
@@ -95,7 +97,7 @@ export default function CommissionsPage() {
                 <Link href="/billing" className="p-2 rounded-full hover:bg-gray-100 text-gray-600">
                     <ArrowLeft size={24} />
                 </Link>
-                <h1 className="text-3xl font-bold text-gray-800">Commission Reports</h1>
+                <h1 className="text-3xl font-bold text-gray-800">{t('billing.commissionReports')}</h1>
             </div>
 
             <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
@@ -112,13 +114,13 @@ export default function CommissionsPage() {
                     >
                         {getAvailableMonths().map(({ year, month }) => (
                             <option key={`${year}-${month}`} value={`${year}-${month}`}>
-                                {new Date(year, month, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+                                {new Date(year, month, 1).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', { month: 'long', year: 'numeric' })}
                             </option>
                         ))}
                     </select>
                 </div>
                 <div className="text-right">
-                    <p className="text-sm text-gray-500">Total Payout</p>
+                    <p className="text-sm text-gray-500">{t('billing.totalPayout')}</p>
                     <p className="text-2xl font-bold text-green-600">{formatCurrency(totalCommissionPayout)}</p>
                 </div>
             </div>
@@ -127,18 +129,18 @@ export default function CommissionsPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent / Technician</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transactions</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Sales</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commission</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('billing.agentTechnician')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('common.role')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('billing.transactions')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('billing.totalSales')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('billing.commission')}</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {loading ? (
-                            <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500">Loading...</td></tr>
+                            <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500">{t('common.loading')}</td></tr>
                         ) : commissionData.length === 0 ? (
-                            <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500">No commissions found for this period</td></tr>
+                            <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500">{t('billing.noCommissions')}</td></tr>
                         ) : (
                             commissionData.map((item) => (
                                 <tr key={item.userId} className="hover:bg-gray-50 transition-colors">

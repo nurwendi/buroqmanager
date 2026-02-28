@@ -7,8 +7,18 @@ export async function GET(request) {
     if (!user) return unauthorizedResponse();
 
     // Fetch fresh data from DB to get latest fields
-    // getUserById returns the raw DB object including passwordHash
-    const fullUser = await getUserById(user.id);
+    let fullUser = null;
+    if (user.role === 'customer') {
+        const db = (await import('@/lib/db')).default;
+        fullUser = await db.customer.findUnique({
+            where: { id: user.id }
+        });
+        if (fullUser) {
+            fullUser.username = fullUser.customerId;
+        }
+    } else {
+        fullUser = await getUserById(user.id);
+    }
 
     if (!fullUser) {
         return unauthorizedResponse();
@@ -77,8 +87,17 @@ export async function PUT(request) {
             }
         }
 
-        const updatedUser = await updateUser(user.id, updates);
-        return NextResponse.json(updatedUser);
+        if (user.role === 'customer') {
+            const db = (await import('@/lib/db')).default;
+            const updatedCustomer = await db.customer.update({
+                where: { id: user.id },
+                data: updates
+            });
+            return NextResponse.json(updatedCustomer);
+        } else {
+            const updatedUser = await updateUser(user.id, updates);
+            return NextResponse.json(updatedUser);
+        }
 
     } catch (error) {
         console.error('Profile update error:', error);

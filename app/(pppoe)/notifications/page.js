@@ -77,8 +77,8 @@ export default function NotificationsPage() {
                         <Bell className="text-white" size={24} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Log Koneksi PPPoE</h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Riwayat koneksi user (Terakhir 100 log)</p>
+                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('pppoe.connectionLogs')}</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('pppoe.logsDesc')}</p>
                     </div>
                 </div>
 
@@ -87,7 +87,7 @@ export default function NotificationsPage() {
                         onClick={fetchLogs}
                         disabled={loading}
                         className="p-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm border border-gray-200 dark:border-gray-700"
-                        title="Refresh"
+                        title={t('common.refresh')}
                     >
                         <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
                     </button>
@@ -102,32 +102,32 @@ export default function NotificationsPage() {
                                 {hasDate && (
                                     <th className="p-4 w-32 font-semibold">
                                         <div className="flex items-center gap-2">
-                                            <Calendar size={14} /> Tanggal
+                                            <Calendar size={14} /> {t('common.date')}
                                         </div>
                                     </th>
                                 )}
                                 <th className="p-4 w-32 font-semibold">
                                     <div className="flex items-center gap-2">
-                                        <Clock size={14} /> Waktu
+                                        <Clock size={14} /> {t('common.time')}
                                     </div>
                                 </th>
                                 <th className="p-4 font-semibold">
                                     <div className="flex items-center gap-2">
-                                        <User size={14} /> User
+                                        <User size={14} /> {t('pppoe.username')}
                                     </div>
                                 </th>
-                                <th className="p-4 w-48 font-semibold">Keterangan</th>
+                                <th className="p-4 w-48 font-semibold">{t('common.description')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                             {loading && logs.length === 0 ? (
                                 <tr>
-                                    <td colSpan={hasDate ? 4 : 3} className="p-8 text-center text-gray-500">Memuat data...</td>
+                                    <td colSpan={hasDate ? 4 : 3} className="p-8 text-center text-gray-500">{t('common.loading')}</td>
                                 </tr>
                             ) : sortedLogs.length === 0 ? (
                                 <tr>
                                     <td colSpan={hasDate ? 4 : 3} className="p-12 text-center text-gray-500">
-                                        Tidak ada data log.
+                                        {t('pppoe.noLogData')}
                                     </td>
                                 </tr>
                             ) : (
@@ -159,7 +159,7 @@ export default function NotificationsPage() {
                                                     }`}
                                                 >
                                                     {isConnected ? <Wifi size={12} /> : <WifiOff size={12} />}
-                                                    {isConnected ? 'CONNECTED' : 'DISCONNECTED'}
+                                                    {isConnected ? t('pppoe.connected') : t('pppoe.disconnected')}
                                                 </span>
                                             </td>
                                         </tr>

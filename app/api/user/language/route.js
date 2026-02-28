@@ -12,14 +12,21 @@ export async function POST(request) {
 
         const { language } = await request.json();
 
-        if (!language || !['id', 'en'].includes(language)) {
+        if (!language || !['id', 'en', 'auto'].includes(language)) {
             return NextResponse.json({ error: 'Invalid language' }, { status: 400 });
         }
 
-        await db.user.update({
-            where: { id: currentUser.id },
-            data: { language: language }
-        });
+        if (currentUser.role === 'customer') {
+            await db.customer.update({
+                where: { id: currentUser.id },
+                data: { language: language }
+            });
+        } else {
+            await db.user.update({
+                where: { id: currentUser.id },
+                data: { language: language }
+            });
+        }
 
         return NextResponse.json({ success: true, language });
     } catch (error) {

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Edit2, Plus, Trash2, Shield, ShieldAlert, User, Lock } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SystemAdminPage() {
+    const { t } = useLanguage();
     const [admins, setAdmins] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -78,10 +79,10 @@ export default function SystemAdminPage() {
                 resetForm();
                 fetchAdmins();
             } else {
-                setError(data.error || 'Operation failed');
+                setError(data.error || t('common.error'));
             }
         } catch (error) {
-            setError('Failed to save admin');
+            setError(t('appSettings.errorManualRun')); // Fallback to a generic error message
         }
     };
 
@@ -121,11 +122,11 @@ export default function SystemAdminPage() {
                 setUserToDelete(null);
                 fetchAdmins();
             } else {
-                alert('Failed to delete admin');
+                alert(t('common.error'));
             }
         } catch (error) {
             console.error('Failed to delete admin', error);
-            alert('Failed to delete admin');
+            alert(t('common.error'));
         }
     };
 
@@ -153,8 +154,8 @@ export default function SystemAdminPage() {
         <div className="space-y-6">
             <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white">System Admin Managers</h1>
-                    <p className="text-gray-500 dark:text-gray-400">Manage owner accounts (Admins)</p>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('sidebar.systemUsers')}</h1>
+                    <p className="text-gray-500 dark:text-gray-400">{t('sidebar.owners')}</p>
                 </div>
                 <button
                     onClick={() => {
@@ -163,7 +164,7 @@ export default function SystemAdminPage() {
                     }}
                     className="w-full md:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30"
                 >
-                    <Plus size={20} /> Register New Owner
+                    <Plus size={20} /> {t('common.add')} {t('sidebar.owners')}
                 </button>
             </div>
 
@@ -171,19 +172,19 @@ export default function SystemAdminPage() {
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-black/5 dark:bg-white/5">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Owner Detail</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.name')}</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Agent ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Contact</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('appSettings.phone')}</th>
 
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Created At</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.date')}</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.actions')}</th>
                         </tr>
                     </thead>
                     <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
                         {loading ? (
-                            <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500">Loading...</td></tr>
+                            <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500">{t('common.loading')}</td></tr>
                         ) : admins.length === 0 ? (
-                            <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500">No admins found</td></tr>
+                            <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500">{t('common.noData')}</td></tr>
                         ) : (
                             admins.map((admin) => (
                                 <tr key={admin.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
@@ -245,7 +246,7 @@ export default function SystemAdminPage() {
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
                         <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl p-6 rounded-lg w-full max-w-md shadow-2xl border border-white/20 dark:border-white/10">
                             <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-                                {editMode ? 'Edit Owner' : 'Register New Owner'}
+                                {editMode ? t('common.edit') + ' ' + t('sidebar.owners') : t('common.add') + ' ' + t('sidebar.owners')}
                             </h2>
 
                             {error && (
@@ -257,7 +258,7 @@ export default function SystemAdminPage() {
 
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Username (Login ID)</label>
+                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('login.username')}</label>
                                     <input
                                         type="text"
                                         required
@@ -269,7 +270,7 @@ export default function SystemAdminPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Full Name</label>
+                                    <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('appSettings.fullName')}</label>
                                     <input
                                         type="text"
                                         value={formData.fullName}
@@ -280,7 +281,7 @@ export default function SystemAdminPage() {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Phone</label>
+                                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('appSettings.phone')}</label>
                                         <input
                                             type="text"
                                             value={formData.phone}
@@ -316,7 +317,7 @@ export default function SystemAdminPage() {
 
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                                        Password {editMode && <span className="text-gray-500 text-xs">(leave blank to keep)</span>}
+                                        {t('common.password')} {editMode && <span className="text-gray-500 text-xs">({t('appSettings.leaveBlankToKeep')})</span>}
                                     </label>
                                     <input
                                         type="password"
@@ -335,13 +336,13 @@ export default function SystemAdminPage() {
                                         onClick={() => setShowModal(false)}
                                         className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
                                     >
-                                        Cancel
+                                        {t('common.cancel')}
                                     </button>
                                     <button
                                         type="submit"
                                         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                                     >
-                                        {editMode ? 'Save Changes' : 'Create Owner'}
+                                        {editMode ? t('common.save') : t('common.submit')}
                                     </button>
                                 </div>
                             </form>
@@ -353,14 +354,13 @@ export default function SystemAdminPage() {
             {showDeleteModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-sm shadow-xl">
-                        <h2 className="text-xl font-bold text-red-600 mb-2">Confirm Delete</h2>
+                        <h2 className="text-xl font-bold text-red-600 mb-2">{t('common.confirm')} {t('common.delete')}</h2>
                         <p className="text-gray-600 dark:text-gray-300 mb-6">
-                            Are you sure you want to delete owner <strong>{userToDelete?.username}</strong>?
-                            All their data may be affected.
+                            {t('billing.confirmDelete')} <strong>{userToDelete?.username}</strong>?
                         </p>
                         <div className="flex justify-end gap-2">
-                            <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 text-gray-600">Cancel</button>
-                            <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 text-white rounded">Delete</button>
+                            <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 text-gray-600">{t('common.cancel')}</button>
+                            <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 text-white rounded">{t('common.delete')}</button>
                         </div>
                     </div>
                 </div>

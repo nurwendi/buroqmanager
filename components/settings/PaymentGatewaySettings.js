@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Save, Lock, CreditCard, RefreshCw } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function PaymentGatewaySettings() {
     const [config, setConfig] = useState({
@@ -11,6 +12,7 @@ export default function PaymentGatewaySettings() {
         serverKey: '',
         isSandbox: true,
     });
+    const { t } = useLanguage();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -55,7 +57,7 @@ export default function PaymentGatewaySettings() {
             });
 
             if (res.ok) {
-                setMessage({ type: 'success', text: 'Gateway settings saved successfully!' });
+                setMessage({ type: 'success', text: t('appSettings.gatewaySaved') });
                 fetchConfig(); // Refresh to ensure correct state
             } else {
                 setMessage({ type: 'error', text: 'Failed to save settings' });
@@ -67,13 +69,13 @@ export default function PaymentGatewaySettings() {
         }
     };
 
-    if (loading) return <div className="p-8 text-center text-gray-500">Loading settings...</div>;
+    if (loading) return <div className="p-8 text-center text-gray-500">{t('appSettings.loadingSettings')}</div>;
 
     return (
         <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
             <div className="flex items-center gap-3 mb-6">
                 <CreditCard className="text-pink-600 dark:text-pink-400" size={24} />
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Payment Gateway Integration</h2>
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('appSettings.paymentGateway')}</h2>
             </div>
 
             {message.text && (
@@ -86,7 +88,7 @@ export default function PaymentGatewaySettings() {
 
                 {/* Provider Selection */}
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Provider</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('appSettings.provider')}</label>
                     <select
                         value={config.provider}
                         onChange={(e) => setConfig({ ...config, provider: e.target.value })}
@@ -107,14 +109,14 @@ export default function PaymentGatewaySettings() {
                             className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                        <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">Sandbox Mode (Testing)</span>
+                        <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300">{t('appSettings.sandboxMode')}</span>
                     </label>
                 </div>
 
                 {/* Credentials */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Merchant ID</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('appSettings.merchantId')}</label>
                         <input
                             type="text"
                             value={config.merchantId || ''}
@@ -127,7 +129,7 @@ export default function PaymentGatewaySettings() {
                         {/* Spacer */}
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Client Key</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('appSettings.clientKey')}</label>
                         <div className="relative">
                             <Lock size={18} className="absolute left-3 top-3 text-gray-400" />
                             <input
@@ -140,7 +142,7 @@ export default function PaymentGatewaySettings() {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Server Key</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('appSettings.serverKey')}</label>
                         <div className="relative">
                             <Lock size={18} className="absolute left-3 top-3 text-gray-400" />
                             <input
@@ -161,10 +163,10 @@ export default function PaymentGatewaySettings() {
                         className="flex items-center gap-2 bg-pink-600 text-white px-6 py-2 rounded-lg hover:bg-pink-700 disabled:opacity-50 transition-all shadow-md"
                     >
                         <Save size={18} />
-                        {saving ? 'Saving...' : 'Save Configuration'}
+                        {saving ? t('common.saving') : t('appSettings.saveConfiguration')}
                     </button>
                     <p className="mt-2 text-xs text-gray-500">
-                        Changes to keys will take effect immediately for new transactions.
+                        {t('appSettings.keyChangesNote')}
                     </p>
                 </div>
 

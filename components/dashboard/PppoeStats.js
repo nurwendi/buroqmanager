@@ -1,11 +1,13 @@
 'use client';
 
 import { Users, Wifi, WifiOff } from 'lucide-react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
 import StatCard from './StatCard';
 
 export default function PppoeStats({ stats }) {
+    const { t } = useLanguage();
     const itemVariants = {
         hidden: { opacity: 0, y: 20 },
         visible: {
@@ -21,24 +23,24 @@ export default function PppoeStats({ stats }) {
                 <div className="p-2 bg-gradient-to-br from-blue-100 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/20 rounded-lg shadow-lg shadow-blue-500/20 text-blue-600 dark:text-blue-400">
                     <Users size={20} />
                 </div>
-                PPPoE Users
+                {t('dashboard.pppoeUsers')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
                 <Link href="/users?status=online" className="block">
                     <StatCard
                         icon={Wifi}
-                        title="PPPoE Active"
+                        title={t('dashboard.pppoeActive')}
                         value={stats.pppoeActive}
-                        subtitle="Users currently online"
+                        subtitle={t('dashboard.usersOnline')}
                         color="green"
                     />
                 </Link>
                 <Link href="/users?status=offline" className="block">
                     <StatCard
                         icon={WifiOff}
-                        title="PPPoE Offline"
+                        title={t('dashboard.pppoeOffline')}
                         value={stats.pppoeOffline}
-                        subtitle="Users currently offline"
+                        subtitle={t('dashboard.usersOffline')}
                         color="red"
                     />
                 </Link>

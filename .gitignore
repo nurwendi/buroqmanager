@@ -40,6 +40,10 @@ customer-data.json
 user-preferences.json
 startup.log
 debug_payment.log
+prisma/dev.db
+prisma/dev.db-journal
+*.db
+*.db-journal
 
 # Debug scripts
 debug-*.js

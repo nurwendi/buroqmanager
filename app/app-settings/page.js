@@ -33,12 +33,12 @@ export default function AppSettingsPage() {
     const isAdminOrOwner = userRole === 'admin' || userRole === 'superadmin';
 
     const tabs = [
-        { id: 'profile', label: 'User Profile', icon: User },
-        { id: 'appearance', label: 'Appearance', icon: Palette, hidden: !isSuperAdmin },
-        { id: 'payment', label: 'Payment Gateway', icon: CreditCard, hidden: !isAdminOrOwner },
-        { id: 'automation', label: 'Billing Automation', icon: Zap, hidden: !isAdminOrOwner },
-        { id: 'system', label: 'System', icon: Gauge, hidden: !isSuperAdmin },
-        { id: 'security', label: 'Security', icon: Shield, hidden: !isSuperAdmin },
+        { id: 'profile', label: t('appSettings.userProfile'), icon: User },
+        { id: 'appearance', label: t('appSettings.appearance'), icon: Palette, hidden: !isSuperAdmin },
+        { id: 'payment', label: t('appSettings.paymentGateway'), icon: CreditCard, hidden: !isAdminOrOwner },
+        { id: 'automation', label: t('appSettings.billingAutomation'), icon: Zap, hidden: !isAdminOrOwner },
+        { id: 'system', label: t('appSettings.general'), icon: Gauge, hidden: !isSuperAdmin },
+        { id: 'security', label: t('appSettings.securitySettings'), icon: Shield, hidden: !isSuperAdmin },
     ].filter(tab => !tab.hidden);
 
     const [settings, setSettings] = useState({
@@ -164,7 +164,7 @@ export default function AppSettingsPage() {
         setMessage({ type: '', text: '' });
 
         if (profile.password && profile.password !== profile.confirmPassword) {
-            setMessage({ type: 'error', text: 'Passwords do not match!' });
+            setMessage({ type: 'error', text: t('appSettings.passwordsDoNotMatch') });
             setLoading(false);
             return;
         }
@@ -177,7 +177,7 @@ export default function AppSettingsPage() {
             });
 
             if (res.ok) {
-                setMessage({ type: 'success', text: 'Profile updated successfully!' });
+                setMessage({ type: 'success', text: t('appSettings.profileUpdated') });
                 if (profile.password) {
                     setProfile(prev => ({ ...prev, password: '', confirmPassword: '' }));
                 }
@@ -209,7 +209,7 @@ export default function AppSettingsPage() {
             if (res.ok) {
                 const result = await res.json();
                 setProfile(prev => ({ ...prev, avatar: result.avatarUrl }));
-                setMessage({ type: 'success', text: 'Avatar uploaded successfully!' });
+                setMessage({ type: 'success', text: t('appSettings.avatarUploaded') });
             } else {
                 const errorData = await res.json();
                 setMessage({ type: 'error', text: errorData.error || 'Failed to upload avatar' });
@@ -235,7 +235,7 @@ export default function AppSettingsPage() {
             });
 
             if (res.ok) {
-                setMessage({ type: 'success', text: 'Appearance settings saved successfully!' });
+                setMessage({ type: 'success', text: t('appSettings.appearanceSaved') });
                 setTimeout(() => window.location.reload(), 1000);
             } else {
                 setMessage({ type: 'error', text: 'Failed to save settings' });
@@ -298,7 +298,7 @@ export default function AppSettingsPage() {
         setMessage({ type: '', text: '' });
 
         if (settings.newPassword !== settings.confirmPassword) {
-            setMessage({ type: 'error', text: 'Passwords do not match!' });
+            setMessage({ type: 'error', text: t('appSettings.passwordsDoNotMatch') });
             setLoading(false);
             return;
         }
@@ -322,7 +322,7 @@ export default function AppSettingsPage() {
             const data = await res.json();
 
             if (res.ok) {
-                setMessage({ type: 'success', text: 'Password changed successfully!' });
+                setMessage({ type: 'success', text: t('appSettings.profileUpdated') });
                 setSettings(prev => ({
                     ...prev,
                     adminUsername: '',
@@ -346,7 +346,7 @@ export default function AppSettingsPage() {
 
     return (
         <div className="w-full space-y-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">Application Settings</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('appSettings.title')}</h1>
 
             {message.text && (
                 <div className={`p-4 rounded-lg ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -379,7 +379,7 @@ export default function AppSettingsPage() {
                                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-medium"
                             >
                                 <LogOut size={18} />
-                                <span>Sign Out</span>
+                                <span>{t('common.logout')}</span>
                             </button>
                         </div>
                     </div>
@@ -393,7 +393,7 @@ export default function AppSettingsPage() {
                         <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                             <div className="flex items-center gap-3 mb-6">
                                 <User className="text-indigo-600 dark:text-indigo-400" size={24} />
-                                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">User Profile</h2>
+                                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('appSettings.userProfile')}</h2>
                             </div>
 
                             <form onSubmit={handleSaveProfile} className="space-y-6">
@@ -426,9 +426,9 @@ export default function AppSettingsPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Username
+                                            {t('login.username')}
                                             {userRole !== 'admin' && userRole !== 'superadmin' && (
-                                                <span className="text-xs text-red-500 ml-2">(Contact Admin to change)</span>
+                                                <span className="text-xs text-red-500 ml-2">({t('appSettings.contactAdminChange')})</span>
                                             )}
                                         </label>
                                         <input
@@ -441,7 +441,7 @@ export default function AppSettingsPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('appSettings.fullName')}</label>
                                         <input
                                             type="text"
                                             value={profile.fullName}
@@ -451,7 +451,7 @@ export default function AppSettingsPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('appSettings.phoneNumber')}</label>
                                         <div className="relative">
                                             <Phone size={18} className="absolute left-3 top-3 text-gray-400" />
                                             <input
@@ -464,7 +464,7 @@ export default function AppSettingsPage() {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Address</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('appSettings.address')}</label>
                                         <div className="relative">
                                             <MapPin size={18} className="absolute left-3 top-3 text-gray-400" />
                                             <input
@@ -479,26 +479,26 @@ export default function AppSettingsPage() {
                                 </div>
 
                                 <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-4">Change Password (Optional)</h3>
+                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t('appSettings.changePasswordOptional')}</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">New Password</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('appSettings.newPassword')}</label>
                                             <input
                                                 type="password"
                                                 value={profile.password}
                                                 onChange={(e) => setProfile({ ...profile, password: e.target.value })}
                                                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                placeholder="Leave blank to keep current"
+                                                placeholder={t('appSettings.leaveBlankToKeep')}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm Password</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('appSettings.confirmPassword')}</label>
                                             <input
                                                 type="password"
                                                 value={profile.confirmPassword}
                                                 onChange={(e) => setProfile({ ...profile, confirmPassword: e.target.value })}
                                                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                placeholder="Confirm new password"
+                                                placeholder={t('appSettings.confirmPassword')}
                                             />
                                         </div>
                                     </div>
@@ -510,9 +510,54 @@ export default function AppSettingsPage() {
                                     className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-all shadow-md"
                                 >
                                     <Save size={18} />
-                                    {loading ? 'Saving Review...' : 'Save Profile Changes'}
+                                    {loading ? t('common.saving') : t('appSettings.saveProfileChanges')}
                                 </button>
                             </form>
+
+                            {/* Language Settings (Moved from Appearance) */}
+                            <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gray-700">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <Globe className="text-green-600 dark:text-green-400" size={20} />
+                                    <h3 className="font-medium text-gray-900 dark:text-white">{t('appSettings.language')}</h3>
+                                </div>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t('appSettings.selectLanguage')}</p>
+
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setLanguage('auto')}
+                                        className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 transition-all ${language === 'auto'
+                                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
+                                            }`}
+                                    >
+                                        <Monitor size={18} className={language === 'auto' ? 'text-green-600' : 'text-gray-500'} />
+                                        <span className="text-sm font-medium">{t('appSettings.automatic')}</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setLanguage('id')}
+                                        className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 transition-all ${language === 'id'
+                                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
+                                            }`}
+                                    >
+                                        <span className="text-xl">🇮🇩</span>
+                                        <span className="text-sm font-medium">{t('appSettings.indonesian')}</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setLanguage('en')}
+                                        className={`p-3 rounded-lg border-2 flex items-center justify-center gap-2 transition-all ${language === 'en'
+                                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
+                                            }`}
+                                    >
+                                        <span className="text-xl">🇺🇸</span>
+                                        <span className="text-sm font-medium">{t('appSettings.english')}</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                     </>)}
@@ -527,7 +572,7 @@ export default function AppSettingsPage() {
                             <form onSubmit={handleSaveAppearance}>
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Application Name
+                                        {t('appSettings.appName')}
                                     </label>
                                     <input
                                         type="text"
@@ -541,7 +586,7 @@ export default function AppSettingsPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Upload Logo (PNG)
+                                            {t('appSettings.appLogoPng')}
                                         </label>
                                         <input
                                             type="file"
@@ -554,12 +599,12 @@ export default function AppSettingsPage() {
                                 file:bg-blue-50 file:text-blue-700
                                 hover:file:bg-blue-100"
                                         />
-                                        <p className="text-xs text-gray-500 mt-1">Replaces the app logo. Recommended size: 512x512px.</p>
+                                        <p className="text-xs text-gray-500 mt-1">{t('appSettings.appLogoNote')}</p>
                                     </div>
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Upload Favicon (ICO)
+                                            {t('appSettings.faviconIco')}
                                         </label>
                                         <input
                                             type="file"
@@ -572,13 +617,13 @@ export default function AppSettingsPage() {
                                 file:bg-blue-50 file:text-blue-700
                                 hover:file:bg-blue-100"
                                         />
-                                        <p className="text-xs text-gray-500 mt-1">Replaces the browser tab icon.</p>
+                                        <p className="text-xs text-gray-500 mt-1">{t('appSettings.faviconNote')}</p>
                                     </div>
                                 </div>
 
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Or use Logo URL
+                                        {t('appSettings.orUseUrl')}
                                     </label>
                                     <input
                                         type="text"
@@ -592,7 +637,7 @@ export default function AppSettingsPage() {
                                 {settings.logoUrl && (
                                     <div className="mb-4">
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Logo Preview
+                                            {t('appSettings.logoPreview')}
                                         </label>
                                         <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
                                             <img
@@ -615,46 +660,11 @@ export default function AppSettingsPage() {
                                     className="flex items-center gap-2 bg-accent text-white px-6 py-2 rounded-lg hover:opacity-90 disabled:bg-gray-400 transition-all"
                                 >
                                     <Save size={18} />
-                                    {loading ? 'Saving...' : 'Save Appearance'}
+                                    {loading ? t('common.saving') : t('appSettings.saveAppearance')}
                                 </button>
                             </form>
                         </div>
 
-                        {/* Language Settings */}
-                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
-                            <div className="flex items-center gap-3 mb-4">
-                                <Globe className="text-green-600 dark:text-green-400" size={24} />
-                                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('appSettings.language')}</h2>
-                            </div>
-
-                            <div className="space-y-3">
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{t('appSettings.selectLanguage')}</p>
-                                <div className="grid grid-cols-2 gap-4 max-w-md">
-                                    <button
-                                        type="button"
-                                        onClick={() => setLanguage('id')}
-                                        className={`p-4 rounded-lg border-2 flex items-center gap-3 transition-all ${language === 'id'
-                                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
-                                            }`}
-                                    >
-                                        <span className="text-2xl">🇮🇩</span>
-                                        <span className="font-medium">{t('appSettings.indonesian')}</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setLanguage('en')}
-                                        className={`p-4 rounded-lg border-2 flex items-center gap-3 transition-all ${language === 'en'
-                                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-                                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 text-gray-700 dark:text-gray-300'
-                                            }`}
-                                    >
-                                        <span className="text-2xl">🇺🇸</span>
-                                        <span className="font-medium">{t('appSettings.english')}</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
 
                         {/* Theme Settings (Available to ALL) */}
                         <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
@@ -732,15 +742,15 @@ export default function AppSettingsPage() {
                                 <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-lg">
                                     <h3 className="text-lg font-medium text-amber-800 dark:text-amber-400 mb-2 flex items-center gap-2">
                                         <Shield size={20} />
-                                        Auto-Isolation (Auto-Drop)
+                                        {t('appSettings.autoIsolation')}
                                     </h3>
                                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                        Automatically disable PPPoE secrets for customers who have not paid their bill by a specific date each month.
+                                        {t('appSettings.autoIsolationDesc')}
                                     </p>
 
                                     <div className="flex flex-col gap-4">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-gray-700 dark:text-gray-300 font-medium">Enable Auto-Isolation</span>
+                                            <span className="text-gray-700 dark:text-gray-300 font-medium">{t('appSettings.enableAutoIsolation')}</span>
                                             <label className="relative inline-flex items-center cursor-pointer">
                                                 <input
                                                     type="checkbox"
@@ -755,7 +765,7 @@ export default function AppSettingsPage() {
                                         <div className="flex items-center gap-4">
                                             <div className="flex-1">
                                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                    Execution Date (Day of Month)
+                                                    {t('appSettings.executionDate')}
                                                 </label>
                                                 <div className="relative">
                                                     <Calendar size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -769,7 +779,7 @@ export default function AppSettingsPage() {
                                                     />
                                                 </div>
                                                 <p className="text-xs text-gray-500 mt-1">
-                                                    The system will check for unpaid invoices on this date every month (1-28).
+                                                    {t('appSettings.executionDateNote')}
                                                 </p>
                                             </div>
                                         </div>
@@ -783,13 +793,13 @@ export default function AppSettingsPage() {
                                         className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-all shadow-md"
                                     >
                                         <Save size={18} />
-                                        {loading ? 'Saving...' : 'Save Settings'}
+                                        {loading ? t('common.saving') : t('appSettings.saveSettings')}
                                     </button>
 
                                     <button
                                         type="button"
                                         onClick={async () => {
-                                            if (!confirm('Run auto-isolation check now? This will disable unpaid users immediately.')) return;
+                                            if (!confirm(t('appSettings.manualIsolationConfirm'))) return;
                                             setManualRunLoading(true);
                                             try {
                                                 const res = await fetch(`/api/cron/auto-isolation?manual=true&userId=${profile.id}`);
@@ -803,9 +813,9 @@ export default function AppSettingsPage() {
                                                 // Actually `profile` state has whatever `/api/profile` returns, usually includes `id`.
 
                                                 const data = await res.json();
-                                                alert(`Execution Complete.\nResult: ${JSON.stringify(data.report, null, 2)}`);
+                                                alert(`${t('appSettings.executionComplete')}\nResult: ${JSON.stringify(data.report, null, 2)}`);
                                             } catch (err) {
-                                                alert('Error running manual execution');
+                                                alert(t('appSettings.errorManualRun'));
                                             } finally {
                                                 setManualRunLoading(false);
                                             }
@@ -814,7 +824,7 @@ export default function AppSettingsPage() {
                                         className="flex items-center gap-2 bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-all shadow-md"
                                     >
                                         <Play size={18} />
-                                        {manualRunLoading ? 'Running...' : 'Run Now (Test)'}
+                                        {manualRunLoading ? t('common.running') : t('appSettings.runNowTest')}
                                     </button>
                                 </div>
                             </form>
@@ -827,14 +837,14 @@ export default function AppSettingsPage() {
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Clock className="text-blue-600 dark:text-blue-400" size={24} />
-                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Display Preferences</h2>
+                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('appSettings.displayPreferences')}</h2>
                                 </div>
 
                                 <form onSubmit={handleSavePreferences} className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                                Date Format
+                                                {t('appSettings.dateFormat')}
                                             </label>
                                             <select
                                                 value={preferences.display.dateFormat}
@@ -852,7 +862,7 @@ export default function AppSettingsPage() {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Time Format
+                                                {t('appSettings.timeFormat')}
                                             </label>
                                             <select
                                                 value={preferences.display.timeFormat}
@@ -862,14 +872,14 @@ export default function AppSettingsPage() {
                                                 })}
                                                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                             >
-                                                <option value="12h">12-hour</option>
-                                                <option value="24h">24-hour</option>
+                                                <option value="12h">{t('common.12h')}</option>
+                                                <option value="24h">{t('common.24h')}</option>
                                             </select>
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Bandwidth Unit
+                                                {t('appSettings.bandwidthUnit')}
                                             </label>
                                             <select
                                                 value={preferences.display.bandwidthUnit}
@@ -879,7 +889,7 @@ export default function AppSettingsPage() {
                                                 })}
                                                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                             >
-                                                <option value="auto">Auto</option>
+                                                <option value="auto">{t('appSettings.automatic')}</option>
                                                 <option value="bps">bps</option>
                                                 <option value="Kbps">Kbps</option>
                                                 <option value="Mbps">Mbps</option>
@@ -889,7 +899,7 @@ export default function AppSettingsPage() {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Memory Unit
+                                                {t('appSettings.memoryUnit')}
                                             </label>
                                             <select
                                                 value={preferences.display.memoryUnit}
@@ -899,8 +909,8 @@ export default function AppSettingsPage() {
                                                 })}
                                                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                             >
-                                                <option value="auto">Auto</option>
-                                                <option value="B">Bytes</option>
+                                                <option value="auto">{t('appSettings.automatic')}</option>
+                                                <option value="B">{t('common.bytes')}</option>
                                                 <option value="KB">KB</option>
                                                 <option value="MB">MB</option>
                                                 <option value="GB">GB</option>
@@ -909,7 +919,7 @@ export default function AppSettingsPage() {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Temperature Unit
+                                                {t('appSettings.temperatureUnit')}
                                             </label>
                                             <select
                                                 value={preferences.display.temperatureUnit}
@@ -919,8 +929,8 @@ export default function AppSettingsPage() {
                                                 })}
                                                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                             >
-                                                <option value="celsius">Celsius (°C)</option>
-                                                <option value="fahrenheit">Fahrenheit (°F)</option>
+                                                <option value="celsius">{t('common.celsius')} (°C)</option>
+                                                <option value="fahrenheit">{t('common.fahrenheit')} (°F)</option>
                                             </select>
                                         </div>
                                     </div>
@@ -931,7 +941,7 @@ export default function AppSettingsPage() {
                                         className="flex items-center gap-2 bg-accent text-white px-6 py-2 rounded-lg hover:opacity-90 disabled:bg-gray-400 transition-all"
                                     >
                                         <Save size={18} />
-                                        {loading ? 'Saving...' : 'Save Preferences'}
+                                        {loading ? t('common.saving') : t('appSettings.savePreferences')}
                                     </button>
                                 </form>
                             </div>
@@ -946,13 +956,13 @@ export default function AppSettingsPage() {
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Shield className="text-red-600 dark:text-red-400" size={24} />
-                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Security Settings</h2>
+                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('appSettings.securitySettings')}</h2>
                                 </div>
 
                                 <form onSubmit={handleSavePreferences} className="space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Session Timeout (Auto Logout)
+                                            {t('appSettings.sessionTimeout')}
                                         </label>
                                         <select
                                             value={preferences.security?.sessionTimeout || 0}
@@ -962,13 +972,13 @@ export default function AppSettingsPage() {
                                             })}
                                             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                         >
-                                            <option value="0">Disabled</option>
-                                            <option value="15">15 Minutes</option>
-                                            <option value="30">30 Minutes</option>
-                                            <option value="60">1 Hour</option>
-                                            <option value="240">4 Hours</option>
+                                            <option value="0">{t('appSettings.disabled')}</option>
+                                            <option value="15">15 {t('common.minutes')}</option>
+                                            <option value="30">30 {t('common.minutes')}</option>
+                                            <option value="60">1 {t('common.hour')}</option>
+                                            <option value="240">4 {t('common.hours')}</option>
                                         </select>
-                                        <p className="text-xs text-gray-500 mt-1">Automatically logs out inactive users after specified time.</p>
+                                        <p className="text-xs text-gray-500 mt-1">{t('appSettings.sessionTimeoutNote')}</p>
                                     </div>
 
                                     <button
@@ -977,7 +987,7 @@ export default function AppSettingsPage() {
                                         className="flex items-center gap-2 bg-accent text-white px-6 py-2 rounded-lg hover:opacity-90 disabled:bg-gray-400 transition-all"
                                     >
                                         <Save size={18} />
-                                        {loading ? 'Saving...' : 'Save Security Settings'}
+                                        {loading ? t('common.saving') || 'Saving...' : t('appSettings.saveSecurity')}
                                     </button>
                                 </form>
                             </div>
@@ -990,13 +1000,13 @@ export default function AppSettingsPage() {
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Gauge className="text-blue-600 dark:text-blue-400" size={24} />
-                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Dashboard Settings</h2>
+                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('appSettings.dashboardSettings')}</h2>
                                 </div>
 
                                 <form onSubmit={handleSavePreferences} className="space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Auto-Refresh Interval
+                                            {t('appSettings.refreshInterval')}
                                         </label>
                                         <select
                                             value={preferences.dashboard.refreshInterval}
@@ -1021,7 +1031,7 @@ export default function AppSettingsPage() {
                                         className="flex items-center gap-2 bg-accent text-white px-6 py-2 rounded-lg hover:opacity-90 disabled:bg-gray-400 transition-all"
                                     >
                                         <Save size={18} />
-                                        {loading ? 'Saving...' : 'Save Dashboard Settings'}
+                                        {loading ? t('common.saving') || 'Saving...' : t('appSettings.saveDashboard')}
                                     </button>
                                 </form>
                             </div>
@@ -1034,14 +1044,14 @@ export default function AppSettingsPage() {
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Bell className="text-yellow-600 dark:text-yellow-400" size={24} />
-                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Notification Settings</h2>
+                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('appSettings.notificationSettings')}</h2>
                                 </div>
 
                                 <form onSubmit={handleSavePreferences} className="space-y-6">
                                     <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
                                         <div>
-                                            <h3 className="font-medium text-gray-900 dark:text-white">Browser Notifications</h3>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">Enable push notifications for critical alerts</p>
+                                            <h3 className="font-medium text-gray-900 dark:text-white">{t('appSettings.browserNotifications')}</h3>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">{t('appSettings.enablePushNotifications')}</p>
                                         </div>
                                         <button
                                             type="button"
@@ -1053,9 +1063,9 @@ export default function AppSettingsPage() {
                                                         ...prev,
                                                         notifications: { ...prev.notifications, enabled: true }
                                                     }));
-                                                    alert('Notifications enabled!');
+                                                    alert(t('appSettings.notificationsEnabled'));
                                                 } else {
-                                                    alert('Permission denied. Please enable notifications in your browser settings.');
+                                                    alert(t('appSettings.notificationDenied'));
                                                 }
                                             }}
                                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${preferences.notifications?.enabled ? 'bg-green-600' : 'bg-gray-200 dark:bg-gray-700'}`}
@@ -1077,10 +1087,10 @@ export default function AppSettingsPage() {
                                                         })}
                                                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                                     />
-                                                    High CPU Alert
+                                                    {t('appSettings.highCpuAlert')}
                                                 </label>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-sm text-gray-500">Threshold:</span>
+                                                    <span className="text-sm text-gray-500">{t('appSettings.threshold')}:</span>
                                                     <input
                                                         type="number"
                                                         min="50"
@@ -1108,7 +1118,7 @@ export default function AppSettingsPage() {
                                                     })}
                                                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                                 />
-                                                System Voltage Low Alert (&lt; 10V)
+                                                {t('appSettings.voltageLowAlert')}
                                             </label>
                                         </div>
                                     </div>
@@ -1119,7 +1129,7 @@ export default function AppSettingsPage() {
                                         className="flex items-center gap-2 bg-accent text-white px-6 py-2 rounded-lg hover:opacity-90 disabled:bg-gray-400 transition-all"
                                     >
                                         <Save size={18} />
-                                        {loading ? 'Saving...' : 'Save Notification Settings'}
+                                        {loading ? t('common.saving') : t('appSettings.saveNotifications')}
                                     </button>
                                 </form>
                             </div>
@@ -1134,13 +1144,13 @@ export default function AppSettingsPage() {
                             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                                 <div className="flex items-center gap-3 mb-4">
                                     <Key className="text-blue-600 dark:text-blue-400" size={24} />
-                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Change Admin Password</h2>
+                                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('appSettings.changePassword')}</h2>
                                 </div>
 
                                 <form onSubmit={handleChangePassword}>
                                     <div className="mb-4">
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Admin Username
+                                            {t('login.username')}
                                         </label>
                                         <input
                                             type="text"
@@ -1154,7 +1164,7 @@ export default function AppSettingsPage() {
 
                                     <div className="mb-4">
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            New Password
+                                            {t('appSettings.newPassword')}
                                         </label>
                                         <input
                                             type="password"
@@ -1168,7 +1178,7 @@ export default function AppSettingsPage() {
 
                                     <div className="mb-4">
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Confirm Password
+                                            {t('appSettings.confirmPassword')}
                                         </label>
                                         <input
                                             type="password"
@@ -1186,7 +1196,7 @@ export default function AppSettingsPage() {
                                         className="flex items-center gap-2 bg-accent text-white px-6 py-2 rounded-lg hover:opacity-90 disabled:bg-gray-400 transition-all"
                                     >
                                         <User size={18} />
-                                        {loading ? 'Changing...' : 'Change Password'}
+                                        {loading ? t('common.changing') : t('appSettings.changePassword')}
                                     </button>
                                 </form>
                             </div>

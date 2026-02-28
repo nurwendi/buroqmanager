@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Server, Plus, Trash2, Edit2, CheckCircle, Power, X, Settings, Copy, Check, Save, AlertTriangle, Loader2, WifiOff } from 'lucide-react';
+import { Server, Plus, Trash2, Edit2, CheckCircle, Power, X, Settings, Copy, Check, Save, AlertTriangle, Loader2, WifiOff, Shield } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SettingsPage() {
+    const { t } = useLanguage();
     const [settings, setSettings] = useState({
         connections: [],
         activeConnectionId: null,
@@ -67,21 +69,21 @@ export default function SettingsPage() {
                 body: JSON.stringify(nasForm)
             });
             if (res.ok) {
-                setMessage({ type: 'success', text: 'Radius Client Added' });
+                setMessage({ type: 'success', text: t('routers.radiusClientAdded') });
                 setShowNasModal(false);
                 setNasForm({ nasname: '', secret: '', description: '' });
                 fetchNasList();
             } else {
                 const data = await res.json();
-                setMessage({ type: 'error', text: data.error || 'Failed to add NAS' });
+                setMessage({ type: 'error', text: data.error || t('routers.failedToAddNas') });
             }
         } catch (e) {
-            setMessage({ type: 'error', text: 'Error adding NAS' });
+            setMessage({ type: 'error', text: t('routers.errorAddingNas') });
         }
     };
 
     const handleDeleteNas = async (id) => {
-        if (!confirm('Delete this Radius Client?')) return;
+        if (!confirm(t('routers.deleteRadiusClientConfirm'))) return;
         try {
             await fetch(`/api/radius/nas?id=${id}`, { method: 'DELETE' });
             fetchNasList();
@@ -134,7 +136,7 @@ export default function SettingsPage() {
         e.preventDefault();
         // Validation
         if (!connForm.host || !connForm.user || !connForm.port) {
-            setMessage({ type: 'error', text: 'Host, User, and Port are required' });
+            setMessage({ type: 'error', text: t('routers.validationError') });
             return;
         }
 
@@ -160,7 +162,7 @@ export default function SettingsPage() {
     };
 
     const handleDeleteConnection = async (id) => {
-        if (!confirm('Are you sure you want to delete this connection?')) return;
+        if (!confirm(t('routers.deleteConnectionConfirm'))) return;
         const newConnections = settings.connections.filter(c => c.id !== id);
 
         // If we deleted the active connection, unset active ID
@@ -195,11 +197,11 @@ export default function SettingsPage() {
                 if (payload.title) document.title = payload.title;
                 fetchSettings(); // Refresh to get clean state
             } else {
-                setMessage({ type: 'error', text: data.error || 'Failed to save settings' });
+                setMessage({ type: 'error', text: data.error || t('routers.failedToSaveSettings') });
                 fetchSettings(); // Revert on error
             }
         } catch (error) {
-            setMessage({ type: 'error', text: 'An error occurred' });
+            setMessage({ type: 'error', text: t('routers.errorSavingSettings') });
             fetchSettings();
         }
     };
@@ -247,14 +249,14 @@ export default function SettingsPage() {
 
             if (res.ok) {
                 setShowConfigModal(false);
-                setMessage({ type: 'success', text: 'Isolir settings saved successfully!' });
+                setMessage({ type: 'success', text: t('routers.isolirSettingsSaved') });
                 fetchConfig();
             } else {
-                setMessage({ type: 'error', text: 'Failed to save settings' });
+                setMessage({ type: 'error', text: t('routers.failedToSaveSettings') });
             }
         } catch (error) {
             console.error('Error saving config:', error);
-            setMessage({ type: 'error', text: 'Error saving settings' });
+            setMessage({ type: 'error', text: t('routers.errorSavingSettings') });
         } finally {
             setSavingConfig(false);
         }
@@ -278,10 +280,10 @@ export default function SettingsPage() {
         setTimeout(() => setCopied(false), 2000);
     };
 
-    if (loading) return <div className="p-8 text-gray-800">Loading...</div>;
+    if (loading) return <div className="p-8 text-gray-800">{t('common.loading')}</div>;
 
     const runAutoDrop = async () => {
-        if (!confirm('Apakah Anda yakin? Sistem akan mengecek tanggal jatuh tempo dan mengisolir pelanggan yang belum lunas.')) return;
+        if (!confirm(t('routers.autoIsolirConfirm'))) return;
 
         setSavingConfig(true);
         try {
@@ -299,16 +301,16 @@ export default function SettingsPage() {
                 } else {
                     setMessage({ type: 'success', text: data.message });
                     if (data.droppedUsers?.length > 0) {
-                        alert(`Berhasil mengisolir ${data.droppedUsers.length} pelanggan:\n${data.droppedUsers.join(', ')}`);
+                        alert(t('routers.autoIsolirSuccess', { count: data.droppedUsers.length, users: data.droppedUsers.join(', ') }));
                     } else {
                         alert(data.message);
                     }
                 }
             } else {
-                setMessage({ type: 'error', text: data.error || 'Gagal menjalankan auto-isolir' });
+                setMessage({ type: 'error', text: data.error || t('routers.autoIsolirFailed') });
             }
         } catch (err) {
-            setMessage({ type: 'error', text: 'Terjadi kesalahan sistem' });
+            setMessage({ type: 'error', text: t('routers.systemError') });
         } finally {
             setSavingConfig(false);
         }
@@ -318,25 +320,25 @@ export default function SettingsPage() {
         <div className="w-full space-y-8">
             <div className="flex items-center gap-3 mb-8">
                 <Server className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Routers Management</h1>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('routers.title')}</h1>
             </div>
 
             {/* Connections Management */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 {/* ... existing connections content ... */}
                 <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
-                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Mikrotik Connections</h2>
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('routers.mikrotikConnections')}</h2>
                     <button
                         onClick={() => openEditModal()}
                         className="w-full md:w-auto flex items-center justify-center gap-2 bg-accent text-white px-4 py-2 rounded-md hover:opacity-90 transition-all shadow-lg shadow-accent/30"
                     >
-                        <Plus size={18} /> Add Connection
+                        <Plus size={18} /> {t('routers.addConnection')}
                     </button>
                 </div>
 
                 <div className="space-y-4">
                     {settings.connections.length === 0 ? (
-                        <p className="text-gray-500 text-center py-4">No connections configured. Add one to get started.</p>
+                        <p className="text-gray-500 text-center py-4">{t('routers.noConnections')}</p>
                     ) : (
                         <div className="grid gap-4">
                             {settings.connections.map(conn => (
@@ -346,7 +348,7 @@ export default function SettingsPage() {
                                             <Power size={20} />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-800 dark:text-white">{conn.name || 'Unnamed Connection'}</h3>
+                                            <h3 className="font-semibold text-gray-800 dark:text-white">{conn.name || t('routers.unnamedConnection')}</h3>
                                             <p className="text-sm text-gray-600 dark:text-gray-400">{conn.host}:{conn.port} ({conn.user})</p>
                                         </div>
                                     </div>
@@ -356,25 +358,25 @@ export default function SettingsPage() {
                                                 onClick={() => handleConnect(conn.id)}
                                                 className="px-3 py-1 text-sm bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 text-green-700 dark:text-green-300 rounded-md transition-colors"
                                             >
-                                                Connect
+                                                {t('routers.connect')}
                                             </button>
                                         )}
                                         {settings.activeConnectionId === conn.id && (
                                             <span className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md flex items-center gap-1">
-                                                <CheckCircle size={14} /> Active
+                                                <CheckCircle size={14} /> {t('routers.active')}
                                             </span>
                                         )}
                                         <button
                                             onClick={() => openEditModal(conn)}
                                             className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md"
-                                            title="Edit"
+                                            title={t('common.edit')}
                                         >
                                             <Edit2 size={18} />
                                         </button>
                                         <button
                                             onClick={() => handleDeleteConnection(conn.id)}
                                             className="p-2 text-red-600 hover:bg-red-50 rounded-md"
-                                            title="Delete"
+                                            title={t('common.delete')}
                                         >
                                             <Trash2 size={18} />
                                         </button>
@@ -390,20 +392,20 @@ export default function SettingsPage() {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
                     <div>
-                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Radius Clients (NAS)</h2>
-                        <p className="text-sm text-gray-500">Daftar Router yang diizinkan mengakses Server Radius</p>
+                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('routers.radiusClients')}</h2>
+                        <p className="text-sm text-gray-500">{t('routers.radiusClientsDesc')}</p>
                     </div>
                     <button
                         onClick={() => setShowNasModal(true)}
                         className="w-full md:w-auto flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30"
                     >
-                        <Plus size={18} /> Add Radius Client
+                        <Plus size={18} /> {t('routers.addRadiusClient')}
                     </button>
                 </div>
 
                 <div className="space-y-4">
                     {nasList.length === 0 ? (
-                        <p className="text-gray-500 text-center py-4">No Radius Clients configured.</p>
+                        <p className="text-gray-500 text-center py-4">{t('routers.noRadiusClients')}</p>
                     ) : (
                         <div className="grid gap-4">
                             {nasList.map(nas => (
@@ -414,14 +416,14 @@ export default function SettingsPage() {
                                         </div>
                                         <div>
                                             <h3 className="font-semibold text-gray-800 dark:text-white">{nas.nasname}</h3>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">Secret: <span className="font-mono bg-gray-100 dark:bg-gray-900 px-1 rounded">{nas.secret}</span></p>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">{t('routers.radiusSecret')}: <span className="font-mono bg-gray-100 dark:bg-gray-900 px-1 rounded">{nas.secret}</span></p>
                                             {nas.description && <p className="text-xs text-gray-400 italic">{nas.description}</p>}
                                         </div>
                                     </div>
                                     <button
                                         onClick={() => handleDeleteNas(nas.id)}
                                         className="p-2 text-red-600 hover:bg-red-50 rounded-md"
-                                        title="Delete"
+                                        title={t('common.delete')}
                                     >
                                         <Trash2 size={18} />
                                     </button>
@@ -437,7 +439,7 @@ export default function SettingsPage() {
             {/* Isolir Settings */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                 <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
-                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Isolir (Auto-Drop) Configuration</h2>
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('routers.isolirConfig')}</h2>
                     <div className="flex gap-2">
                         <button
                             onClick={runAutoDrop}
@@ -445,27 +447,27 @@ export default function SettingsPage() {
                             className="flex items-center gap-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 px-4 py-2 rounded-md hover:bg-red-200 dark:hover:bg-red-900/50 transition-all font-medium text-sm"
                         >
                             {savingConfig ? <Loader2 className="animate-spin" size={18} /> : <AlertTriangle size={18} />}
-                            Jalankan Auto-Isolir
+                            {t('routers.runAutoIsolir')}
                         </button>
                         <button
                             onClick={() => setShowConfigModal(true)}
                             className="flex items-center gap-2 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-4 py-2 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all font-medium text-sm"
                         >
-                            <Settings size={18} /> Configure & Generate Script
+                            <Settings size={18} /> {t('routers.configureGenerate')}
                         </button>
                     </div>
                 </div>
                 <div className="space-y-4">
                     <p className="text-gray-600 dark:text-gray-400">
-                        Configure connection parameters for isolated users. This provides a configuration script to redirect unpaid users to the billing page.
+                        {t('routers.isolirDesc')}
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
-                            <span className="text-gray-500 dark:text-gray-400 block mb-1">IP Pool</span>
+                            <span className="text-gray-500 dark:text-gray-400 block mb-1">{t('routers.ipPoolName')}</span>
                             <span className="font-mono font-medium text-gray-800 dark:text-gray-200">{config.poolName} ({config.poolRange})</span>
                         </div>
                         <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
-                            <span className="text-gray-500 dark:text-gray-400 block mb-1">Target Network</span>
+                            <span className="text-gray-500 dark:text-gray-400 block mb-1">{t('routers.targetNetwork')}</span>
                             <span className="font-mono font-medium text-gray-800 dark:text-gray-200">{config.networkCidr}</span>
                         </div>
                     </div>
@@ -486,7 +488,7 @@ export default function SettingsPage() {
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md border border-gray-200 dark:border-gray-700">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{currentConnection ? 'Edit Connection' : 'Add Connection'}</h3>
+                                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{currentConnection ? t('routers.editConnection') : t('routers.addConnection')}</h3>
                                 <button onClick={() => setIsEditing(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
                                     <X size={20} />
                                 </button>
@@ -494,53 +496,53 @@ export default function SettingsPage() {
                             <form onSubmit={handleSaveConnection}>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Connection Name</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.connectionName')}</label>
                                         <input
                                             type="text"
-                                            placeholder="e.g., Main Router"
+                                            placeholder={t('routers.connectionNamePlaceholder')}
                                             className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                             value={connForm.name}
                                             onChange={(e) => setConnForm({ ...connForm, name: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">IP Address</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.ipAddress')}</label>
                                         <input
                                             type="text"
                                             required
-                                            placeholder="192.168.88.1"
+                                            placeholder={t('routers.ipAddressPlaceholder')}
                                             className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                             value={connForm.host}
                                             onChange={(e) => setConnForm({ ...connForm, host: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Port</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.apiPort')}</label>
                                         <input
                                             type="number"
                                             required
-                                            placeholder="8728"
+                                            placeholder={t('routers.portPlaceholder')}
                                             className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                             value={connForm.port}
                                             onChange={(e) => setConnForm({ ...connForm, port: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.username')}</label>
                                         <input
                                             type="text"
                                             required
-                                            placeholder="admin"
+                                            placeholder={t('routers.usernamePlaceholder')}
                                             className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                             value={connForm.user}
                                             onChange={(e) => setConnForm({ ...connForm, user: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.password')}</label>
                                         <input
                                             type="password"
-                                            placeholder={currentConnection ? "Leave empty to keep unchanged" : ""}
+                                            placeholder={currentConnection ? t('routers.keepBlank') : ""}
                                             className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                             value={connForm.password}
                                             onChange={(e) => setConnForm({ ...connForm, password: e.target.value })}
@@ -553,13 +555,13 @@ export default function SettingsPage() {
                                         onClick={() => setIsEditing(false)}
                                         className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-md"
                                     >
-                                        Cancel
+                                        {t('common.cancel')}
                                     </button>
                                     <button
                                         type="submit"
                                         className="px-4 py-2 bg-accent text-white rounded-md hover:opacity-90"
                                     >
-                                        Save
+                                        {t('common.save')}
                                     </button>
                                 </div>
                             </form>
@@ -578,10 +580,10 @@ export default function SettingsPage() {
                                 <div>
                                     <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                                         <Settings className="text-blue-500" />
-                                        Isolir Configuration
+                                        {t('routers.isolirConfig')}
                                     </h2>
                                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                        Configure Auto-Drop parameters and generate Mikrotik Script
+                                        {t('routers.configureGenerate')}
                                     </p>
                                 </div>
                                 <button
@@ -595,11 +597,11 @@ export default function SettingsPage() {
                             <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
                                 {/* Configuration Form */}
                                 <div className="space-y-4">
-                                    <h3 className="font-semibold text-gray-700 dark:text-gray-200 border-b pb-2 mb-4">Parameters</h3>
+                                    <h3 className="font-semibold text-gray-700 dark:text-gray-200 border-b pb-2 mb-4">{t('routers.parameters')}</h3>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">IP Pool Name</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.ipPoolName')}</label>
                                             <input
                                                 type="text"
                                                 value={config.poolName}
@@ -608,7 +610,7 @@ export default function SettingsPage() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gateway IP (Mikrotik)</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.gatewayIp')}</label>
                                             <input
                                                 type="text"
                                                 value={config.gatewayIp}
@@ -617,7 +619,7 @@ export default function SettingsPage() {
                                             />
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">IP Pool Range</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.ipPoolRange')}</label>
                                             <input
                                                 type="text"
                                                 value={config.poolRange}
@@ -626,7 +628,7 @@ export default function SettingsPage() {
                                             />
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Network CIDR (Target Address List)</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.targetNetwork')}</label>
                                             <input
                                                 type="text"
                                                 value={config.networkCidr}
@@ -636,7 +638,7 @@ export default function SettingsPage() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Billing Server IP</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.billingServerIp')}</label>
                                             <input
                                                 type="text"
                                                 value={config.billingIp}
@@ -645,7 +647,7 @@ export default function SettingsPage() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Web App Port</label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.webAppPort')}</label>
                                             <input
                                                 type="text"
                                                 value={config.appPort}
@@ -659,20 +661,20 @@ export default function SettingsPage() {
                                 {/* Script Preview */}
                                 <div className="flex flex-col h-full">
                                     <h3 className="font-semibold text-gray-700 dark:text-gray-200 border-b pb-2 mb-4 flex justify-between items-center">
-                                        Generated Mikrotik Script
+                                        {t('routers.generatedScript')}
                                         <button
                                             onClick={copyScript}
                                             className="text-xs flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
                                         >
                                             {copied ? <Check size={12} /> : <Copy size={12} />}
-                                            {copied ? 'Copied!' : 'Copy to Clipboard'}
+                                            {copied ? t('routers.copied') : t('routers.copyToClipboard')}
                                         </button>
                                     </h3>
                                     <div className="bg-gray-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto grow whitespace-pre shadow-inner">
                                         {generateScript()}
                                     </div>
                                     <p className="text-xs text-gray-500 mt-2 italic">
-                                        * Copy and paste this script into your Mikrotik Terminal to apply settings.
+                                        {t('routers.scriptNote')}
                                     </p>
                                 </div>
                             </div>
@@ -682,7 +684,7 @@ export default function SettingsPage() {
                                     onClick={() => setShowConfigModal(false)}
                                     className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                                 >
-                                    Close
+                                    {t('common.close')}
                                 </button>
                                 <button
                                     onClick={handleSaveConfig}
@@ -690,7 +692,7 @@ export default function SettingsPage() {
                                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
                                 >
                                     <Save size={18} />
-                                    {savingConfig ? 'Saving...' : 'Save Configuration'}
+                                    {savingConfig ? t('routers.saving') : t('routers.saveConfiguration')}
                                 </button>
                             </div>
                         </div>
@@ -704,7 +706,7 @@ export default function SettingsPage() {
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md border border-gray-200 dark:border-gray-700">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Add Radius Client (NAS)</h3>
+                                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{t('routers.addRadiusClient')}</h3>
                                 <button onClick={() => setShowNasModal(false)} className="text-gray-500 hover:text-gray-700">
                                     <X size={20} />
                                 </button>
@@ -712,32 +714,32 @@ export default function SettingsPage() {
                             <form onSubmit={handleSaveNas}>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Router IP Address (Mikrotik)</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.routerIpAddress')}</label>
                                         <input
                                             type="text"
                                             required
-                                            placeholder="192.168.1.1"
+                                            placeholder={t('routers.ipAddressPlaceholder')}
                                             className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                             value={nasForm.nasname}
                                             onChange={(e) => setNasForm({ ...nasForm, nasname: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Radius Secret</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.radiusSecret')}</label>
                                         <input
                                             type="text"
                                             required
-                                            placeholder="mysecret123"
+                                            placeholder={t('routers.radiusSecretPlaceholder')}
                                             className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                             value={nasForm.secret}
                                             onChange={(e) => setNasForm({ ...nasForm, secret: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.description')}</label>
                                         <input
                                             type="text"
-                                            placeholder="Main Gateway"
+                                            placeholder={t('routers.descriptionPlaceholder')}
                                             className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                             value={nasForm.description}
                                             onChange={(e) => setNasForm({ ...nasForm, description: e.target.value })}
@@ -750,13 +752,13 @@ export default function SettingsPage() {
                                         onClick={() => setShowNasModal(false)}
                                         className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
                                     >
-                                        Cancel
+                                        {t('common.cancel')}
                                     </button>
                                     <button
                                         type="submit"
                                         className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
                                     >
-                                        Save Client
+                                        {t('routers.saveClient')}
                                     </button>
                                 </div>
                             </form>

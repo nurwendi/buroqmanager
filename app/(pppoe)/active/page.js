@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Activity, RefreshCw, ArrowUpDown, Search, ExternalLink, Power, Wifi, RotateCcw, MoreHorizontal, X } from 'lucide-react';
 import { useDashboard } from '@/contexts/DashboardContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ActiveConnectionsPage() {
+    const { t } = useLanguage();
     const [connections, setConnections] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -126,7 +128,7 @@ export default function ActiveConnectionsPage() {
 
     const handleSaveWifi = async (e) => {
         e.preventDefault();
-        if (!confirm('This will update the device Wi-Fi settings. The device might reconnect. Continue?')) return;
+        if (!confirm(t('pppoe.wifiUpdateConfirm'))) return;
 
         try {
             const res = await fetch('/api/genieacs/wifi', {
@@ -141,20 +143,20 @@ export default function ActiveConnectionsPage() {
 
             const data = await res.json();
             if (res.ok) {
-                alert('Success: Wi-Fi update task queued.');
+                alert(t('pppoe.wifiUpdateSuccess'));
                 setEditingDevice(null);
                 // Refresh ACS data after short delay
                 setTimeout(() => fetchConnections(), 2000);
             } else {
-                alert('Error: ' + data.error);
+                alert(t('pppoe.wifiUpdateFailed', { error: data.error }));
             }
         } catch (err) {
-            alert('Error: ' + err.message);
+            alert(t('pppoe.wifiUpdateFailed', { error: err.message }));
         }
     };
 
     const handleDisconnect = async (id, name) => {
-        if (!confirm(`Are you sure you want to disconnect user ${name}?`)) return;
+        if (!confirm(t('pppoe.disconnectConfirm', { name }))) return;
 
         try {
             const res = await fetch(`/api/pppoe/active/${encodeURIComponent(id)}`, {
@@ -166,16 +168,16 @@ export default function ActiveConnectionsPage() {
                 fetchConnections();
             } else {
                 const data = await res.json();
-                alert(`Failed to disconnect: ${data.error}`);
+                alert(t('pppoe.disconnectFailed', { error: data.error }));
             }
         } catch (error) {
             console.error('Error disconnecting:', error);
-            alert('Failed to disconnect user');
+            alert(t('pppoe.disconnectFailed', { error: error.message }));
         }
     };
 
     const handleReboot = async (deviceId, serial) => {
-        if (!confirm(`Are you sure you want to reboot device ${serial}?`)) return;
+        if (!confirm(t('pppoe.rebootConfirm', { serial }))) return;
 
         try {
             const res = await fetch('/api/genieacs/reboot', {
@@ -185,12 +187,12 @@ export default function ActiveConnectionsPage() {
             });
 
             if (res.ok) {
-                alert('Reboot task queued successfully.');
+                alert(t('pppoe.rebootQueued'));
             } else {
-                alert('Failed to queue reboot.');
+                alert(t('pppoe.rebootFailed'));
             }
         } catch (e) {
-            alert('Error: ' + e.message);
+            alert(t('pppoe.rebootFailed'));
         }
     };
 
@@ -228,7 +230,7 @@ export default function ActiveConnectionsPage() {
             <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6">
                 <div className="flex items-center space-x-2">
                     <Activity size={28} className="text-accent" />
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">Active Connections</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('pppoe.activeConnections')}</h1>
                 </div>
 
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:space-x-4">
@@ -236,7 +238,7 @@ export default function ActiveConnectionsPage() {
                         <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Search..."
+                            placeholder={t('pppoe.searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full md:w-auto pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -251,14 +253,14 @@ export default function ActiveConnectionsPage() {
                                 onChange={(e) => setAutoRefresh(e.target.checked)}
                                 className="w-4 h-4"
                             />
-                            <span className="text-sm">Auto-refresh (5s)</span>
+                            <span className="text-sm">{t('pppoe.autoRefresh')}</span>
                         </label>
                         <button
                             onClick={fetchConnections}
                             className="flex items-center space-x-2 px-4 py-2 bg-accent text-white rounded hover:opacity-90 transition-all"
                         >
                             <RefreshCw size={16} />
-                            <span>Refresh</span>
+                            <span>{t('common.refresh')}</span>
                         </button>
                     </div>
                 </div>
@@ -271,7 +273,7 @@ export default function ActiveConnectionsPage() {
             )}
 
             {loading && connections.length === 0 ? (
-                <div className="text-center py-8 dark:text-gray-300">Loading...</div>
+                <div className="text-center py-8 dark:text-gray-300">{t('common.loading')}</div>
             ) : (
                 <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
                     <div className="overflow-x-auto">
@@ -280,7 +282,7 @@ export default function ActiveConnectionsPage() {
 
                                 <tr>
                                     <th className="md:hidden px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        More
+                                        {t('common.more')}
                                     </th>
                                     <th
                                         className="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5"
@@ -288,7 +290,7 @@ export default function ActiveConnectionsPage() {
                                         onClick={() => sortData('name')}
                                     >
                                         <div className="flex items-center gap-1">
-                                            Username <ArrowUpDown size={14} />
+                                            {t('pppoe.username')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th
@@ -297,7 +299,7 @@ export default function ActiveConnectionsPage() {
                                         onClick={() => sortData('address')}
                                     >
                                         <div className="flex items-center gap-1">
-                                            IP Address <ArrowUpDown size={14} />
+                                            {t('pppoe.ipAddress')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     {/* SSID Column */}
@@ -306,7 +308,7 @@ export default function ActiveConnectionsPage() {
                                         onClick={() => sortData('ssid')}
                                     >
                                         <div className="flex items-center gap-1">
-                                            SSID <ArrowUpDown size={14} />
+                                            {t('pppoe.ssid')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     {/* Signal Column - Hidden on mobile, in More */}
@@ -315,7 +317,7 @@ export default function ActiveConnectionsPage() {
                                         onClick={() => sortData('rx_power')}
                                     >
                                         <div className="flex items-center gap-1">
-                                            Signal <ArrowUpDown size={14} />
+                                            {t('pppoe.signal')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     {/* Temp Column */}
@@ -324,7 +326,7 @@ export default function ActiveConnectionsPage() {
                                         onClick={() => sortData('temp')}
                                     >
                                         <div className="flex items-center gap-1">
-                                            Temp <ArrowUpDown size={14} />
+                                            {t('pppoe.temp')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     {/* SN Column */}
@@ -333,7 +335,7 @@ export default function ActiveConnectionsPage() {
                                         onClick={() => sortData('serial')}
                                     >
                                         <div className="flex items-center gap-1">
-                                            SN <ArrowUpDown size={14} />
+                                            {t('pppoe.sn')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th
@@ -342,7 +344,7 @@ export default function ActiveConnectionsPage() {
                                         onClick={() => sortData('uptime')}
                                     >
                                         <div className="flex items-center gap-1">
-                                            Uptime <ArrowUpDown size={14} />
+                                            {t('pppoe.uptime')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th
@@ -351,7 +353,7 @@ export default function ActiveConnectionsPage() {
                                         onClick={() => sortData('caller-id')}
                                     >
                                         <div className="flex items-center gap-1">
-                                            Caller ID <ArrowUpDown size={14} />
+                                            {t('pppoe.callerId')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th
@@ -360,12 +362,11 @@ export default function ActiveConnectionsPage() {
                                         onClick={() => sortData('tx-byte')}
                                     >
                                         <div className="flex items-center gap-1">
-                                            Data <ArrowUpDown size={14} />
+                                            {t('pppoe.data')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-
-                                        Actions
+                                        {t('common.actions')}
                                     </th>
                                 </tr>
                             </thead>
@@ -374,7 +375,7 @@ export default function ActiveConnectionsPage() {
 
                                     <tr>
                                         <td colSpan="11" className="px-6 py-4 text-center text-gray-500">
-                                            No active connections
+                                            {t('pppoe.noActiveConnections')}
                                         </td>
                                     </tr>
                                 ) : (
@@ -442,19 +443,19 @@ export default function ActiveConnectionsPage() {
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         className="flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-3 md:py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                                                        title="Manage Device"
+                                                                        title={t('pppoe.manageDeviceTitle')}
                                                                     >
                                                                         <ExternalLink size={14} className="md:mr-1" />
-                                                                        <span className="hidden md:inline">Manage</span>
+                                                                        <span className="hidden md:inline">{t('pppoe.manage')}</span>
                                                                     </a>
                                                                 )}
                                                                 <button
                                                                     onClick={() => handleDisconnect(conn['.id'], conn.name)}
                                                                     className="flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-3 md:py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                                                                    title="Disconnect User"
+                                                                    title={t('pppoe.disconnectUserTitle')}
                                                                 >
                                                                     <Power size={14} className="md:mr-1" />
-                                                                    <span className="hidden md:inline">Disconnect</span>
+                                                                    <span className="hidden md:inline">{t('pppoe.disconnect')}</span>
                                                                 </button>
                                                             </div>
 
@@ -467,18 +468,18 @@ export default function ActiveConnectionsPage() {
                                                                     <button
                                                                         onClick={() => openEditWifi(acs)}
                                                                         className="flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-3 md:py-1 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                                                                        title="Edit WiFi"
+                                                                        title={t('pppoe.editWifiTitle')}
                                                                     >
                                                                         <Wifi size={14} className="md:mr-1" />
-                                                                        <span className="hidden md:inline">WiFi</span>
+                                                                        <span className="hidden md:inline">{t('pppoe.wifi')}</span>
                                                                     </button>
                                                                     <button
                                                                         onClick={() => handleReboot(acs.id, acs.serial)}
                                                                         className="flex items-center justify-center w-8 h-8 md:w-auto md:h-auto md:px-3 md:py-1 border border-transparent text-xs font-medium rounded text-orange-700 bg-orange-100 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-                                                                        title="Reboot Device"
+                                                                        title={t('pppoe.rebootDeviceTitle')}
                                                                     >
                                                                         <RotateCcw size={14} className="md:mr-1" />
-                                                                        <span className="hidden md:inline">Reboot</span>
+                                                                        <span className="hidden md:inline">{t('pppoe.reboot')}</span>
                                                                     </button>
                                                                 </div>
                                                             )}
@@ -497,15 +498,15 @@ export default function ActiveConnectionsPage() {
                     <div className="flex items-center justify-between px-4 md:px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-gray-700 dark:text-gray-300">
-                                Showing <span className="font-medium mx-1">
+                                {t('common.showing')} <span className="font-medium mx-1">
                                     {(currentPage - 1) * (rowsPerPage === 'All' ? connections.length : rowsPerPage) + 1}
                                 </span>
-                                to
+                                {t('common.to')}
                                 <span className="font-medium mx-1">
                                     {rowsPerPage === 'All' ? getSortedConnections().length : Math.min(currentPage * rowsPerPage, getSortedConnections().length)}
                                 </span>
-                                of
-                                <span className="font-medium mx-1">{getSortedConnections().length}</span> results
+                                {t('common.of')}
+                                <span className="font-medium mx-1">{getSortedConnections().length}</span> {t('common.results')}
                             </div>
 
                             <select
@@ -531,7 +532,7 @@ export default function ActiveConnectionsPage() {
                                 disabled={currentPage === 1}
                                 className="px-3 py-1 rounded bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Previous
+                                {t('common.previous')}
                             </button>
                             <button
                                 onClick={() => setCurrentPage(prev => {
@@ -541,7 +542,7 @@ export default function ActiveConnectionsPage() {
                                 disabled={rowsPerPage === 'All' || currentPage >= Math.ceil(getSortedConnections().length / rowsPerPage)}
                                 className="px-3 py-1 rounded bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Next
+                                {t('common.next')}
                             </button>
                         </div>
                     </div>
@@ -549,22 +550,22 @@ export default function ActiveConnectionsPage() {
             )}
 
             <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                Total active connections: {connections.length}
+                {t('pppoe.totalActive')} {connections.length}
             </div>
 
             {/* Edit Wi-Fi Modal */}
             {editingDevice && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-                        <h2 className="text-xl font-bold mb-4 text-gray-900">Edit Wi-Fi Settings</h2>
+                        <h2 className="text-xl font-bold mb-4 text-gray-900">{t('pppoe.editWifiSettings')}</h2>
                         <p className="text-sm text-gray-500 mb-4">
-                            Device: {editingDevice.serial} <br />
-                            Note: Changing SSID/Password may disconnect devices properly.
+                            {t('pppoe.deviceSerial', { serial: editingDevice.serial })} <br />
+                            {t('pppoe.wifiNote')}
                         </p>
 
                         <form onSubmit={handleSaveWifi} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1 text-gray-700">SSID Name</label>
+                                <label className="block text-sm font-medium mb-1 text-gray-700">{t('pppoe.ssidName')}</label>
                                 <input
                                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
                                     value={wifiForm.ssid}
@@ -573,16 +574,16 @@ export default function ActiveConnectionsPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1 text-gray-700">New Password</label>
+                                <label className="block text-sm font-medium mb-1 text-gray-700">{t('pppoe.newPassword')}</label>
                                 <input
                                     className="w-full border rounded-lg px-3 py-2 text-gray-900"
                                     type="text"
-                                    placeholder="Leave empty to keep current"
+                                    placeholder={t('pppoe.leaveEmpty')}
                                     value={wifiForm.password}
                                     onChange={e => setWifiForm({ ...wifiForm, password: e.target.value })}
                                     minLength={8}
                                 />
-                                <p className="text-xs text-gray-400 mt-1">Min 8 characters.</p>
+                                <p className="text-xs text-gray-400 mt-1">{t('pppoe.min8Chars')}</p>
                             </div>
 
                             <div className="flex justify-end gap-3 mt-6">
@@ -591,13 +592,13 @@ export default function ActiveConnectionsPage() {
                                     onClick={() => setEditingDevice(null)}
                                     className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
                                 >
-                                    Cancel
+                                    {t('common.cancel')}
                                 </button>
                                 <button
                                     type="submit"
                                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                                 >
-                                    Save Changes
+                                    {t('common.save')}
                                 </button>
                             </div>
                         </form>
@@ -629,22 +630,22 @@ export default function ActiveConnectionsPage() {
                                 {/* Connection Stats */}
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                                        <span className="text-xs text-blue-600 dark:text-blue-400 block mb-1">Download</span>
+                                        <span className="text-xs text-blue-600 dark:text-blue-400 block mb-1">{t('pppoe.download')}</span>
                                         <span className="font-bold text-gray-800 dark:text-white">{formatBytes(detailsModal['tx-byte'])}</span>
                                     </div>
                                     <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                                        <span className="text-xs text-green-600 dark:text-green-400 block mb-1">Upload</span>
+                                        <span className="text-xs text-green-600 dark:text-green-400 block mb-1">{t('pppoe.upload')}</span>
                                         <span className="font-bold text-gray-800 dark:text-white">{formatBytes(detailsModal['rx-byte'])}</span>
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
                                     <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                                        <span className="text-sm text-gray-500">Uptime</span>
+                                        <span className="text-sm text-gray-500">{t('pppoe.uptime')}</span>
                                         <span className="text-sm font-medium dark:text-gray-200">{formatUptime(detailsModal.uptime)}</span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                                        <span className="text-sm text-gray-500">Caller ID</span>
+                                        <span className="text-sm text-gray-500">{t('pppoe.callerId')}</span>
                                         <span className="text-sm font-medium dark:text-gray-200">{detailsModal['caller-id'] || '-'}</span>
                                     </div>
 
@@ -652,24 +653,24 @@ export default function ActiveConnectionsPage() {
                                     {detailsModal.acs ? (
                                         <>
                                             <div className="pt-2">
-                                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Device Info</span>
+                                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">{t('pppoe.deviceInfo')}</span>
                                                 <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 space-y-2 text-sm">
                                                     <div className="flex justify-between">
-                                                        <span className="text-gray-500">SSID</span>
+                                                        <span className="text-gray-500">{t('pppoe.ssid')}</span>
                                                         <span className="font-medium dark:text-gray-200">{detailsModal.acs.ssid || '-'}</span>
                                                     </div>
                                                     <div className="flex justify-between">
-                                                        <span className="text-gray-500">Signal</span>
+                                                        <span className="text-gray-500">{t('pppoe.signal')}</span>
                                                         <span className={`font-bold ${parseFloat(detailsModal.acs.rx_power) < -25 ? 'text-red-500' : 'text-green-500'}`}>
                                                             {detailsModal.acs.rx_power} dBm
                                                         </span>
                                                     </div>
                                                     <div className="flex justify-between">
-                                                        <span className="text-gray-500">Temp</span>
+                                                        <span className="text-gray-500">{t('pppoe.temp')}</span>
                                                         <span className="font-medium dark:text-gray-200">{detailsModal.acs.temp}°C</span>
                                                     </div>
                                                     <div className="flex justify-between">
-                                                        <span className="text-gray-500">S/N</span>
+                                                        <span className="text-gray-500">{t('pppoe.sn')}</span>
                                                         <span className="font-mono text-xs dark:text-gray-200">{detailsModal.acs.serial}</span>
                                                     </div>
                                                 </div>
@@ -677,7 +678,7 @@ export default function ActiveConnectionsPage() {
                                         </>
                                     ) : (
                                         <div className="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg text-center text-sm text-gray-500 italic">
-                                            No GenieACS device linked.
+                                            {t('pppoe.noAcsLinked')}
                                         </div>
                                     )}
                                 </div>
@@ -689,7 +690,7 @@ export default function ActiveConnectionsPage() {
                                     onClick={() => handleDisconnect(detailsModal['.id'], detailsModal.name)}
                                     className="flex items-center justify-center gap-2 px-4 py-3 bg-red-100 text-red-700 rounded-xl font-medium hover:bg-red-200 transition-colors"
                                 >
-                                    <Power size={18} /> Disconnect
+                                    <Power size={18} /> {t('pppoe.disconnect')}
                                 </button>
                                 {detailsModal.address && (
                                     <a
@@ -698,7 +699,7 @@ export default function ActiveConnectionsPage() {
                                         rel="noopener noreferrer"
                                         className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-xl font-medium hover:bg-blue-200 transition-colors"
                                     >
-                                        <ExternalLink size={18} /> Manage
+                                        <ExternalLink size={18} /> {t('pppoe.manage')}
                                     </a>
                                 )}
                                 {detailsModal.acs && (
@@ -707,13 +708,13 @@ export default function ActiveConnectionsPage() {
                                             onClick={() => { setDetailsModal(null); openEditWifi(detailsModal.acs); }}
                                             className="flex items-center justify-center gap-2 px-4 py-3 bg-indigo-100 text-indigo-700 rounded-xl font-medium hover:bg-indigo-200 transition-colors"
                                         >
-                                            <Wifi size={18} /> WiFi
+                                            <Wifi size={18} /> {t('pppoe.wifi')}
                                         </button>
                                         <button
                                             onClick={() => handleReboot(detailsModal.acs.id, detailsModal.acs.serial)}
                                             className="flex items-center justify-center gap-2 px-4 py-3 bg-orange-100 text-orange-700 rounded-xl font-medium hover:bg-orange-200 transition-colors"
                                         >
-                                            <RotateCcw size={18} /> Reboot
+                                            <RotateCcw size={18} /> {t('pppoe.reboot')}
                                         </button>
                                     </>
                                 )}

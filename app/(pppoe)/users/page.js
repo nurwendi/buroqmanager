@@ -512,23 +512,23 @@ export default function UsersPage() {
 
         // Validation for new registration or edit
         const missingFields = [];
-        if (!formData.name) missingFields.push("Username");
-        if (!editMode && !formData.password) missingFields.push("Password");
-        if (!formData.profile || formData.profile === '' || formData.profile === 'default') missingFields.push("Profile");
-        if (!formData.customerName) missingFields.push("Nama Customer");
-        if (!formData.customerAddress) missingFields.push("Alamat");
+        if (!formData.name) missingFields.push(t('users.username'));
+        if (!editMode && !formData.password) missingFields.push(t('users.password'));
+        if (!formData.profile || formData.profile === '' || formData.profile === 'default') missingFields.push(t('users.profile'));
+        if (!formData.customerName) missingFields.push(t('users.fullName'));
+        if (!formData.customerAddress) missingFields.push(t('users.address'));
         // Determine effective Agent/Tech IDs based on role
         const effectiveAgentId = userRole === 'agent' ? currentUserId : formData.agentId;
         const effectiveTechnicianId = userRole === 'technician' ? currentUserId : formData.technicianId;
 
         if (missingFields.length === 0) {
             // Check specific role-based requirements
-            if (!effectiveAgentId && ['superadmin', 'admin', 'manager', 'agent'].includes(userRole)) missingFields.push("Agent");
-            if (!effectiveTechnicianId && ['superadmin', 'admin', 'manager', 'technician'].includes(userRole)) missingFields.push("Teknisi");
+            if (!effectiveAgentId && ['superadmin', 'admin', 'manager', 'agent'].includes(userRole)) missingFields.push(t('users.agent'));
+            if (!effectiveTechnicianId && ['superadmin', 'admin', 'manager', 'technician'].includes(userRole)) missingFields.push(t('users.technician'));
         }
 
         if (missingFields.length > 0) {
-            alert(`Mohon lengkapi data wajib berikut:\n- ${missingFields.join('\n- ')}`);
+            alert(t('messages.validationError', { fields: missingFields.join('\n- ') }));
             return;
         }
 
@@ -567,16 +567,16 @@ export default function UsersPage() {
                 });
 
                 if (res.ok) {
-                    alert('Edit request submitted for approval.');
+                    alert(t('messages.editRequestSubmitted'));
                     handleCloseModal();
                     fetchPendingRegistrations();
                 } else {
                     const data = await res.json();
-                    alert('Failed to submit edit request: ' + data.error);
+                    alert(t('messages.failedToSubmitEditRequest') + ': ' + data.error);
                 }
             } catch (error) {
                 console.error('Failed to submit edit request', error);
-                alert('Error submitting request.');
+                alert(t('messages.errorSubmittingRequest'));
             }
             return;
         }
@@ -633,7 +633,7 @@ export default function UsersPage() {
                 if (!custRes.ok) {
                     const custData = await custRes.json();
                     console.error('Failed to save customer data:', custData);
-                    alert('User saved to router, but failed to save database details: ' + (custData.error || 'Unknown error'));
+                    alert(t('messages.userSavedRouterFailedDB') + ': ' + (custData.error || t('messages.unknownError')));
                 }
 
                 handleCloseModal();
@@ -643,11 +643,11 @@ export default function UsersPage() {
                 fetchCustomersData();
             } else {
                 const data = await res.json();
-                alert('Failed to save user: ' + (data.error || 'Unknown error'));
+                alert(t('messages.failedToSaveUser') + ': ' + (data.error || t('messages.unknownError')));
             }
         } catch (error) {
             console.error('Failed to save user', error);
-            alert('An error occurred while saving the user.');
+            alert(t('messages.errorSavingUser'));
         }
     };
 
@@ -708,7 +708,7 @@ export default function UsersPage() {
     };
 
     const handleDelete = async (user) => {
-        if (!confirm(`Are you sure you want to delete user ${user.name}?`)) return;
+        if (!confirm(t('messages.confirmDeleteUser', { name: user.name }))) return;
 
         // Staff/Editor/Agent/Technician Delete Request
         if (['staff', 'editor', 'agent', 'technician'].includes(userRole)) {
@@ -799,11 +799,11 @@ export default function UsersPage() {
 
         if (agentId) {
             const agent = systemUsers.find(u => u.id === agentId);
-            if (agent) parts.push(`Agent: ${agent.fullName || agent.username}`);
+            if (agent) parts.push(`${t('pppoe.agentLabel')}: ${agent.fullName || agent.username}`);
         }
         if (technicianId) {
             const tech = systemUsers.find(u => u.id === technicianId);
-            if (tech) parts.push(`Tech: ${tech.fullName || tech.username}`);
+            if (tech) parts.push(`${t('pppoe.techLabel')}: ${tech.fullName || tech.username}`);
         }
 
         return parts.length > 0 ? parts.join(', ') : '-';
@@ -834,7 +834,7 @@ export default function UsersPage() {
 
     const handleBulkEditSubmit = async (e) => {
         e.preventDefault();
-        if (!confirm(`Update Staff for ${selectedUsers.size} users?`)) return;
+        if (!confirm(t('messages.confirmBulkUpdate', { count: selectedUsers.size }))) return;
 
         setLoading(true);
         try {
@@ -886,7 +886,7 @@ export default function UsersPage() {
                             onClick={() => setShowBulkEditModal(true)}
                             className="w-full md:w-auto bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors shadow-lg animate-pulse"
                         >
-                            <UsersIcon size={20} /> {t('users.bulkEdit')} ({selectedUsers.size})
+                            <UsersIcon size={20} /> {t('pppoe.bulkEdit')} ({selectedUsers.size})
                         </button>
                     )}
 
@@ -894,7 +894,7 @@ export default function UsersPage() {
                         onClick={() => setShowModal(true)}
                         className="w-full md:w-auto bg-accent text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all"
                     >
-                        <Plus size={20} /> {t('users.addUser')}
+                        <Plus size={20} /> {t('pppoe.addUser')}
                     </button>
                 </div>
             </div>
@@ -903,20 +903,20 @@ export default function UsersPage() {
             {((userRole === 'admin' || userRole === 'editor' || userRole === 'staff') && pendingRegistrations.length > 0) && (
                 <div className="bg-yellow-50/30 dark:bg-yellow-900/30 backdrop-blur-xl border border-yellow-200/50 dark:border-yellow-800/50 rounded-lg p-4 md:p-6 shadow-lg">
                     <h2 className="text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-4 flex items-center gap-2">
-                        <Clock className="text-yellow-600 dark:text-yellow-400" /> Pending Registrations
+                        <Clock className="text-yellow-600 dark:text-yellow-400" /> {t('pppoe.pendingRegistrations')}
                     </h2>
                     <div className="overflow-x-auto bg-white rounded-lg shadow-sm">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Username</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Type</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Customer Name</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Agent</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Plan</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.username')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.status')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.fullName')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.agent')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.profile')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.status')}</th>
                                     {userRole === 'admin' && (
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.actions')}</th>
                                     )}
                                 </tr>
                             </thead>
@@ -931,7 +931,7 @@ export default function UsersPage() {
                                                     reg.type === 'edit' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300' :
                                                         'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
                                                     }`}>
-                                                    {reg.type === 'edit' ? 'Edit' : reg.type === 'delete' ? 'Delete' : 'Register'}
+                                                    {reg.type === 'edit' ? t('common.edit') : reg.type === 'delete' ? t('common.delete') : t('pppoe.register')}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{reg.name}</td>
@@ -945,7 +945,7 @@ export default function UsersPage() {
                                                 {reg.registrationData?.profile} / {reg.registrationData?.service}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-yellow-600 dark:text-yellow-400 font-medium">
-                                                Pending Review
+                                                {t('pppoe.pendingReview')}
                                             </td>
                                             {(userRole === 'admin' || userRole === 'editor') && (
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
@@ -953,7 +953,7 @@ export default function UsersPage() {
                                                         onClick={() => handleReview(reg)}
                                                         className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 flex items-center gap-1"
                                                     >
-                                                        <Edit2 size={18} /> Review
+                                                        <Edit2 size={18} /> {t('common.review')}
                                                     </button>
                                                 </td>
                                             )}
@@ -992,7 +992,7 @@ export default function UsersPage() {
                             )}
 
                             <p className={`text-xl md:text-2xl font-bold transition-colors z-10 ${filterStatus === 'all' ? 'text-blue-700 dark:text-blue-200' : 'text-gray-800 dark:text-white'}`}>{users.length}</p>
-                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider z-10">{t('users.all')}</p>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider z-10">{t('pppoe.all')}</p>
                         </button>
 
                         {/* Online */}
@@ -1016,7 +1016,7 @@ export default function UsersPage() {
                             )}
 
                             <p className={`text-xl md:text-2xl font-bold transition-colors z-10 ${filterStatus === 'online' ? 'text-green-700 dark:text-green-200' : 'text-green-600 dark:text-green-400'}`}>{activeConnections.length}</p>
-                            <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider z-10">{t('users.online')}</p>
+                            <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider z-10">{t('pppoe.online')}</p>
                         </button>
 
                         {/* Offline */}
@@ -1040,7 +1040,7 @@ export default function UsersPage() {
                             )}
 
                             <p className={`text-xl md:text-2xl font-bold transition-colors z-10 ${filterStatus === 'offline' ? 'text-gray-700 dark:text-gray-200' : 'text-gray-600 dark:text-gray-300'}`}>{users.length - activeConnections.length}</p>
-                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider z-10">{t('users.offline')}</p>
+                            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider z-10">{t('pppoe.offline')}</p>
                         </button>
                     </div>
                 </div>
@@ -1051,7 +1051,7 @@ export default function UsersPage() {
                         <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
                         <input
                             type="text"
-                            placeholder={t('users.searchPlaceholder')}
+                            placeholder={t('pppoe.searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:placeholder-gray-400"
@@ -1076,10 +1076,10 @@ export default function UsersPage() {
                                             />
                                         </div>
                                         <div className="sm:hidden text-gray-500 text-xs uppercase tracking-wider font-medium">
-                                            More
+                                            {t('common.more')}
                                         </div>
                                     </th>
-                                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.actions')}</th>
                                     <th
                                         onClick={() => sortData('username')}
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
@@ -1093,7 +1093,7 @@ export default function UsersPage() {
                                         className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
-                                            Device <ArrowUpDown size={14} />
+                                            {t('pppoe.device')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th
@@ -1101,7 +1101,7 @@ export default function UsersPage() {
                                         className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
-                                            {t('users.profile')} <ArrowUpDown size={14} />
+                                            {t('pppoe.profile')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th
@@ -1109,20 +1109,20 @@ export default function UsersPage() {
                                         className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
-                                            {t('users.partner')} <ArrowUpDown size={14} />
+                                            {t('pppoe.partner')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th
                                         className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                                     >
-                                        Session
+                                        {t('pppoe.session')}
                                     </th>
                                     <th
                                         onClick={() => sortData('usage')}
                                         className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
-                                            Usage <ArrowUpDown size={14} />
+                                            {t('pppoe.usage')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                 </tr>
@@ -1130,11 +1130,11 @@ export default function UsersPage() {
                             <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">Loading...</td>
+                                        <td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('common.loading')}</td>
                                     </tr>
                                 ) : sortedUsers.length === 0 ? (
                                     <tr>
-                                        <td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No users found</td>
+                                        <td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('pppoe.noOfflineUsers')}</td>
                                     </tr>
                                 ) : (
                                     paginatedUsers.map((user) => {
@@ -1178,14 +1178,14 @@ export default function UsersPage() {
                                                                     href={`http://${active.address}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    title="Manage Device (WebFig)"
+                                                                    title={t('pppoe.manageDeviceTitle')}
                                                                     className="p-1 text-teal-600 hover:text-teal-800 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded transition-colors inline-block"
                                                                 >
                                                                     <ExternalLink size={18} />
                                                                 </a>
                                                                 <button
                                                                     onClick={() => handleDisconnect(active['.id'], user.name)}
-                                                                    title="Disconnect User"
+                                                                    title={t('pppoe.disconnectUserTitle')}
                                                                     className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
                                                                 >
                                                                     <Power size={18} />
@@ -1194,21 +1194,21 @@ export default function UsersPage() {
                                                                     <>
                                                                         <button
                                                                             onClick={() => openDeviceDetails(acs)}
-                                                                            title="Device Details"
+                                                                            title={t('pppoe.deviceDetailsTitle')}
                                                                             className="p-1 text-teal-600 hover:text-teal-800 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded transition-colors"
                                                                         >
                                                                             <Info size={18} />
                                                                         </button>
                                                                         <button
                                                                             onClick={() => openEditWifi(acs)}
-                                                                            title="Edit Wi-Fi"
+                                                                            title={t('pppoe.editWifiTitle')}
                                                                             className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                                                                         >
                                                                             <Wifi size={18} />
                                                                         </button>
                                                                         <button
                                                                             onClick={() => handleReboot(acs.id, acs.serial)}
-                                                                            title="Reboot Device"
+                                                                            title={t('pppoe.rebootDeviceTitle')}
                                                                             className="p-1 text-orange-500 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded transition-colors"
                                                                         >
                                                                             <RotateCcw size={18} />
@@ -1219,14 +1219,14 @@ export default function UsersPage() {
                                                         )}
                                                         <button
                                                             onClick={() => handleEdit(user)}
-                                                            title="Edit User"
+                                                            title={t('pppoe.editUserTitle')}
                                                             className="p-1 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                                                         >
                                                             <Edit2 size={18} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(user)}
-                                                            title="Delete User"
+                                                            title={t('pppoe.deleteUserTitle')}
                                                             className="p-1 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                                                         >
                                                             <Trash2 size={18} />
@@ -1237,7 +1237,7 @@ export default function UsersPage() {
                                                 {/* Unified User Column */}
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}`} title={isOnline ? 'Online' : 'Offline'} />
+                                                        <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}`} title={isOnline ? t('users.online') : t('users.offline')} />
                                                         <div className="flex flex-col">
                                                             <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1">
                                                                 {user.name}
@@ -1329,10 +1329,10 @@ export default function UsersPage() {
                                                             {formatBytes((user.usage?.rx || 0) + (user.usage?.tx || 0))}
                                                         </div>
                                                         <div className="flex items-center gap-3 text-xs">
-                                                            <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium" title="Upload">
+                                                            <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium" title={t('pppoe.upload')}>
                                                                 <ArrowUpDown size={10} className="rotate-180" /> {formatBytes(user.usage?.tx || 0)}
                                                             </span>
-                                                            <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium" title="Download">
+                                                            <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium" title={t('pppoe.download')}>
                                                                 <ArrowUpDown size={10} /> {formatBytes(user.usage?.rx || 0)}
                                                             </span>
                                                         </div>
@@ -1350,22 +1350,22 @@ export default function UsersPage() {
                     <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 gap-4">
                         <div className="flex items-center gap-4 text-sm text-gray-700 dark:text-gray-300">
                             <div>
-                                Showing <span className="font-medium mx-1">
+                                {t('billing.showing')} <span className="font-medium mx-1">
                                     {users.length === 0 ? 0 : (currentPage - 1) * (rowsPerPage === 'All' ? filteredUsers.length : rowsPerPage) + 1}
                                 </span>
-                                to
+                                {t('billing.to')}
                                 <span className="font-medium mx-1">
                                     {rowsPerPage === 'All' ? filteredUsers.length : Math.min(currentPage * rowsPerPage, filteredUsers.length)}
                                 </span>
-                                of
-                                <span className="font-medium mx-1">{filteredUsers.length}</span> results
+                                {t('billing.of')}
+                                <span className="font-medium mx-1">{filteredUsers.length}</span> {t('billing.results')}
                             </div>
                             {rowsPerPage !== 'All' && (
                                 <button
                                     onClick={() => setRowsPerPage('All')}
                                     className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium underline"
                                 >
-                                    Show All
+                                    {t('pppoe.showAll')}
                                 </button>
                             )}
                             {rowsPerPage === 'All' && (
@@ -1373,13 +1373,13 @@ export default function UsersPage() {
                                     onClick={() => setRowsPerPage(25)}
                                     className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs font-medium underline"
                                 >
-                                    Pagination
+                                    {t('pppoe.pagination')}
                                 </button>
                             )}
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Rows per page:</span>
+                            <span className="text-sm text-gray-700 dark:text-gray-300">{t('pppoe.rowsPerPage')}</span>
                             <select
                                 value={rowsPerPage}
                                 onChange={(e) => {
@@ -1401,14 +1401,14 @@ export default function UsersPage() {
                                     disabled={currentPage === 1 || rowsPerPage === 'All'}
                                     className="px-3 py-1 rounded bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    Previous
+                                    {t('billing.previous')}
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredUsers.length / (rowsPerPage === 'All' ? filteredUsers.length : rowsPerPage)), p + 1))}
                                     disabled={rowsPerPage === 'All' || currentPage >= Math.ceil(filteredUsers.length / rowsPerPage)}
                                     className="px-3 py-1 rounded bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    Next
+                                    {t('billing.next')}
                                 </button>
                             </div>
                         </div>
@@ -1428,13 +1428,13 @@ export default function UsersPage() {
                             className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-lg shadow-2xl p-6 pb-24 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/20 dark:border-white/10"
                         >
                             <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
-                                {editMode ? t('users.editUser') : t('users.addUser')}
+                                {editMode ? t('pppoe.editUserTitle') : t('pppoe.addUser')}
                             </h2>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 {/* PPPoE Details */}
                                 <div className="border-b pb-4">
                                     <h3 className="text-lg font-semibold mb-3 text-gray-700 flex items-center gap-2">
-                                        <Shield size={20} /> PPPoE Credentials
+                                        <Shield size={20} /> {t('users.credentials')}
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
@@ -1456,7 +1456,7 @@ export default function UsersPage() {
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                                                placeholder={editMode ? "Leave blank to keep current" : ""}
+                                                placeholder={editMode ? t('pppoe.leaveBlankPlaceholder') : ""}
                                             />
                                         </div>
                                         <div>
@@ -1467,8 +1467,8 @@ export default function UsersPage() {
                                                 onChange={(e) => setFormData({ ...formData, profile: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                             >
-                                                <option value="" disabled>-- Select Profile --</option>
-                                                <option value="default">Default</option>
+                                                <option value="" disabled>{t('users.selectProfile')}</option>
+                                                <option value="default">{t('billing.default') || 'Default'}</option>
                                                 {profiles.map(profile => (
                                                     <option key={profile['.id']} value={profile.name}>{profile.name}</option>
                                                 ))}
@@ -1498,10 +1498,10 @@ export default function UsersPage() {
                                 {!editMode && (
                                     <div className="border-b pb-4">
                                         <h3 className="text-lg font-semibold mb-3 text-gray-700 flex items-center gap-2">
-                                            <Server size={20} /> Target Routers
+                                            <Server size={20} /> {t('users.targetRouters')}
                                         </h3>
                                         <div className="space-y-2">
-                                            <p className="text-sm text-gray-500 mb-2">Select which routers to add this user to:</p>
+                                            <p className="text-sm text-gray-500 mb-2">{t('users.selectRoutersDesc')}</p>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                                 {connections.map(conn => (
                                                     <label key={conn.id} className="flex items-center space-x-2 p-2 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
@@ -1544,12 +1544,12 @@ export default function UsersPage() {
                                                 value={formData.customerName}
                                                 onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                                                placeholder="Real name"
+                                                placeholder={t('users.realNamePlaceholder')}
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                                <User size={16} /> Customer ID
+                                                <User size={16} /> {t('users.customerId')}
                                             </label>
                                             <input
                                                 type="text"
@@ -1557,7 +1557,7 @@ export default function UsersPage() {
                                                 readOnly
                                                 disabled
                                                 className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                                                placeholder="Auto-generated"
+                                                placeholder={t('users.autoGenerated')}
                                             />
                                         </div>
                                         <div>
@@ -1569,19 +1569,19 @@ export default function UsersPage() {
                                                 value={formData.customerPhone}
                                                 onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                                                placeholder="08xx..."
+                                                placeholder={t('pppoe.phonePlaceholder')}
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                                <Mail size={16} /> Email Address
+                                                <Mail size={16} /> {t('users.emailAddress')}
                                             </label>
                                             <input
                                                 type="email"
                                                 value={formData.customerEmail}
                                                 onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                                                placeholder="email@example.com"
+                                                placeholder={t('users.emailPlaceholder')}
                                             />
                                         </div>
                                         <div className="md:col-span-2">
@@ -1594,7 +1594,7 @@ export default function UsersPage() {
                                                 onChange={(e) => setFormData({ ...formData, customerAddress: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                                 rows="2"
-                                                placeholder="Full address"
+                                                placeholder={t('users.fullAddressPlaceholder')}
                                             />
                                         </div>
                                     </div>
@@ -1611,7 +1611,7 @@ export default function UsersPage() {
                                                 onChange={(e) => setFormData({ ...formData, agentId: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                             >
-                                                <option value="">-- Select Agent --</option>
+                                                <option value="">{t('users.selectAgent')}</option>
                                                 {systemUsers.filter(u => u.isAgent).map(user => (
                                                     <option key={user.id} value={user.id}>{user.username}</option>
                                                 ))}
@@ -1625,7 +1625,7 @@ export default function UsersPage() {
                                                 onChange={(e) => setFormData({ ...formData, technicianId: e.target.value })}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                             >
-                                                <option value="">-- Select Technician --</option>
+                                                <option value="">{t('users.selectTechnician')}</option>
                                                 {systemUsers.filter(u => u.isTechnician).map(user => (
                                                     <option key={user.id} value={user.id}>{user.username}</option>
                                                 ))}
@@ -1646,7 +1646,7 @@ export default function UsersPage() {
                                         type="submit"
                                         className="px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition-all"
                                     >
-                                        {editMode ? 'Update User' : 'Create User'}
+                                        {editMode ? t('users.updateUser') : t('users.createUser')}
                                     </button>
                                 </div>
                             </form>
@@ -1655,79 +1655,7 @@ export default function UsersPage() {
                 )}
             </AnimatePresence>
 
-            {/* Bulk Edit Modal */}
-            <AnimatePresence>
-                {showBulkEditModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                        <motion.div
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
-                            className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden"
-                        >
-                            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
-                                <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                                    <UsersIcon className="text-purple-500" />
-                                    {t('users.bulkEditStaff')}
-                                </h3>
-                            </div>
 
-                            <form onSubmit={handleBulkEditSubmit} className="p-6">
-                                <div className="space-y-4">
-                                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 text-sm text-yellow-800 dark:text-yellow-200">
-                                        You are updating <strong>{selectedUsers.size}</strong> users.
-                                        Select the staff members you want to assign. Leave blank to keep existing.
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.assignAgent')}</label>
-                                        <select
-                                            value={bulkEditData.agentId}
-                                            onChange={(e) => setBulkEditData({ ...bulkEditData, agentId: e.target.value })}
-                                            className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white"
-                                        >
-                                            <option value="">-- No Change --</option>
-                                            {systemUsers.filter(u => u.isAgent).map(user => (
-                                                <option key={user.id} value={user.id}>{user.username}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.assignTechnician')}</label>
-                                        <select
-                                            value={bulkEditData.technicianId}
-                                            onChange={(e) => setBulkEditData({ ...bulkEditData, technicianId: e.target.value })}
-                                            className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 text-gray-900 dark:text-white"
-                                        >
-                                            <option value="">-- No Change --</option>
-                                            {systemUsers.filter(u => u.isTechnician).map(user => (
-                                                <option key={user.id} value={user.id}>{user.username}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-700 mt-6">
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowBulkEditModal(false)}
-                                            className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-lg shadow-purple-500/30"
-                                        >
-                                            {t('users.updateStaff')}
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
 
 
 
@@ -1743,22 +1671,22 @@ export default function UsersPage() {
                         >
                             <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white flex items-center gap-2">
                                 <Shield size={24} className="text-blue-600" />
-                                {selectedRegistration.type === 'delete' ? 'Review Delete Request' :
-                                    selectedRegistration.type === 'edit' ? 'Review Edit Request' :
-                                        'Review Registration'}
+                                {selectedRegistration.type === 'delete' ? t('pppoe.reviewDelete') :
+                                    selectedRegistration.type === 'edit' ? t('pppoe.reviewEdit') :
+                                        t('pppoe.reviewRegistration')}
                             </h2>
 
                             {selectedRegistration.type === 'delete' ? (
                                 <div className="space-y-6">
                                     <div className="bg-red-50/30 dark:bg-red-900/30 backdrop-blur-xl border border-red-200/50 dark:border-red-800/50 rounded-lg p-6 shadow-lg">
                                         <h3 className="text-lg font-bold text-red-800 dark:text-red-200 mb-2 flex items-center gap-2">
-                                            <AlertTriangle className="text-red-600 dark:text-red-400" /> Warning: Delete User
+                                            <AlertTriangle className="text-red-600 dark:text-red-400" /> {t('pppoe.warningDelete')}
                                         </h3>
                                         <p className="text-red-700 dark:text-red-300 text-lg mb-4">
-                                            Are you sure you want to approve the deletion of user <strong>{selectedRegistration.targetUsername}</strong>?
+                                            {t('messages.confirmApproveDelete', { name: selectedRegistration.targetUsername })}
                                         </p>
                                         <p className="text-red-600 dark:text-red-400 text-sm">
-                                            This action cannot be undone. The user will be removed from Mikrotik and all customer data will be deleted.
+                                            {t('messages.deleteWarningInfo')}
                                         </p>
                                     </div>
                                     <div className="flex justify-end gap-3 pt-4 border-t">
@@ -1766,19 +1694,19 @@ export default function UsersPage() {
                                             onClick={() => setShowReviewModal(false)}
                                             className="px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                         >
-                                            Cancel
+                                            {t('common.cancel')}
                                         </button>
                                         <button
                                             onClick={() => handleRegistrationAction(selectedRegistration.username, 'reject')}
                                             className="px-4 py-2 bg-orange-100 text-orange-700 hover:bg-orange-200 rounded-lg transition-colors flex items-center gap-2"
                                         >
-                                            <XCircle size={18} /> Reject
+                                            <XCircle size={18} /> {t('users.reject')}
                                         </button>
                                         <button
                                             onClick={() => handleRegistrationAction(selectedRegistration.username, 'approve')}
                                             className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors flex items-center gap-2"
                                         >
-                                            <CheckCircle size={18} /> Approve Delete
+                                            <CheckCircle size={18} /> {t('pppoe.approveDelete')}
                                         </button>
                                     </div>
                                 </div>
@@ -1786,10 +1714,10 @@ export default function UsersPage() {
                                 <div className="space-y-6">
                                     {/* PPPoE Details */}
                                     <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                                        <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">PPPoE Account</h3>
+                                        <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('pppoe.pppoeAccount')}</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">Username</label>
+                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.username')}</label>
                                                 <input
                                                     type="text"
                                                     value={reviewFormData.username}
@@ -1798,7 +1726,7 @@ export default function UsersPage() {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">Password</label>
+                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.password')}</label>
                                                 <input
                                                     type="text"
                                                     value={reviewFormData.password}
@@ -1807,20 +1735,20 @@ export default function UsersPage() {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">Profile</label>
+                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.profile')}</label>
                                                 <select
                                                     value={reviewFormData.profile}
                                                     onChange={(e) => setReviewFormData({ ...reviewFormData, profile: e.target.value })}
                                                     className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
                                                 >
-                                                    <option value="">-- Select Profile --</option>
+                                                    <option value="">{t('users.selectProfile')}</option>
                                                     {profiles.map(p => (
                                                         <option key={p.name} value={p.name}>{p.name}</option>
                                                     ))}
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">Service</label>
+                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.service')}</label>
                                                 <select
                                                     value={reviewFormData.service}
                                                     onChange={(e) => setReviewFormData({ ...reviewFormData, service: e.target.value })}
@@ -1831,7 +1759,7 @@ export default function UsersPage() {
                                                 </select>
                                             </div>
                                             <div className="md:col-span-2 mt-2 pt-2 border-t dark:border-gray-600">
-                                                <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Target Routers</label>
+                                                <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">{t('users.targetRouters')}</label>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                                                     {connections.map(conn => (
                                                         <label key={conn.id} className="flex items-center space-x-2 p-2 border dark:border-gray-600 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
@@ -1860,7 +1788,7 @@ export default function UsersPage() {
 
                                     {/* Customer Details */}
                                     <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                                        <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('users.customerInfo')}</h3>
+                                        <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('pppoe.customerInfo')}</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.fullName')}</label>
@@ -1894,23 +1822,23 @@ export default function UsersPage() {
 
                                     {/* Agent Info */}
                                     <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                                        <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">Registration Info</h3>
+                                        <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('pppoe.registrationInfo')}</h3>
                                         <div className="flex items-center justify-between">
                                             <div className="flex-1 mr-4">
-                                                <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Registered By (Agent)</label>
+                                                <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">{t('pppoe.registeredBy')}</label>
                                                 <select
                                                     value={reviewFormData.agentId}
                                                     onChange={(e) => setReviewFormData({ ...reviewFormData, agentId: e.target.value })}
                                                     className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
                                                 >
-                                                    <option value="">-- No Agent --</option>
+                                                    <option value="">{t('pppoe.noAgent')}</option>
                                                     {systemUsers.filter(u => u.isAgent).map(user => (
                                                         <option key={user.id} value={user.id}>{user.username}</option>
                                                     ))}
                                                 </select>
                                             </div>
                                             <div className="text-xs text-gray-500">
-                                                Date: {new Date().toLocaleDateString()}
+                                                {t('common.date')}: {new Date().toLocaleDateString()}
                                             </div>
                                         </div>
                                     </div>
@@ -1921,19 +1849,19 @@ export default function UsersPage() {
                                             onClick={() => setShowReviewModal(false)}
                                             className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                                         >
-                                            Cancel
+                                            {t('common.cancel')}
                                         </button>
                                         <button
                                             onClick={() => handleRegistrationAction(selectedRegistration.username, 'reject')}
                                             className="px-4 py-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors flex items-center gap-2"
                                         >
-                                            <XCircle size={18} /> Reject
+                                            <XCircle size={18} /> {t('pppoe.reject')}
                                         </button>
                                         <button
                                             onClick={() => handleRegistrationAction(selectedRegistration.username, 'approve')}
                                             className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2"
                                         >
-                                            <CheckCircle size={18} /> Approve
+                                            <CheckCircle size={18} /> {t('pppoe.approve')}
                                         </button>
                                     </div>
                                 </div>
@@ -1955,7 +1883,7 @@ export default function UsersPage() {
                             <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
                                 <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                                     <UsersIcon className="text-purple-500" />
-                                    Bulk Edit Staff
+                                    {t('pppoe.bulkEditStaff')}
                                 </h3>
                                 <button onClick={() => setShowBulkEditModal(false)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                                     <XCircle size={24} />
@@ -1964,17 +1892,17 @@ export default function UsersPage() {
 
                             <form onSubmit={handleBulkEditSubmit} className="p-6 space-y-4">
                                 <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm text-blue-800 dark:text-blue-200 mb-4">
-                                    Assigning staff for <strong>{selectedUsers.size}</strong> selected users. Leave a field empty to keep it unchanged.
+                                    {t('pppoe.bulkUpdateInfo', { count: selectedUsers.size })}
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign Agent</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('pppoe.assignAgent')}</label>
                                     <select
                                         value={bulkEditData.agentId}
                                         onChange={(e) => setBulkEditData({ ...bulkEditData, agentId: e.target.value })}
                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                     >
-                                        <option value="">-- No Change --</option>
+                                        <option value="">{t('pppoe.noChange')}</option>
                                         {systemUsers.filter(u => u.isAgent).map(u => (
                                             <option key={u.id} value={u.id}>{u.fullName || u.username}</option>
                                         ))}
@@ -1982,13 +1910,13 @@ export default function UsersPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign Technician</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('pppoe.assignTechnician')}</label>
                                     <select
                                         value={bulkEditData.technicianId}
                                         onChange={(e) => setBulkEditData({ ...bulkEditData, technicianId: e.target.value })}
                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                     >
-                                        <option value="">-- No Change --</option>
+                                        <option value="">{t('pppoe.noChange')}</option>
                                         {systemUsers.filter(u => u.isTechnician).map(u => (
                                             <option key={u.id} value={u.id}>{u.fullName || u.username}</option>
                                         ))}
@@ -2001,14 +1929,14 @@ export default function UsersPage() {
                                         onClick={() => setShowBulkEditModal(false)}
                                         className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                                     >
-                                        Cancel
+                                        {t('common.cancel')}
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={loading}
                                         className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
                                     >
-                                        {loading ? 'Saving...' : 'Update Users'}
+                                        {loading ? t('common.saving') : t('pppoe.updateStaff')}
                                     </button>
                                 </div>
                             </form>
@@ -2031,7 +1959,7 @@ export default function UsersPage() {
                             </h3>
                             <form onSubmit={handleSaveWifi} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SSID (Network Name)</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('device.ssid')}</label>
                                     <input
                                         type="text"
                                         required
@@ -2041,15 +1969,15 @@ export default function UsersPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.password')}</label>
                                     <input
                                         type="text"
                                         value={wifiForm.password}
                                         onChange={(e) => setWifiForm({ ...wifiForm, password: e.target.value })}
-                                        placeholder="Leave blank to keep current"
+                                        placeholder={t('device.leaveBlank')}
                                         className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">Leave blank to keep existing password.</p>
+                                    <p className="text-xs text-gray-500 mt-1">{t('device.leaveBlank')}</p>
                                 </div>
                                 <div className="flex justify-end gap-2 pt-2">
                                     <button
@@ -2057,13 +1985,13 @@ export default function UsersPage() {
                                         onClick={() => setEditingDevice(null)}
                                         className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                                     >
-                                        Cancel
+                                        {t('common.cancel')}
                                     </button>
                                     <button
                                         type="submit"
                                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                                     >
-                                        Save Changes
+                                        {t('common.save')}
                                     </button>
                                 </div>
                             </form>
@@ -2097,11 +2025,11 @@ export default function UsersPage() {
                             <div className="space-y-4">
                                 <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-3">
                                     <div>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">Model & Manufacturer</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">{t('device.model')}</p>
                                         <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedDevice.manufacturer} - {selectedDevice.model}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">Serial Number (SN)</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">{t('device.sn')}</p>
                                         <p className="text-sm font-mono text-gray-900 dark:text-white bg-white dark:bg-gray-800 px-2 py-1 rounded border dark:border-gray-600 inline-block mt-1">
                                             {selectedDevice.serial}
                                         </p>
@@ -2136,7 +2064,7 @@ export default function UsersPage() {
                                 </div>
 
                                 <div className="text-xs text-gray-400 text-center pt-2">
-                                    Last Inform: {selectedDevice.lastInform ? new Date(selectedDevice.lastInform).toLocaleString() : '-'}
+                                    {t('device.lastInform')}: {selectedDevice.lastInform ? new Date(selectedDevice.lastInform).toLocaleString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US') : '-'}
                                 </div>
                             </div>
 
@@ -2145,7 +2073,7 @@ export default function UsersPage() {
                                     onClick={() => setShowDeviceModal(false)}
                                     className="w-full py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
                                 >
-                                    Close
+                                    {t('common.close')}
                                 </button>
                             </div>
                         </motion.div>
@@ -2178,13 +2106,13 @@ export default function UsersPage() {
                                 {/* Connection Stats */}
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                                        <span className="text-xs text-blue-600 dark:text-blue-400 block mb-1">Download</span>
+                                        <span className="text-xs text-blue-600 dark:text-blue-400 block mb-1">{t('pppoe.download')}</span>
                                         <span className="font-bold text-gray-800 dark:text-white">
                                             {formatBytes(detailsModal.usage?.rx || 0)}
                                         </span>
                                     </div>
                                     <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
-                                        <span className="text-xs text-green-600 dark:text-green-400 block mb-1">Upload</span>
+                                        <span className="text-xs text-green-600 dark:text-green-400 block mb-1">{t('pppoe.upload')}</span>
                                         <span className="font-bold text-gray-800 dark:text-white">
                                             {formatBytes(detailsModal.usage?.tx || 0)}
                                         </span>
@@ -2193,17 +2121,17 @@ export default function UsersPage() {
 
                                 <div className="space-y-3">
                                     <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                                        <span className="text-sm text-gray-500">Profile</span>
+                                        <span className="text-sm text-gray-500">{t('common.profile')}</span>
                                         <span className="text-sm font-medium dark:text-gray-200">{detailsModal.profile}</span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                                        <span className="text-sm text-gray-500">Uptime</span>
+                                        <span className="text-sm text-gray-500">{t('common.uptime')}</span>
                                         <span className="text-sm font-medium dark:text-gray-200">
                                             {detailsModal.active ? formatUptime(detailsModal.active.uptime) : '-'}
                                         </span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                                        <span className="text-sm text-gray-500">Caller ID</span>
+                                        <span className="text-sm text-gray-500">{t('common.callerId')}</span>
                                         <span className="text-sm font-medium dark:text-gray-200">
                                             {detailsModal.active ? detailsModal.active['caller-id'] : '-'}
                                         </span>
@@ -2212,31 +2140,31 @@ export default function UsersPage() {
                                     {/* ACS Details Section */}
                                     {detailsModal.acs ? (
                                         <div className="pt-2">
-                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Device Info</span>
+                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">{t('pppoe.deviceDetailsTitle')}</span>
                                             <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 space-y-2 text-sm">
                                                 <div className="flex justify-between">
-                                                    <span className="text-gray-500">SSID</span>
+                                                    <span className="text-gray-500">{t('device.ssid')}</span>
                                                     <span className="font-medium dark:text-gray-200">{detailsModal.acs.ssid || '-'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-gray-500">Signal</span>
+                                                    <span className="text-gray-500">{t('device.signal')}</span>
                                                     <span className={`font-bold ${parseFloat(detailsModal.acs.rx_power) < -25 ? 'text-red-500' : 'text-green-500'}`}>
                                                         {detailsModal.acs.rx_power} dBm
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-gray-500">Temp</span>
+                                                    <span className="text-gray-500">{t('device.temp')}</span>
                                                     <span className="font-medium dark:text-gray-200">{detailsModal.acs.temp}°C</span>
                                                 </div>
                                                 <div className="flex justify-between">
-                                                    <span className="text-gray-500">S/N</span>
+                                                    <span className="text-gray-500">{t('device.sn')}</span>
                                                     <span className="font-mono text-xs dark:text-gray-200">{detailsModal.acs.serial}</span>
                                                 </div>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg text-center text-sm text-gray-500 italic">
-                                            No GenieACS device linked.
+                                            {t('users.noAcsDevice')}
                                         </div>
                                     )}
                                 </div>
@@ -2252,7 +2180,7 @@ export default function UsersPage() {
                                     }}
                                     className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-xl font-medium hover:bg-blue-200 transition-colors"
                                 >
-                                    <Edit2 size={18} /> Edit
+                                    <Edit2 size={18} /> {t('common.edit')}
                                 </button>
 
                                 {detailsModal.active?.address && (
@@ -2262,7 +2190,7 @@ export default function UsersPage() {
                                         rel="noopener noreferrer"
                                         className="flex items-center justify-center gap-2 px-4 py-3 bg-teal-100 text-teal-700 rounded-xl font-medium hover:bg-teal-200 transition-colors"
                                     >
-                                        <ExternalLink size={18} /> Manage
+                                        <ExternalLink size={18} /> {t('users.manage')}
                                     </a>
                                 )}
 
@@ -2301,7 +2229,7 @@ export default function UsersPage() {
                                             }}
                                             className="flex items-center justify-center gap-2 px-4 py-3 bg-indigo-100 text-indigo-700 rounded-xl font-medium hover:bg-indigo-200 transition-colors"
                                         >
-                                            <Wifi size={18} /> WiFi
+                                            <Wifi size={18} /> {t('users.wifiSettingsShort') || 'WiFi'}
                                         </button>
                                         <button
                                             onClick={() => {
@@ -2311,7 +2239,7 @@ export default function UsersPage() {
                                             }}
                                             className="flex items-center justify-center gap-2 px-4 py-3 bg-orange-100 text-orange-700 rounded-xl font-medium hover:bg-orange-200 transition-colors"
                                         >
-                                            <RotateCcw size={18} /> Reboot
+                                            <RotateCcw size={18} /> {t('users.rebootShort') || 'Reboot'}
                                         </button>
                                     </>
                                 )}

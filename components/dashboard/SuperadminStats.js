@@ -73,7 +73,7 @@ export default function SuperadminStats({ stats }) {
         <div className="space-y-6">
             <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 <Shield className="text-blue-600" size={24} />
-                System Overview
+                {t('dashboard.systemOverview')}
             </h2>
 
             {/* Server Specification & Usage - Consolidated */}
@@ -83,13 +83,13 @@ export default function SuperadminStats({ stats }) {
                     <div className="relative z-10">
                         <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
                             <Server size={20} className="text-blue-600 dark:text-blue-400" />
-                            Server Specification
+                            {t('dashboard.serverSpec')}
                         </h3>
                         {systemInfo ? (
                             <div className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Operating System</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('dashboard.os')}</p>
                                         <div className="font-semibold text-sm truncate flex items-center gap-2 text-gray-900 dark:text-white">
                                             {systemInfo.type === 'Windows_NT' ? 'Windows' : 'Linux'}
                                             <span className="opacity-50 text-[10px]">({systemInfo.platform})</span>
@@ -97,22 +97,22 @@ export default function SuperadminStats({ stats }) {
                                         <p className="text-xs text-gray-500 mt-1 truncate">{systemInfo.release}</p>
                                     </div>
                                     <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Memory</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('dashboard.totalMemory')}</p>
                                         <div className="font-semibold text-sm flex items-center gap-2 text-gray-900 dark:text-white">
                                             {formatBytes(systemInfo.memory?.total)}
                                             <HardDrive size={12} className="text-orange-500" />
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-1">Free: {formatBytes(systemInfo.memory?.free)}</p>
+                                        <p className="text-xs text-gray-500 mt-1">{t('dashboard.free')}: {formatBytes(systemInfo.memory?.free)}</p>
                                     </div>
                                 </div>
 
                                 <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Processor (CPU)</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('dashboard.processor')}</p>
                                     <div className="font-semibold text-sm text-gray-900 dark:text-white">{systemInfo.cpu?.model}</div>
                                     <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                                         <div className="flex items-center gap-1">
                                             <Cpu size={12} className="text-green-600 dark:text-green-400" />
-                                            {systemInfo.cpu?.cores} Cores
+                                            {systemInfo.cpu?.cores} {t('dashboard.cores')}
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <Activity size={12} className="text-blue-600 dark:text-blue-400" />
@@ -134,7 +134,7 @@ export default function SuperadminStats({ stats }) {
                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden">
                     <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
                         <Activity size={20} className="text-green-600 dark:text-green-400" />
-                        Realtime Usage
+                        {t('dashboard.realtimeUsage')}
                     </h3>
 
                     <div className="space-y-6">
@@ -142,7 +142,7 @@ export default function SuperadminStats({ stats }) {
                         <div>
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                                    <Cpu size={16} /> CPU Load
+                                    <Cpu size={16} /> {t('dashboard.cpuLoad')}
                                 </span>
                                 <span className={`text-sm font-bold ${cpuLoad > 80 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
                                     {cpuLoad}%
@@ -160,7 +160,7 @@ export default function SuperadminStats({ stats }) {
                         <div>
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                                    <HardDrive size={16} /> Memory Usage
+                                    <HardDrive size={16} /> {t('dashboard.memoryUsage')}
                                 </span>
                                 <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
                                     {memoryPercent}%
@@ -193,12 +193,12 @@ export default function SuperadminStats({ stats }) {
                         <Users size={64} className="text-blue-500" />
                     </div>
                     <div>
-                        <p className="text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wider">Partners (Owners)</p>
+                        <p className="text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wider">{t('dashboard.partners')}</p>
                         <h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-2">{adminCount}</h3>
                     </div>
                     <div className="mt-4 flex items-center gap-2 text-sm text-blue-500 font-medium">
                         <Shield size={16} />
-                        <span>Registered Admins</span>
+                        <span>{t('dashboard.registeredAdmins')}</span>
                     </div>
                     {/* Decorative gradient bar */}
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
@@ -213,12 +213,12 @@ export default function SuperadminStats({ stats }) {
                         <Database size={64} className="text-purple-500" />
                     </div>
                     <div>
-                        <p className="text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wider">Total End Users</p>
+                        <p className="text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wider">{t('dashboard.totalEndUsers')}</p>
                         <h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-2">{totalCustomers}</h3>
                     </div>
                     <div className="mt-4 flex items-center gap-2 text-sm text-purple-500 font-medium">
                         <Users size={16} />
-                        <span>Across all partners</span>
+                        <span>{t('dashboard.acrossPartners')}</span>
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500" />
                 </motion.div>
@@ -226,23 +226,23 @@ export default function SuperadminStats({ stats }) {
 
             {/* Owner Statistics Table */}
             <div className="mt-8">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Live Owner Statistics</h3>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">{t('dashboard.liveOwnerStats')}</h3>
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-700/50">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Owner</th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">User Active</th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Offline</th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total User</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('dashboard.owner')}</th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('dashboard.userActive')}</th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('dashboard.offline')}</th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('dashboard.totalUser')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-transparent">
                                 {statsLoading ? (
-                                    <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">Loading stats...</td></tr>
+                                    <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">{t('dashboard.loadingStats')}</td></tr>
                                 ) : ownerStats.length === 0 ? (
-                                    <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">No stats available</td></tr>
+                                    <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">{t('dashboard.noStats')}</td></tr>
                                 ) : (
                                     ownerStats.map((stat) => (
                                         <tr key={stat.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">

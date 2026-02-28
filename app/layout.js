@@ -59,7 +59,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({ children }) {
     return (
-        <html lang="en" suppressHydrationWarning>
+        <html lang="id" suppressHydrationWarning>
             <body className={outfit.className}>
 
                 <ThemeProvider>

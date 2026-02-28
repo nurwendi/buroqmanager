@@ -128,16 +128,16 @@ export default function SuperadminUsersPage() {
                                     {t('users.username')}
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Router / Owner
+                                    {t('sidebar.routers')} / Owner
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     {t('users.profile')}
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Usage (Mnth)
+                                    {t('common.usageMonth')}
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    Status
+                                    {t('common.status')}
                                 </th>
                             </tr>
                         </thead>
@@ -146,13 +146,13 @@ export default function SuperadminUsersPage() {
                                 <tr>
                                     <td colSpan="6" className="py-20 text-center text-gray-500">
                                         <Loader2 className="animate-spin mx-auto mb-2" />
-                                        Loading users from all routers...
+                                        {t('common.loadingUsers')}
                                     </td>
                                 </tr>
                             ) : paginatedUsers.length === 0 ? (
                                 <tr>
                                     <td colSpan="6" className="py-20 text-center text-gray-500">
-                                        No users found.
+                                        {t('common.noUsersFound')}
                                     </td>
                                 </tr>
                             ) : (
@@ -182,7 +182,7 @@ export default function SuperadminUsersPage() {
                                                 <Server size={14} className="text-purple-500" />
                                                 <div>
                                                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                        {user._sourceRouterName || 'Unknown'}
+                                                        {user._sourceRouterName || t('common.unknown')}
                                                     </p>
                                                     <p className="text-xs text-gray-400 truncate w-32" title={user._ownerName}>
                                                         {user._ownerName || '-'}
@@ -210,7 +210,7 @@ export default function SuperadminUsersPage() {
                                                 <span className="inline-flex flex-col items-start gap-0.5">
                                                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400">
                                                         <Wifi size={12} />
-                                                        Online
+                                                        {t('users.online')}
                                                     </span>
                                                     {user._activeData?.address && (
                                                         <span className="text-[10px] font-mono text-gray-500 dark:text-gray-400 pl-1">
@@ -221,12 +221,12 @@ export default function SuperadminUsersPage() {
                                             ) : (user.disabled === 'true' || user.disabled === true) ? (
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400">
                                                     <WifiOff size={12} />
-                                                    Disabled
+                                                    {t('users.disabled')}
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
                                                     <WifiOff size={12} />
-                                                    Offline
+                                                    {t('users.offline')}
                                                 </span>
                                             )}
                                         </td>
@@ -241,10 +241,10 @@ export default function SuperadminUsersPage() {
                 <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
                     <div className="flex items-center gap-4">
                         <p className="text-xs text-gray-500">
-                            Showing {paginatedUsers.length} of {filteredUsers.length} users
+                            {t('common.showingOf', { count: paginatedUsers.length, total: filteredUsers.length })}
                         </p>
                         <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                            Page {currentPage} of {totalPages}
+                            {t('common.pageOf', { current: currentPage, total: totalPages })}
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -253,14 +253,14 @@ export default function SuperadminUsersPage() {
                             onClick={() => setCurrentPage(c => c - 1)}
                             className="px-3 py-1 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-50 hover:bg-white dark:hover:bg-gray-800 transition-colors"
                         >
-                            Previous
+                            {t('common.previous')}
                         </button>
                         <button
                             disabled={currentPage === totalPages}
                             onClick={() => setCurrentPage(c => c + 1)}
                             className="px-3 py-1 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-700 disabled:opacity-50 hover:bg-white dark:hover:bg-gray-800 transition-colors"
                         >
-                            Next
+                            {t('common.next')}
                         </button>
                     </div>
                 </div>

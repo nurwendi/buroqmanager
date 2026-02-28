@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { WifiOff, RefreshCw, ArrowUpDown } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function OfflineUsersPage() {
+    const { t } = useLanguage();
     const [users, setUsers] = useState([]);
     const [activeConnections, setActiveConnections] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -64,14 +66,14 @@ export default function OfflineUsersPage() {
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center space-x-2">
                     <WifiOff size={32} className="text-red-600 dark:text-red-500" />
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Offline Users</h1>
+                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{t('pppoe.offlineUsers')}</h1>
                 </div>
                 <button
                     onClick={fetchData}
                     className="flex items-center space-x-2 px-4 py-2 bg-accent text-white rounded hover:opacity-90 shadow-lg shadow-accent/30 transition-all"
                 >
                     <RefreshCw size={16} />
-                    <span>Refresh</span>
+                    <span>{t('common.refresh')}</span>
                 </button>
             </div>
 
@@ -79,7 +81,7 @@ export default function OfflineUsersPage() {
                 <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border-l-4 border-red-500 border-y border-r border-white/20 dark:border-white/5">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Offline</p>
+                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('pppoe.totalOffline')}</p>
                             <p className="text-2xl font-bold text-gray-800 dark:text-white">{offlineUsers.length}</p>
                         </div>
                         <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-full">
@@ -98,16 +100,16 @@ export default function OfflineUsersPage() {
                                 onClick={() => sortData('name')}
                             >
                                 <div className="flex items-center gap-1">
-                                    Name <ArrowUpDown size={14} />
+                                    {t('pppoe.username')} <ArrowUpDown size={14} />
                                 </div>
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Password</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('pppoe.password')}</th>
                             <th
                                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                 onClick={() => sortData('profile')}
                             >
                                 <div className="flex items-center gap-1">
-                                    Profile <ArrowUpDown size={14} />
+                                    {t('pppoe.profile')} <ArrowUpDown size={14} />
                                 </div>
                             </th>
                             <th
@@ -115,25 +117,25 @@ export default function OfflineUsersPage() {
                                 onClick={() => sortData('service')}
                             >
                                 <div className="flex items-center gap-1">
-                                    Service <ArrowUpDown size={14} />
+                                    {t('pppoe.service')} <ArrowUpDown size={14} />
                                 </div>
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Last Known IP</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('pppoe.lastKnownIp')}</th>
                             <th
                                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                 onClick={() => sortData('last-logged-out')}
                             >
                                 <div className="flex items-center gap-1">
-                                    Last Logout <ArrowUpDown size={14} />
+                                    {t('pppoe.lastLogout')} <ArrowUpDown size={14} />
                                 </div>
                             </th>
                         </tr>
                     </thead>
                     <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
                         {loading ? (
-                            <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">Loading...</td></tr>
+                            <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('common.loading')}</td></tr>
                         ) : offlineUsers.length === 0 ? (
-                            <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">No offline users found</td></tr>
+                            <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('pppoe.noOfflineUsers')}</td></tr>
                         ) : (
                             offlineUsers.map((user) => (
                                 <tr key={user['.id']} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">

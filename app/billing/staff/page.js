@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { DollarSign, Users, UserCheck, UserX, Calendar, TrendingUp, Wallet, ShieldCheck, BarChart2, FileText, Search } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export default function StaffBillingPage() {
+    const { t, resolvedLanguage } = useLanguage();
     const [stats, setStats] = useState(null);
     const [yearlyStats, setYearlyStats] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -73,13 +75,12 @@ export default function StaffBillingPage() {
     };
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
+        return new Intl.NumberFormat(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0);
     };
 
-    const months = [
-        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-    ];
+    const months = resolvedLanguage === 'id' ?
+        ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] :
+        ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -117,9 +118,9 @@ export default function StaffBillingPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <div>
                     <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-                        Staff Dashboard
+                        {t('billing.staffDashboardTitle')}
                     </h1>
-                    <p className="text-gray-500 mt-1">Pantau performa dan komisi Anda</p>
+                    <p className="text-gray-500 mt-1">{t('billing.staffDashboardSubtitle')}</p>
                 </div>
 
                 <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-200">
@@ -168,10 +169,10 @@ export default function StaffBillingPage() {
                                 <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
                                     <TrendingUp size={24} className="text-white" />
                                 </div>
-                                <span className="text-xs font-bold uppercase tracking-wider text-blue-100 bg-blue-800/30 px-2 py-1 rounded-lg">Revenue</span>
+                                <span className="text-xs font-bold uppercase tracking-wider text-blue-100 bg-blue-800/30 px-2 py-1 rounded-lg">{t('common.revenue')}</span>
                             </div>
                             <div className="space-y-1">
-                                <p className="text-blue-100 text-sm font-medium">Total Generated</p>
+                                <p className="text-blue-100 text-sm font-medium">{t('billing.totalGross')}</p>
                                 <h3 className="text-3xl font-bold tracking-tight">{formatCurrency(stats.totalRevenue)}</h3>
                             </div>
                         </div>
@@ -188,10 +189,10 @@ export default function StaffBillingPage() {
                                 <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
                                     <Wallet size={24} className="text-white" />
                                 </div>
-                                <span className="text-xs font-bold uppercase tracking-wider text-emerald-100 bg-emerald-800/30 px-2 py-1 rounded-lg">Earnings</span>
+                                <span className="text-xs font-bold uppercase tracking-wider text-emerald-100 bg-emerald-800/30 px-2 py-1 rounded-lg">{t('billing.earnings')}</span>
                             </div>
                             <div className="space-y-1">
-                                <p className="text-emerald-100 text-sm font-medium">Komisi Anda</p>
+                                <p className="text-emerald-100 text-sm font-medium">{t('billing.partnerCommission')}</p>
                                 <h3 className="text-3xl font-bold tracking-tight">{formatCurrency(stats.commission)}</h3>
                             </div>
                         </div>
@@ -206,10 +207,10 @@ export default function StaffBillingPage() {
                             <div className="p-3 bg-violet-50 text-violet-600 rounded-xl group-hover:bg-violet-100 transition-colors">
                                 <UserCheck size={24} />
                             </div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Paid</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-gray-400">{t('billing.paid')}</span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-gray-500 text-sm font-medium">Pelanggan Lunas</p>
+                            <p className="text-gray-500 text-sm font-medium">{t('billing.paid')} {t('billing.customer')}</p>
                             <h3 className="text-3xl font-bold text-gray-900">{stats.paidCount}</h3>
                         </div>
                         <div className="absolute bottom-0 right-0 h-1 w-full bg-gradient-to-r from-violet-500 to-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
@@ -224,10 +225,10 @@ export default function StaffBillingPage() {
                             <div className="p-3 bg-rose-50 text-rose-600 rounded-xl group-hover:bg-rose-100 transition-colors">
                                 <UserX size={24} />
                             </div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Unpaid</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-gray-400">{t('billing.unpaid')}</span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-gray-500 text-sm font-medium">Belum Bayar</p>
+                            <p className="text-gray-500 text-sm font-medium">{t('billing.unpaid')}</p>
                             <h3 className="text-3xl font-bold text-gray-900">{stats.unpaidCount}</h3>
                         </div>
                         <div className="absolute bottom-0 right-0 h-1 w-full bg-gradient-to-r from-rose-500 to-red-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
@@ -246,9 +247,9 @@ export default function StaffBillingPage() {
                     <div>
                         <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                             <BarChart2 size={20} className="text-blue-600" />
-                            Performance {selectedYear}
+                            {t('billing.performance')} {selectedYear}
                         </h2>
-                        <p className="text-sm text-gray-500">Grafik pendapatan dan komisi bulanan</p>
+                        <p className="text-sm text-gray-500">{t('billing.performanceSub')}</p>
                     </div>
                 </div>
 
@@ -279,14 +280,14 @@ export default function StaffBillingPage() {
                             <Legend />
                             <Bar
                                 dataKey="revenue"
-                                name="Revenue"
+                                name={t('common.revenue')}
                                 fill="#3B82F6"
                                 radius={[4, 4, 0, 0]}
                                 barSize={20}
                             />
                             <Bar
                                 dataKey="commission"
-                                name="Commission"
+                                name={t('billing.commission')}
                                 fill="#10B981"
                                 radius={[4, 4, 0, 0]}
                                 barSize={20}
@@ -307,15 +308,15 @@ export default function StaffBillingPage() {
                     <div>
                         <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                             <FileText size={20} className="text-blue-600" />
-                            Daftar Tagihan
+                            {t('billing.invoiceList')}
                         </h2>
-                        <p className="text-sm text-gray-500">List tagihan pelanggan Anda bulan ini</p>
+                        <p className="text-sm text-gray-500">{t('billing.invoiceListSub')}</p>
                     </div>
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                         <input
                             type="text"
-                            placeholder="Cari pelanggan..."
+                            placeholder={t('billing.searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64"
@@ -327,11 +328,11 @@ export default function StaffBillingPage() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-gray-100">
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Invoice</th>
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Pelanggan</th>
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Tanggal</th>
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Jumlah</th>
+                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('billing.invoice')}</th>
+                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('billing.customer')}</th>
+                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('common.date')}</th>
+                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('common.status')}</th>
+                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">{t('common.amount')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -345,14 +346,14 @@ export default function StaffBillingPage() {
                                             <div className="font-medium text-gray-900">{payment.username}</div>
                                         </td>
                                         <td className="p-4 text-sm text-gray-500">
-                                            {new Date(payment.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            {new Date(payment.date).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                         </td>
                                         <td className="p-4">
                                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${payment.status === 'completed'
                                                 ? 'bg-green-100 text-green-700'
                                                 : 'bg-red-100 text-red-700'
                                                 }`}>
-                                                {payment.status === 'completed' ? 'Lunas' : 'Belum Bayar'}
+                                                {payment.status === 'completed' ? t('billing.paid') : t('billing.unpaid')}
                                             </span>
                                         </td>
                                         <td className="p-4 text-right font-medium text-gray-900">
@@ -363,7 +364,7 @@ export default function StaffBillingPage() {
                             ) : (
                                 <tr>
                                     <td colSpan="5" className="p-8 text-center text-gray-500">
-                                        Tidak ada data tagihan untuk periode ini.
+                                        {t('billing.noCommissions')}
                                     </td>
                                 </tr>
                             )}
@@ -383,21 +384,20 @@ export default function StaffBillingPage() {
                     <ShieldCheck size={120} />
                 </div>
                 <div className="relative z-10 max-w-2xl">
-                    <h3 className="text-xl font-bold mb-2">Info Partner</h3>
+                    <h3 className="text-xl font-bold mb-2">{t('billing.infoPartner')}</h3>
                     <p className="text-indigo-200 mb-6">
-                        Komisi dihitung berdasarkan pembayaran yang statusnya "Completed".
-                        Pastikan memverifikasi pembayaran dari pelanggan agar komisi masuk ke akun Anda.
+                        {t('billing.infoPartnerDesc')}
                     </p>
                     <div className="flex gap-4">
                         <div className="px-4 py-2 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
-                            <span className="block text-xs text-indigo-300 uppercase tracking-widest">Rate Agen</span>
+                            <span className="block text-xs text-indigo-300 uppercase tracking-widest">{t('billing.agentRate')}</span>
                             <span className="text-lg font-bold">Variable</span>
                         </div>
                         <div className="px-4 py-2 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
-                            <span className="block text-xs text-indigo-300 uppercase tracking-widest">Status</span>
+                            <span className="block text-xs text-indigo-300 uppercase tracking-widest">{t('common.status')}</span>
                             <span className="text-lg font-bold text-green-400 flex items-center gap-1">
                                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                                Active
+                                {t('billing.active')}
                             </span>
                         </div>
                     </div>

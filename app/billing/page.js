@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function BillingPage() {
-    const { t } = useLanguage();
+    const { t, resolvedLanguage } = useLanguage();
     const [payments, setPayments] = useState([]);
     const [stats, setStats] = useState({ totalRevenue: 0, todaysRevenue: 0, pendingCount: 0, totalTransactions: 0 });
     const [agentStats, setAgentStats] = useState(null); // New state for agent stats
@@ -155,7 +155,8 @@ export default function BillingPage() {
     };
 
     const handleGenerateForMonth = async (month, year) => {
-        if (!confirm(`Generate invoices for ${new Date(year, month, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}?`)) return;
+        const monthName = new Date(year, month, 1).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', { month: 'long', year: 'numeric' });
+        if (!confirm(t('billing.confirmGenerate', { month: monthName }))) return;
 
         setLoading(true);
         try {
@@ -170,7 +171,7 @@ export default function BillingPage() {
                 fetchData();
                 setShowMonthModal(false);
             } else {
-                alert('Failed to generate invoices: ' + data.error);
+                alert(t('billing.saveError') + ': ' + data.error);
             }
         } catch (error) {
             console.error('Error generating invoices:', error);
@@ -181,7 +182,7 @@ export default function BillingPage() {
     };
 
     const handleAutoDrop = async () => {
-        if (!confirm('This will change profile to DROP for all users with unpaid invoices. Continue?')) return;
+        if (!confirm(t('billing.confirmAutoDrop'))) return;
 
         setLoading(true);
         try {
@@ -194,7 +195,7 @@ export default function BillingPage() {
             if (res.ok) {
                 alert(`${data.message}\n\nDropped users: ${data.droppedUsers.join(', ') || 'None'}`);
             } else {
-                alert('Failed to auto-drop: ' + data.error);
+                alert(t('billing.saveError') + ': ' + data.error);
             }
         } catch (error) {
             console.error('Error auto-drop:', error);
@@ -223,7 +224,7 @@ export default function BillingPage() {
 
                 fetchData();
             } else {
-                alert('Failed to record payment: ' + (data.error || 'Unknown error'));
+                alert(t('billing.saveError') + ': ' + (data.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Failed to record payment', error);
@@ -292,17 +293,18 @@ export default function BillingPage() {
 
     const formatCurrency = (amount) => {
         if (amount === undefined || amount === null) return 'Rp 0';
-        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
+        return new Intl.NumberFormat(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', { style: 'currency', currency: 'IDR' }).format(amount);
     };
 
     const getMonthName = (monthIndex) => {
-        const months = ['January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'];
+        const months = resolvedLanguage === 'id' ?
+            ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] :
+            ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         return months[monthIndex];
     };
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('id-ID', {
+        return new Date(dateString).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', {
             year: 'numeric', month: 'short', day: 'numeric',
             hour: '2-digit', minute: '2-digit'
         });
@@ -414,7 +416,7 @@ export default function BillingPage() {
     };
 
     const handleBulkDelete = async () => {
-        if (!confirm(`Are you sure you want to delete ${selectedIds.size} invoices?`)) return;
+        if (!confirm(t('billing.confirmDeleteInvoices', { count: selectedIds.size }))) return;
 
         try {
             const res = await fetch('/api/billing/payments', {
@@ -428,7 +430,7 @@ export default function BillingPage() {
                 setSelectedIds(new Set());
                 fetchData();
             } else {
-                alert('Failed to delete items');
+                alert(t('billing.saveError'));
             }
         } catch (error) {
             console.error('Bulk delete failed', error);
@@ -436,7 +438,7 @@ export default function BillingPage() {
     };
 
     const handleBulkMarkPaid = async () => {
-        if (!confirm(`Mark ${selectedIds.size} invoices as PAID?`)) return;
+        if (!confirm(t('billing.confirmMarkPaid', { count: selectedIds.size }))) return;
 
         try {
             const res = await fetch('/api/billing/payments', {
@@ -452,7 +454,7 @@ export default function BillingPage() {
                 fetchData();
                 setSelectedIds(new Set());
             } else {
-                alert('Failed to update items');
+                alert(t('billing.saveError'));
             }
         } catch (error) {
             console.error('Bulk update failed', error);
@@ -460,7 +462,7 @@ export default function BillingPage() {
     };
 
     const handleDeletePayment = async (id) => {
-        if (!confirm('Apakah Anda yakin ingin menghapus invoice ini secara permanen?')) return;
+        if (!confirm(t('messages.confirmDelete'))) return;
 
 
         try {
@@ -477,7 +479,7 @@ export default function BillingPage() {
                 fetchData();
             } else {
                 const data = await res.json();
-                alert('Gagal menghapus: ' + (data.error || 'Unknown error'));
+                alert(t('billing.saveError') + ': ' + (data.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Delete failed', error);
@@ -600,7 +602,7 @@ Terima Kasih
                     >
                         {getAvailableMonths().map(({ year, month }) => (
                             <option key={`${year}-${month}`} value={`${year}-${month}`}>
-                                {new Date(year, month, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+                                {new Date(year, month, 1).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', { month: 'long', year: 'numeric' })}
                             </option>
                         ))}
                     </select>
@@ -657,7 +659,7 @@ Terima Kasih
 
                         <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
                             <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
-                                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Staff Earnings - {getMonthName(selectedMonth)} {selectedYear}</h2>
+                                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t('billing.staffEarnings')} - {getMonthName(selectedMonth)} {selectedYear}</h2>
                             </div>
                             <div className="overflow-x-auto">
 
@@ -720,7 +722,7 @@ Terima Kasih
                                                 {/* Total Row */}
                                                 <tr className="bg-gray-100 dark:bg-gray-700/50 font-semibold">
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" colSpan="4">
-                                                        Total
+                                                        {t('common.total')}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         {formatCurrency(agentStats.grandTotal?.revenue || 0)}
@@ -796,25 +798,25 @@ Terima Kasih
                                             />
                                         </th>
                                     )}
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.actions')}</th>
                                     <th
                                         onClick={() => sortData('customer')}
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
-                                            Customer
+                                            {t('billing.customer')}
                                             <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Invoice
+                                        {t('billing.invoice')}
                                     </th>
                                     <th
                                         onClick={() => sortData('amount')}
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
-                                            Amount
+                                            {t('billing.amount')}
                                             <ArrowUpDown size={14} />
                                         </div>
                                     </th>
@@ -824,30 +826,30 @@ Terima Kasih
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
-                                            Status
+                                            {t('common.status')}
                                             <ArrowUpDown size={14} />
                                         </div>
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Agent</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Technician</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.agent')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.technician')}</th>
                                     <th
                                         onClick={() => sortData('date')}
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
-                                            Date
+                                            {t('common.date')}
                                             <ArrowUpDown size={14} />
                                         </div>
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Delete</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.delete')}</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
 
                                 {loading ? (
-                                    <tr><td colSpan="8" className="px-6 py-4 text-center text-gray-500">Loading...</td></tr>
+                                    <tr><td colSpan="8" className="px-6 py-4 text-center text-gray-500">{t('common.loading')}</td></tr>
                                 ) : getSortedPayments().length === 0 ? (
-                                    <tr><td colSpan="8" className="px-6 py-4 text-center text-gray-500">No payments found</td></tr>
+                                    <tr><td colSpan="8" className="px-6 py-4 text-center text-gray-500">{t('billing.noPayments')}</td></tr>
                                 ) : (
                                     getSortedPayments()
                                         .slice(
@@ -877,7 +879,7 @@ Terima Kasih
                                                         }}
                                                         className="text-blue-600 hover:text-blue-900"
                                                     >
-                                                        View
+                                                        {t('common.view')}
                                                     </button>
                                                     {payment.status === 'completed' && (
                                                         <button
@@ -947,15 +949,15 @@ Terima Kasih
                     <div className="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-gray-700 dark:text-gray-300">
-                                Showing <span className="font-medium mx-1">
+                                {t('billing.showing')} <span className="font-medium mx-1">
                                     {getSortedPayments().length === 0 ? 0 : (currentPage - 1) * (rowsPerPage === 'All' ? getSortedPayments().length : rowsPerPage) + 1}
                                 </span>
-                                to
+                                {t('billing.to')}
                                 <span className="font-medium mx-1">
                                     {rowsPerPage === 'All' ? getSortedPayments().length : Math.min(currentPage * rowsPerPage, getSortedPayments().length)}
                                 </span>
-                                of
-                                <span className="font-medium mx-1">{getSortedPayments().length}</span> results
+                                {t('billing.of')}
+                                <span className="font-medium mx-1">{getSortedPayments().length}</span> {t('billing.results')}
                             </div>
 
                             <select
@@ -981,7 +983,7 @@ Terima Kasih
                                 disabled={currentPage === 1}
                                 className="px-3 py-1 rounded bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Previous
+                                {t('billing.previous')}
                             </button>
                             <button
                                 onClick={() => setCurrentPage(prev => {
@@ -991,7 +993,7 @@ Terima Kasih
                                 disabled={rowsPerPage === 'All' || currentPage >= Math.ceil(getSortedPayments().length / rowsPerPage)}
                                 className="px-3 py-1 rounded bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Next
+                                {t('billing.next')}
                             </button>
                         </div>
                     </div>
@@ -1008,7 +1010,7 @@ Terima Kasih
                             className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
                         >
                             <h2 className="text-xl font-bold mb-4 text-gray-800">
-                                {lastRecordedPayment ? 'Payment Recorded!' : 'Record Payment'}
+                                {lastRecordedPayment ? t('billing.paymentRecorded') : t('billing.recordPayment')}
                             </h2>
 
                             {lastRecordedPayment ? (
@@ -1019,7 +1021,7 @@ Terima Kasih
                                         </div>
                                     </div>
                                     <div>
-                                        <p className="text-lg font-semibold text-gray-800">Pembayaran Berhasil Disimpan</p>
+                                        <p className="text-lg font-semibold text-gray-800">{t('billing.successMessage')}</p>
                                         <p className="text-gray-500 mt-1">
                                             {formatCurrency(lastRecordedPayment.amount)} - {lastRecordedPayment.username}
                                         </p>
@@ -1029,7 +1031,7 @@ Terima Kasih
                                             onClick={() => handleSendWhatsApp(lastRecordedPayment)}
                                             className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 font-medium transition-colors"
                                         >
-                                            <MessageCircle size={20} /> Kirim WhatsApp
+                                            <MessageCircle size={20} /> {t('billing.sendWhatsApp')}
                                         </button>
                                         <button
                                             onClick={() => {
@@ -1040,7 +1042,7 @@ Terima Kasih
                                             }}
                                             className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 font-medium transition-colors"
                                         >
-                                            <Printer size={20} /> Cetak
+                                            <Printer size={20} /> {t('billing.print')}
                                         </button>
                                         <button
                                             onClick={() => {
@@ -1049,13 +1051,13 @@ Terima Kasih
                                             }}
                                             className="w-full px-4 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium transition-colors"
                                         >
-                                            Tutup
+                                            {t('billing.close')}
                                         </button>
                                         <button
                                             onClick={() => setLastRecordedPayment(null)}
                                             className="w-full px-4 py-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
                                         >
-                                            Input Pembayaran Lain
+                                            {t('billing.inputAnother')}
                                         </button>
                                     </div>
                                 </div>
@@ -1067,7 +1069,7 @@ Terima Kasih
                                         </div>
                                     )}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">User</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('billing.user')}</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
@@ -1084,13 +1086,13 @@ Terima Kasih
                                                         setUserSearchTerm(formData.username);
                                                     }
                                                 }}
-                                                placeholder="Search user..."
+                                                placeholder={t('billing.searchUser')}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                             />
                                             {showUserDropdown && (
                                                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                                                     {users.filter(u => u.name.toLowerCase().includes(userSearchTerm.toLowerCase())).length === 0 ? (
-                                                        <div className="px-4 py-2 text-gray-500 text-sm">No users found</div>
+                                                        <div className="px-4 py-2 text-gray-500 text-sm">{t('billing.noUsersFound')}</div>
                                                     ) : (
                                                         users.filter(u => u.name.toLowerCase().includes(userSearchTerm.toLowerCase())).map(user => (
                                                             <div
@@ -1145,7 +1147,7 @@ Terima Kasih
 
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Amount (IDR)</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('billing.amountIdr')}</label>
                                         <input
                                             type="number"
                                             value={formData.amount}
@@ -1160,13 +1162,13 @@ Terima Kasih
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('billing.notes')}</label>
                                         <textarea
                                             value={formData.notes}
                                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
                                             rows="3"
-                                            placeholder="Optional notes..."
+                                            placeholder={t('billing.optionalNotes')}
                                         />
                                     </div>
                                     <div className="flex justify-end gap-3 pt-4">
@@ -1175,13 +1177,13 @@ Terima Kasih
                                             onClick={() => setShowModal(false)}
                                             className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                                         >
-                                            Cancel
+                                            {t('common.cancel')}
                                         </button>
                                         <button
                                             type="submit"
                                             className="px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90"
                                         >
-                                            Save Payment
+                                            {t('billing.savePayment')}
                                         </button>
                                     </div>
                                 </form>
@@ -1200,7 +1202,7 @@ Terima Kasih
                             animate={{ opacity: 1, scale: 1 }}
                             className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
                         >
-                            <h2 className="text-xl font-bold mb-4 text-gray-800">Generate Invoices for Month</h2>
+                            <h2 className="text-xl font-bold mb-4 text-gray-800">{t('billing.generateTitle')}</h2>
                             <div className="space-y-3">
                                 <button
                                     onClick={() => {
@@ -1209,7 +1211,7 @@ Terima Kasih
                                     }}
                                     className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-left"
                                 >
-                                    <div className="font-semibold">Current Month</div>
+                                    <div className="font-semibold">{t('billing.currentMonth')}</div>
                                     <div className="text-sm opacity-90">{new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</div>
                                 </button>
                                 <button
@@ -1220,7 +1222,7 @@ Terima Kasih
                                     }}
                                     className="w-full px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-left"
                                 >
-                                    <div className="font-semibold">Next Month</div>
+                                    <div className="font-semibold">{t('billing.nextMonth')}</div>
                                     <div className="text-sm opacity-90">{new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</div>
                                 </button>
                                 <button
@@ -1231,7 +1233,7 @@ Terima Kasih
                                     }}
                                     className="w-full px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-left"
                                 >
-                                    <div className="font-semibold">Previous Month</div>
+                                    <div className="font-semibold">{t('billing.prevMonth')}</div>
                                     <div className="text-sm opacity-90">{new Date(new Date().setMonth(new Date().getMonth() - 1)).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</div>
                                 </button>
                             </div>
@@ -1239,7 +1241,7 @@ Terima Kasih
                                 onClick={() => setShowMonthModal(false)}
                                 className="w-full mt-4 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                         </motion.div>
                     </div>
@@ -1257,7 +1259,7 @@ Terima Kasih
                             >
                                 {/* Print Controls */}
                                 <div className="flex justify-between items-center mb-6 print:hidden p-6 pb-0">
-                                    <h2 className="text-xl font-bold text-gray-800">Invoice Preview</h2>
+                                    <h2 className="text-xl font-bold text-gray-800">{t('billing.invoicePreview')}</h2>
                                     <div className="flex bg-gray-100 rounded-lg p-1">
                                         <button
                                             onClick={() => setPrintFormat('a4')}
@@ -1269,7 +1271,7 @@ Terima Kasih
                                             onClick={() => setPrintFormat('thermal')}
                                             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${printFormat === 'thermal' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
                                         >
-                                            Thermal (Mini)
+                                            {t('billing.thermalMini')}
                                         </button>
                                     </div>
                                 </div>
@@ -1280,7 +1282,7 @@ Terima Kasih
                                     <div className={`flex ${printFormat === 'thermal' ? 'flex-col text-center' : 'justify-between items-start'} mb-8 border-b border-gray-200 pb-6`}>
                                         <div className={`flex ${printFormat === 'thermal' ? 'flex-col justify-center' : 'items-center gap-4'}`}>
                                             <div>
-                                                <h2 className={`${printFormat === 'thermal' ? 'text-xl' : 'text-3xl'} font-bold text-gray-900`}>TAGIHAN</h2>
+                                                <h2 className={`${printFormat === 'thermal' ? 'text-xl' : 'text-3xl'} font-bold text-gray-900`}>{t('billing.invoice').toUpperCase()}</h2>
                                                 <p className="text-gray-500">#{selectedInvoice.invoiceNumber || selectedInvoice.id}</p>
                                             </div>
                                         </div>
@@ -1299,7 +1301,7 @@ Terima Kasih
                                     {/* Details */}
                                     <div className={`${printFormat === 'thermal' ? 'space-y-4' : 'grid grid-cols-2 gap-8'} mb-8`}>
                                         <div className={printFormat === 'thermal' ? 'text-center' : ''}>
-                                            <p className="text-sm font-medium text-gray-500 mb-1">Tagihan Kepada:</p>
+                                            <p className="text-sm font-medium text-gray-500 mb-1">{t('billing.billTo')}</p>
                                             <p className="text-lg font-bold text-gray-900">
                                                 {customersData[selectedInvoice.username]?.name || selectedInvoice.username}
                                             </p>
@@ -1312,18 +1314,18 @@ Terima Kasih
 
                                         </div>
                                         <div className={printFormat === 'thermal' ? 'text-center' : 'text-right'}>
-                                            <p className="text-sm font-medium text-gray-500 mb-1">Tanggal:</p>
+                                            <p className="text-sm font-medium text-gray-500 mb-1">{t('common.date')}:</p>
                                             <p className="text-gray-900">{formatDate(selectedInvoice.date)}</p>
-                                            <p className="text-sm font-medium text-gray-500 mt-2 mb-1">Status:</p>
+                                            <p className="text-sm font-medium text-gray-500 mt-2 mb-1">{t('common.status')}:</p>
                                             <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${selectedInvoice.status === 'completed' ? 'bg-green-100 text-green-800 print:bg-transparent print:text-black print:border print:border-black' :
                                                 selectedInvoice.status === 'postponed' ? 'bg-orange-100 text-orange-800 print:bg-transparent print:text-black print:border print:border-black' :
                                                     selectedInvoice.status === 'merged' ? 'bg-gray-100 text-gray-500 print:bg-transparent print:text-black print:border print:border-black' :
                                                         'bg-red-100 text-red-800 print:bg-transparent print:text-black print:border print:border-black'
                                                 }`}>
-                                                {selectedInvoice.status === 'completed' ? 'LUNAS' :
-                                                    selectedInvoice.status === 'postponed' ? 'DITUNDA' :
-                                                        selectedInvoice.status === 'merged' ? 'DIGABUNG' :
-                                                            'BELUM BAYAR'}
+                                                {selectedInvoice.status === 'completed' ? t('billing.paid').toUpperCase() :
+                                                    selectedInvoice.status === 'postponed' ? t('billing.postponed').toUpperCase() :
+                                                        selectedInvoice.status === 'merged' ? t('billing.merged').toUpperCase() :
+                                                            t('billing.unpaid').toUpperCase()}
                                             </span>
                                         </div>
                                     </div>
@@ -1331,15 +1333,15 @@ Terima Kasih
                                     {/* Items */}
                                     <div className={`${printFormat === 'thermal' ? 'border-t border-b border-dashed py-4' : 'bg-gray-50 rounded-lg p-6 print:bg-transparent print:border print:border-gray-200'} mb-8`}>
                                         <div className="flex justify-between items-center mb-4">
-                                            <span className="text-gray-600">Deskripsi</span>
-                                            <span className="text-gray-600 font-medium">Jumlah</span>
+                                            <span className="text-gray-600">{t('billing.description')}</span>
+                                            <span className="text-gray-600 font-medium">{t('billing.amount')}</span>
                                         </div>
                                         <div className="flex justify-between items-center py-4 border-t border-gray-200">
-                                            <span className="text-gray-900 font-medium">Pembayaran Layanan Internet</span>
+                                            <span className="text-gray-900 font-medium">{t('billing.internetService')}</span>
                                             <span className="text-gray-900 font-bold">{formatCurrency(selectedInvoice.amount)}</span>
                                         </div>
                                         <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                                            <span className="text-lg font-bold text-gray-900">Total</span>
+                                            <span className="text-lg font-bold text-gray-900">{t('common.total')}</span>
                                             <span className="text-lg font-bold text-blue-600 print:text-black">{formatCurrency(selectedInvoice.amount)}</span>
                                         </div>
                                     </div>
@@ -1361,7 +1363,7 @@ Terima Kasih
                                         onClick={() => window.print()}
                                         className={`px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 flex items-center justify-center gap-2 ${printFormat !== 'thermal' ? 'w-full md:w-auto' : ''}`}
                                     >
-                                        <Printer size={18} /> Cetak Tagihan
+                                        <Printer size={18} /> {t('billing.printInvoiceBtn')}
                                     </button>
                                     {selectedInvoice.status !== 'completed' && (
                                         <>
@@ -1380,11 +1382,11 @@ Terima Kasih
                                                 }}
                                                 className={`px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 ${printFormat !== 'thermal' ? 'w-full md:w-auto' : ''}`}
                                             >
-                                                <DollarSign size={18} /> Bayar Sekarang
+                                                <DollarSign size={18} /> {t('billing.payNow')}
                                             </button>
                                             <button
                                                 onClick={async () => {
-                                                    if (!confirm('Tunda tagihan ini ke bulan depan?')) return;
+                                                    if (!confirm(t('billing.postponeConfirm') || 'Tunda tagihan ini ke bulan depan?')) return;
                                                     try {
                                                         const res = await fetch(`/api/billing/payments/${selectedInvoice.id}`, {
                                                             method: 'PUT',
@@ -1393,11 +1395,11 @@ Terima Kasih
                                                         });
                                                         const data = await res.json();
                                                         if (res.ok) {
-                                                            alert('Tagihan berhasil ditunda');
+                                                            alert(t('billing.postponeSuccess'));
                                                             setShowInvoiceModal(false);
                                                             fetchData();
                                                         } else {
-                                                            alert('Gagal menunda tagihan: ' + (data.error || 'Unknown error'));
+                                                            alert(t('billing.postponeError') + ': ' + (data.error || 'Unknown error'));
                                                         }
                                                     } catch (error) {
                                                         console.error('Failed to postpone payment', error);
@@ -1406,7 +1408,7 @@ Terima Kasih
                                                 }}
                                                 className={`px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 flex items-center justify-center gap-2 ${printFormat !== 'thermal' ? 'w-full md:w-auto' : ''}`}
                                             >
-                                                <Calendar size={18} /> Tunda Bayar
+                                                <Calendar size={18} /> {t('billing.postponePay')}
                                             </button>
                                         </>
                                     )}
@@ -1424,14 +1426,14 @@ Terima Kasih
                                             }}
                                             className={`px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2 cursor-pointer ${printFormat !== 'thermal' ? 'w-full md:w-auto' : ''}`}
                                         >
-                                            <MessageCircle size={18} /> Kirim WhatsApp
+                                            <MessageCircle size={18} /> {t('billing.sendWhatsApp')}
                                         </a>
                                     )}
                                     <button
                                         onClick={() => setShowInvoiceModal(false)}
                                         className={`px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2 ${printFormat !== 'thermal' ? 'w-full md:w-auto' : ''}`}
                                     >
-                                        <X size={18} /> Tutup
+                                        <X size={18} /> {t('billing.close')}
                                     </button>
                                 </div>
                             </motion.div>
