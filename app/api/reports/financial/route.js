@@ -13,7 +13,7 @@ export async function GET(request) {
         }
 
         const currentUser = await getUserFromRequest(request);
-        if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+        if (!currentUser || currentUser.role !== 'admin') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

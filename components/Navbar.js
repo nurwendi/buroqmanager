@@ -60,7 +60,7 @@ export default function Navbar() {
 
     const navItems = [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
-        { href: '/reports/financial', icon: Activity, label: t('sidebar.reports'), roles: ['admin', 'superadmin'] },
+        { href: '/reports/financial', icon: Activity, label: t('sidebar.reports'), roles: ['admin'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
     const pppoeItems = [

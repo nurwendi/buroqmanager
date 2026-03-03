@@ -51,7 +51,7 @@ export default function BottomDock() {
     const desktopNavItems = [
         { href: '/', icon: Home, hoverIcon: LayoutGrid, label: t('sidebar.dashboard'), roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/billing', icon: CreditCard, hoverIcon: Wallet, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/reports/financial', icon: Activity, hoverIcon: TrendingUp, label: t('sidebar.reports'), roles: ['admin', 'superadmin'] },
+        { href: '/reports/financial', icon: Activity, hoverIcon: TrendingUp, label: t('sidebar.reports'), roles: ['admin'] },
 
         { href: '/users', icon: Users, hoverIcon: Route, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/offline', icon: WifiOff, hoverIcon: Network, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
@@ -76,7 +76,7 @@ export default function BottomDock() {
     const mobileLauncherItems = [
         { href: '/', icon: Home, label: t('sidebar.dashboard'), roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/billing', icon: CreditCard, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/reports/financial', icon: Activity, label: t('sidebar.reports'), roles: ['admin', 'superadmin'] },
+        { href: '/reports/financial', icon: Activity, label: t('sidebar.reports'), roles: ['admin'] },
         { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/notifications', icon: Bell, label: t('sidebar.notifications'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/offline', icon: WifiOff, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
