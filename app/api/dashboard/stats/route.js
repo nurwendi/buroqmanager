@@ -77,25 +77,30 @@ export async function GET(request) {
         // 1. Fetch PPPoE active connections from MikroTik
         const activeConnections = await client.write('/ppp/active/print');
 
-        // 2. Fetch Customers from DB to determine "ALL Users" and ownership
-        // 2. Fetch Customers from DB to determine "ALL Users" and ownership
-        let dbCustomers = [];
+        // 2. Determine "Total Users" and "Active Users" to match /users logic EXACTLY
+        let myTotalUsers = 0;
+        let myActiveCount = 0;
+        let pppoeOffline = 0;
 
-        // Strict Scoped Filtering
         if (currentUser.role === 'superadmin') {
-            // If Superadmin is viewing a specific connection, scope to that connection's owner
-            // to ensure "Total Users" matches the router's context.
-            const activeConnection = config.connections?.find(c => c.id === effectiveConnectionId);
-            if (activeConnection && activeConnection.ownerId) {
-                dbCustomers = await db.customer.findMany({
-                    where: { ownerId: activeConnection.ownerId },
-                    select: { username: true }
-                });
-            } else {
-                // Fallback to Global if no specific owner found for connection
-                dbCustomers = await db.customer.findMany({ select: { username: true } });
-            }
+            // Superadmin Dashboard should sum up ALL routers if no specific router is enforced, 
+            // but the dashboard currently passes a single effectiveConnectionId. 
+            // However, /users mode=all aggregates. To be perfectly consistent with /users table totals,
+            // we will fetch all secrets for the current router.
+
+            // Fetch ALL secrets on THIS router.
+            const allSecrets = await client.write('/ppp/secret/print');
+
+            myTotalUsers = allSecrets.length;
+            myActiveCount = activeConnections.length; // Approximate, but if we want exact from secrets:
+            // Better to see which secrets have an active session
+            const activeMap = new Set(activeConnections.map(a => a.name));
+            myActiveCount = allSecrets.filter(s => activeMap.has(s.name)).length;
+
         } else {
+            // For Staff/Agent: Fetch ALL secrets from router, then filter by database assignments
+            const allSecrets = await client.write('/ppp/secret/print');
+
             let filterWhere = {};
 
             if (currentUser.role === 'admin' || currentUser.role === 'manager') {
@@ -103,7 +108,7 @@ export async function GET(request) {
                 if (currentUser.role === 'manager' && currentUser.ownerId) {
                     filterWhere = { ownerId: currentUser.ownerId };
                 }
-            } else if (['agent', 'partner', 'technician', 'staff'].includes(currentUser.role)) {
+            } else if (['agent', 'partner', 'technician', 'staff', 'editor'].includes(currentUser.role)) {
                 filterWhere = {
                     OR: [
                         { agentId: currentUser.id },
@@ -112,32 +117,35 @@ export async function GET(request) {
                 };
                 if (currentUser.ownerId) {
                     filterWhere = {
-                        AND: [
-                            { ownerId: currentUser.ownerId },
-                            filterWhere
-                        ]
+                        AND: [{ ownerId: currentUser.ownerId }, filterWhere]
                     };
                 }
             } else {
                 filterWhere = { ownerId: 'impossible_id' };
             }
 
+            let allowedUsernames = new Set();
             if (Object.keys(filterWhere).length > 0 || (filterWhere.AND && filterWhere.AND.length > 0)) {
-                dbCustomers = await db.customer.findMany({
+                const dbCustomers = await db.customer.findMany({
                     where: filterWhere,
                     select: { username: true }
                 });
+                dbCustomers.forEach(c => allowedUsernames.add(c.username));
             }
+
+            // Filter secrets to only allowed users
+            const mySecrets = allSecrets.filter(s => allowedUsernames.has(s.name));
+
+            myTotalUsers = mySecrets.length;
+
+            // Count active
+            const activeMap = new Set(activeConnections.map(a => a.name));
+            myActiveCount = mySecrets.filter(s => activeMap.has(s.name)).length;
         }
 
-        const myCustomerUsernames = new Set(dbCustomers.map(c => c.username));
-        const myTotalUsers = dbCustomers.length;
-
-        // 3. Filter active connections to only include MY customers
-        const myActiveCount = activeConnections.filter(conn => myCustomerUsernames.has(conn.name)).length;
-
         // 4. Calculate Offline (My Total - My Active)
-        const pppoeOffline = Math.max(0, myTotalUsers - myActiveCount);
+        pppoeOffline = Math.max(0, myTotalUsers - myActiveCount);
+
 
 
         // Fetch system resources (Global stats, usually OK for all admins to see purely HW stats?
