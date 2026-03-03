@@ -4,14 +4,16 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, Bell, ShieldAlert, Activity, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isPppoeOpen, setIsPppoeOpen] = useState(false);
     const [appSettings, setAppSettings] = useState({ appName: 'Mikrotik Manager', logoUrl: '' });
     const [userRole, setUserRole] = useState(null);
+    const { t } = useLanguage();
 
     useEffect(() => {
         fetchAppSettings();
@@ -58,7 +60,8 @@ export default function Navbar() {
 
     const navItems = [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
-    ];
+        { href: '/reports/financial', icon: Activity, label: t('sidebar.reports'), roles: ['admin', 'superadmin'] },
+    ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
     const pppoeItems = [
         { href: '/users', icon: Users, label: t('sidebar.users') },
