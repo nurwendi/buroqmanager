@@ -444,8 +444,8 @@ export default function UsersPage() {
             switch (sortConfig.key) {
                 // ... (rest of sort logic)
                 case 'username':
-                    aVal = a.name.toLowerCase();
-                    bVal = b.name.toLowerCase();
+                    aVal = (a.name || '').toLowerCase();
+                    bVal = (b.name || '').toLowerCase();
                     break;
                 case 'customer':
                     aVal = (getCustomerName(a.name) || '').toLowerCase();
