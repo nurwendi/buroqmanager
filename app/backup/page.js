@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Save, Download, RotateCcw, Trash2, ArrowLeft, Database, AlertCircle, Upload } from 'lucide-react';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function BackupPage() {
+    const { t } = useLanguage();
     const [backups, setBackups] = useState([]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -165,14 +167,14 @@ export default function BackupPage() {
                         <ArrowLeft size={24} className="text-gray-600 dark:text-gray-300" />
                     </Link>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">Backup & Restore</h1>
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('backup.title')}</h1>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola backup data aplikasi Anda</p>
                     </div>
                 </div>
                 <div className="flex gap-2 w-full md:w-auto">
                     <label className="cursor-pointer w-full md:w-auto flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm">
                         <Upload size={18} />
-                        <span>Upload Backup</span>
+                        <span>{t('backup.uploadBackup') || 'Upload Backup'}</span>
                         <input
                             type="file"
                             accept=".zip"
@@ -187,7 +189,7 @@ export default function BackupPage() {
                         className="w-full md:w-auto flex items-center justify-center gap-2 bg-accent text-white px-4 py-2 rounded-lg hover:opacity-90 disabled:bg-gray-400 disabled:dark:bg-gray-600 transition-all shadow-lg shadow-accent/30"
                     >
                         <Database size={18} />
-                        {loading ? 'Creating...' : 'Create Backup'}
+                        {loading ? t('common.saving') : t('backup.createBackup')}
                     </button>
                 </div>
             </div>
@@ -203,13 +205,13 @@ export default function BackupPage() {
 
             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
                 <div className="p-6">
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Available Backups</h2>
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">{t('backup.availableBackups') || 'Available Backups'}</h2>
 
                     {backups.length === 0 ? (
                         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                             <Database size={48} className="mx-auto mb-4 opacity-50" />
-                            <p>No backups available</p>
-                            <p className="text-sm mt-2">Create your first backup to get started</p>
+                            <p>{t('backup.noBackups')}</p>
+                            <p className="text-sm mt-2">{t('backup.createFirst') || 'Create your first backup to get started'}</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
@@ -217,16 +219,16 @@ export default function BackupPage() {
                                 <thead className="bg-black/5 dark:bg-white/5">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Filename
+                                            {t('backup.fileName')}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Date Created
+                                            {t('backup.createdAt')}
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Size
+                                            {t('backup.size')}
                                         </th>
                                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Actions
+                                            {t('common.actions')}
                                         </th>
                                     </tr>
                                 </thead>
@@ -263,7 +265,7 @@ export default function BackupPage() {
                                                         onClick={() => setConfirmDelete(backup.filename)}
                                                         disabled={loading}
                                                         className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors disabled:opacity-50"
-                                                        title="Delete"
+                                                        title={t('common.delete')}
                                                     >
                                                         <Trash2 size={18} />
                                                     </button>
@@ -282,25 +284,25 @@ export default function BackupPage() {
             {confirmRestore && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl border border-white/20 dark:border-white/10">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Confirm Restore</h3>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t('backup.confirmRestore') || 'Confirm Restore'}</h3>
                         <p className="text-gray-600 dark:text-gray-300 mb-4">
-                            Are you sure you want to restore from this backup? Current data will be replaced.
+                            {t('backup.restoreWarning') || 'Are you sure you want to restore from this backup? Current data will be replaced.'}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                            <strong>Note:</strong> A safety backup of current state will be created automatically.
+                            <strong>Note:</strong> {t('backup.safetyWarning') || 'A safety backup of current state will be created automatically.'}
                         </p>
                         <div className="flex gap-2 justify-end">
                             <button
                                 onClick={() => setConfirmRestore(null)}
                                 className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                             <button
                                 onClick={() => handleRestore(confirmRestore)}
                                 className="px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-lg shadow-green-500/30"
                             >
-                                Restore
+                                {t('backup.restoreBackup') || 'Restore'}
                             </button>
                         </div>
                     </div>
@@ -310,22 +312,22 @@ export default function BackupPage() {
             {confirmDelete && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl border border-gray-200 dark:border-gray-700">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Confirm Delete</h3>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{t('messages.confirmAction') || 'Confirm Delete'}</h3>
                         <p className="text-gray-600 dark:text-gray-300 mb-4">
-                            Are you sure you want to delete this backup? This action cannot be undone.
+                            {t('messages.confirmDelete') || 'Are you sure you want to delete this backup? This action cannot be undone.'}
                         </p>
                         <div className="flex gap-2 justify-end">
                             <button
                                 onClick={() => setConfirmDelete(null)}
                                 className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                             >
-                                Cancel
+                                {t('common.cancel')}
                             </button>
                             <button
                                 onClick={() => handleDelete(confirmDelete)}
                                 className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-lg shadow-red-500/30"
                             >
-                                Delete
+                                {t('common.delete')}
                             </button>
                         </div>
                     </div>

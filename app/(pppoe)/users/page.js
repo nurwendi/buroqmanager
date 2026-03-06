@@ -24,7 +24,7 @@ export default function UsersPage() {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [rowsPerPage, setRowsPerPage] = useState(25);
+    const [rowsPerPage, setRowsPerPage] = useState(100);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     const [showModal, setShowModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
@@ -1106,7 +1106,92 @@ export default function UsersPage() {
 
                 {/* Unified Table */}
                 <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
-                    <div className="overflow-x-auto">
+                    {/* Mobile Card View */}
+                    <div className="md:hidden p-4 flex flex-col gap-3">
+                        {loading ? (
+                            <div className="text-center py-4 text-gray-500 dark:text-gray-400">{t('common.loading')}</div>
+                        ) : sortedUsers.length === 0 ? (
+                            <div className="text-center py-4 text-gray-500 dark:text-gray-400">{t('pppoe.noOfflineUsers')}</div>
+                        ) : (
+                            paginatedUsers.map((user) => {
+                                const active = getActiveConnection(user.name);
+                                const acs = getAcsDevice(user.name);
+                                const isOnline = !!active;
+
+                                return (
+                                    <div
+                                        key={user['.id']}
+                                        onClick={() => setDetailsModal({ ...user, acs, active })}
+                                        className={`rounded-xl p-4 border transition-shadow cursor-pointer ${isOnline ? 'bg-green-50/40 border-green-100 dark:bg-green-900/10 dark:border-green-800/30' : 'bg-white/50 border-gray-100 dark:bg-gray-800/50 dark:border-gray-700/50'}`}
+                                    >
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="flex gap-3 items-center">
+                                                <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                                                <div>
+                                                    <h4 className="font-bold text-gray-900 dark:text-white text-base">{user.name}</h4>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400">{getCustomerName(user.name) || '-'}</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setDetailsModal({ ...user, acs, active }); }}
+                                                className="p-1 -mr-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                            >
+                                                <MoreHorizontal size={20} />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                                            <span className="px-2 py-1 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded text-xs font-medium">
+                                                {user.profile || 'Default'}
+                                            </span>
+                                            {(user._customerId || customersData[user.name]?.customerId) && (user._customerId !== '-' && customersData[user.name]?.customerId !== '-') && (
+                                                <span className="px-2 py-1 bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 rounded text-xs font-medium">
+                                                    ID: {user._customerId || customersData[user.name]?.customerId}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {isOnline && (
+                                            <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-300 mb-3 bg-white/40 dark:bg-black/20 p-2 rounded-lg">
+                                                <div className="flex items-center gap-1 font-medium text-green-600 dark:text-green-400">
+                                                    <Clock size={14} />
+                                                    <span>{formatUptime(active.uptime)}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1 font-mono text-gray-500">
+                                                    <Globe size={14} />
+                                                    <span>{active.address}</span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="flex space-x-4 border-t border-gray-100 dark:border-gray-700/50 pt-3">
+                                            <div className="flex-1">
+                                                <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t('pppoe.usage')}</div>
+                                                <div className="flex gap-3">
+                                                    <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-medium">
+                                                        <ArrowUpDown size={12} className="rotate-180" /> {formatBytes(user.usage?.tx || 0)}
+                                                    </span>
+                                                    <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 text-xs font-medium">
+                                                        <ArrowUpDown size={12} /> {formatBytes(user.usage?.rx || 0)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {acs && (
+                                                <div className="flex-1 border-l border-gray-100 dark:border-gray-700/50 pl-4">
+                                                    <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t('device.signal')}</div>
+                                                    <div className={`flex items-center gap-1 text-xs font-bold ${parseFloat(acs.rx_power) < -25 ? 'text-red-500' : 'text-green-500'}`}>
+                                                        <Wifi size={12} /> {acs.rx_power || '-'} dBm
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-black/5 dark:bg-white/5">
                                 <tr>
@@ -1436,7 +1521,7 @@ export default function UsersPage() {
                                 <option value={25}>25</option>
                                 <option value={50}>50</option>
                                 <option value={100}>100</option>
-                                <option value="All">All</option>
+                                <option value="All">{t('users.all')}</option>
                             </select>
 
                             <div className="flex gap-1 ml-4">
@@ -2082,25 +2167,25 @@ export default function UsersPage() {
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                        <p className="text-xs text-blue-600 dark:text-blue-400 uppercase font-semibold mb-1">SSID</p>
+                                        <p className="text-xs text-blue-600 dark:text-blue-400 uppercase font-semibold mb-1">{t('device.ssid') || 'SSID'}</p>
                                         <p className="text-sm font-bold text-gray-900 dark:text-white truncate" title={selectedDevice.ssid}>
                                             {selectedDevice.ssid || '-'}
                                         </p>
                                     </div>
                                     <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                        <p className="text-xs text-green-600 dark:text-green-400 uppercase font-semibold mb-1">Signal (Rx)</p>
+                                        <p className="text-xs text-green-600 dark:text-green-400 uppercase font-semibold mb-1">{t('device.signal') || 'Signal (Rx)'}</p>
                                         <p className="text-sm font-bold text-gray-900 dark:text-white">
                                             {selectedDevice.rx_power ? `${selectedDevice.rx_power}dBm` : '-'}
                                         </p>
                                     </div>
                                     <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                                        <p className="text-xs text-orange-600 dark:text-orange-400 uppercase font-semibold mb-1">Temperature</p>
+                                        <p className="text-xs text-orange-600 dark:text-orange-400 uppercase font-semibold mb-1">{t('device.temp') || 'Temperature'}</p>
                                         <p className="text-sm font-bold text-gray-900 dark:text-white">
                                             {selectedDevice.temp ? `${selectedDevice.temp}°C` : '-'}
                                         </p>
                                     </div>
                                     <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                                        <p className="text-xs text-purple-600 dark:text-purple-400 uppercase font-semibold mb-1">IP Address</p>
+                                        <p className="text-xs text-purple-600 dark:text-purple-400 uppercase font-semibold mb-1">{t('device.ip') || 'IP Address'}</p>
                                         <p className="text-sm font-mono font-bold text-gray-900 dark:text-white truncate">
                                             {selectedDevice.ip || '-'}
                                         </p>

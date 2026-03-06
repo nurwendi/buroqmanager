@@ -1016,12 +1016,12 @@ export default function AppSettingsPage() {
                                             })}
                                             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                         >
-                                            <option value="0">Disabled</option>
-                                            <option value="5000">5 seconds</option>
-                                            <option value="10000">10 seconds</option>
-                                            <option value="30000">30 seconds</option>
-                                            <option value="60000">1 minute</option>
-                                            <option value="300000">5 minutes</option>
+                                            <option value="0">{t('appSettings.disabled') || 'Disabled'}</option>
+                                            <option value="5000">5 {t('common.seconds') || 'seconds'}</option>
+                                            <option value="10000">10 {t('common.seconds') || 'seconds'}</option>
+                                            <option value="30000">30 {t('common.seconds') || 'seconds'}</option>
+                                            <option value="60000">1 {t('common.minute') || 'minute'}</option>
+                                            <option value="300000">5 {t('common.minutes') || 'minutes'}</option>
                                         </select>
                                     </div>
 
