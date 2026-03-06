@@ -448,16 +448,16 @@ export default function UsersPage() {
                     bVal = b.name.toLowerCase();
                     break;
                 case 'customer':
-                    aVal = getCustomerName(a.name).toLowerCase();
-                    bVal = getCustomerName(b.name).toLowerCase();
+                    aVal = (getCustomerName(a.name) || '').toLowerCase();
+                    bVal = (getCustomerName(b.name) || '').toLowerCase();
                     break;
                 case 'profile':
                     aVal = (a.profile || '').toLowerCase();
                     bVal = (b.profile || '').toLowerCase();
                     break;
                 case 'staff':
-                    aVal = getPartnerName(a.name).toLowerCase();
-                    bVal = getPartnerName(b.name).toLowerCase();
+                    aVal = (getPartnerName(a.name) || '').toLowerCase();
+                    bVal = (getPartnerName(b.name) || '').toLowerCase();
                     break;
                 case 'usage':
                     // Sort by total usage (rx + tx)
@@ -535,6 +535,46 @@ export default function UsersPage() {
 
         // Staff/Editor/Agent/Technician Edit Request
         if (['staff', 'editor', 'agent', 'technician'].includes(userRole) && editMode) {
+            const hasPppoeChanges = (
+                formData.name !== formData.originalName ||
+                (formData.password && formData.password !== '') ||
+                formData.profile !== (formData.originalProfile || 'default') ||
+                formData.service !== (formData.originalService || 'pppoe')
+            );
+
+            if (!hasPppoeChanges) {
+                try {
+                    const custRes = await fetch('/api/customers', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: formData.originalName,
+                            customerId: formData.customerId,
+                            name: formData.customerName,
+                            address: formData.customerAddress,
+                            phone: formData.customerPhone,
+                            email: formData.customerEmail,
+                            agentId: effectiveAgentId,
+                            technicianId: effectiveTechnicianId,
+                            ownerId: formData.ownerId
+                        })
+                    });
+
+                    if (custRes.ok) {
+                        alert(t('messages.userSavedSuccess') || 'Updated successfully without needing admin approval.');
+                        handleCloseModal();
+                        fetchCustomersData();
+                    } else {
+                        const custData = await custRes.json();
+                        alert((t('messages.failedToSaveUser') || 'Failed to update') + ': ' + (custData.error || t('messages.unknownError')));
+                    }
+                } catch (error) {
+                    console.error('Failed to update customer directly', error);
+                    alert(t('messages.errorSavingUser') || 'Error updating customer data');
+                }
+                return;
+            }
+
             try {
                 const res = await fetch('/api/registrations', {
                     method: 'POST',
@@ -673,6 +713,8 @@ export default function UsersPage() {
 
             setFormData({
                 originalName: user.name, // Store original name
+                originalProfile: user.profile || 'default',
+                originalService: user.service || 'pppoe',
                 name: user.name,
                 password: '',
                 profile: user.profile || 'default',
@@ -689,6 +731,8 @@ export default function UsersPage() {
         } catch (error) {
             setFormData({
                 originalName: user.name,
+                originalProfile: user.profile || 'default',
+                originalService: user.service || 'pppoe',
                 name: user.name,
                 password: '',
                 profile: user.profile || 'default',

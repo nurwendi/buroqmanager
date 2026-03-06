@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import { Edit2, Plus, Trash2, Shield, ShieldAlert, User, Lock } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -19,8 +20,6 @@ export default function SystemAdminPage() {
         password: '',
         role: 'admin', // Hardcoded
         fullName: '',
-        phone: '',
-        address: '',
         phone: '',
         address: '',
         agentNumber: '', // Auto-generated usually, but editable?
@@ -138,8 +137,6 @@ export default function SystemAdminPage() {
             password: '',
             role: 'admin',
             fullName: '',
-            phone: '',
-            address: '',
             phone: '',
             address: '',
             agentNumber: '',

@@ -60,7 +60,7 @@ export default function RadiusUsersPage() {
         fetchUsers();
     }
 
-    const filteredUsers = users.filter(u => u.username.toLowerCase().includes(search.toLowerCase()));
+    const filteredUsers = users.filter(u => (u.username || '').toLowerCase().includes((search || '').toLowerCase()));
 
     return (
         <div className="p-6">

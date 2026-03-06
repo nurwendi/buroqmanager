@@ -114,7 +114,7 @@ export async function GET(request) {
             });
 
             const usersWithUsage = allUsers.map(u => {
-                const userData = allUsageData[u.name] || usageMapLowerCase[u.name.toLowerCase()];
+                const userData = allUsageData[u.name] || usageMapLowerCase[(u.name || '').toLowerCase()];
                 let usage = { rx: 0, tx: 0 };
 
                 if (userData && userData.month === currentMonth) {

@@ -27,8 +27,8 @@ export default function StaffBillingPage() {
         if (payments) {
             const lowerTerm = searchTerm.toLowerCase();
             const filtered = payments.filter(p =>
-                p.username.toLowerCase().includes(lowerTerm) ||
-                p.invoiceNumber?.toLowerCase().includes(lowerTerm)
+                (p.username || '').toLowerCase().includes(lowerTerm) ||
+                (p.invoiceNumber || '').toLowerCase().includes(lowerTerm)
             );
             setFilteredPayments(filtered);
         }

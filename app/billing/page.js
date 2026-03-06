@@ -243,9 +243,9 @@ export default function BillingPage() {
         const matchesMonth = pDate.getMonth() === selectedMonth && pDate.getFullYear() === selectedYear;
 
         // Filter by search term
-        const matchesSearch = p.username.toLowerCase().includes(searchLower) ||
-            customerName.toLowerCase().includes(searchLower) ||
-            p.notes?.toLowerCase().includes(searchLower);
+        const matchesSearch = (p.username || '').toLowerCase().includes(searchLower) ||
+            (customerName || '').toLowerCase().includes(searchLower) ||
+            (p.notes || '').toLowerCase().includes(searchLower);
 
         return matchesMonth && matchesSearch;
     });
@@ -370,8 +370,8 @@ export default function BillingPage() {
                     bVal = new Date(b.date).getTime();
                     break;
                 case 'customer':
-                    aVal = getCustomerName(a.username).toLowerCase();
-                    bVal = getCustomerName(b.username).toLowerCase();
+                    aVal = (getCustomerName(a.username) || '').toLowerCase();
+                    bVal = (getCustomerName(b.username) || '').toLowerCase();
                     break;
                 case 'amount':
                     aVal = parseFloat(a.amount);
@@ -1091,10 +1091,10 @@ Terima Kasih
                                             />
                                             {showUserDropdown && (
                                                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                                                    {users.filter(u => u.name.toLowerCase().includes(userSearchTerm.toLowerCase())).length === 0 ? (
+                                                    {users.filter(u => (u.name || '').toLowerCase().includes(userSearchTerm.toLowerCase())).length === 0 ? (
                                                         <div className="px-4 py-2 text-gray-500 text-sm">{t('billing.noUsersFound')}</div>
                                                     ) : (
-                                                        users.filter(u => u.name.toLowerCase().includes(userSearchTerm.toLowerCase())).map(user => (
+                                                        users.filter(u => (u.name || '').toLowerCase().includes(userSearchTerm.toLowerCase())).map(user => (
                                                             <div
                                                                 key={user['.id']}
                                                                 className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-900"

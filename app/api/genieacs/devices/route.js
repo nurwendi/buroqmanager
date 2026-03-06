@@ -46,7 +46,7 @@ export async function GET(request) {
             // Only return device if the extracted PPPoE username matches their login username (case-insensitive)
             const myDevice = cleanedDevices.find(d =>
                 d.pppoe_user &&
-                d.pppoe_user.toLowerCase() === user.username.toLowerCase()
+                d.pppoe_user.toLowerCase() === (user.username || '').toLowerCase()
             );
 
             return NextResponse.json(myDevice ? [myDevice] : []);

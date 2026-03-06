@@ -35,9 +35,9 @@ export default function SuperadminUsersPage() {
     const filteredUsers = users.filter(user => {
         const term = searchTerm.toLowerCase();
         const matchesSearch = (
-            user.name?.toLowerCase().includes(term) ||
-            user._sourceRouterName?.toLowerCase().includes(term) ||
-            user.service?.toLowerCase().includes(term)
+            (user.name || '').toLowerCase().includes(term) ||
+            (user._sourceRouterName || '').toLowerCase().includes(term) ||
+            (user.service || '').toLowerCase().includes(term)
         );
 
         if (!matchesSearch) return false;
