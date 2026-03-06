@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Users, Wifi, DollarSign, CreditCard, Activity, WifiOff } from 'lucide-react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDashboard } from '@/contexts/DashboardContext';
@@ -13,6 +14,8 @@ import FinancialStats from './FinancialStats';
 import PppoeStats from './PppoeStats';
 import SuperadminStats from './SuperadminStats';
 import PendingRegistrationStats from './PendingRegistrationStats';
+import RevenueChart from './RevenueChart';
+import RecentTransactions from './RecentTransactions';
 
 
 
@@ -30,18 +33,20 @@ export default function DashboardContent() {
         cpuLoad: 0,
         memoryUsed: 0,
         memoryTotal: 0,
-        memoryTotal: 0,
         temperature: 0,
-        voltage: 0, // Add initial state
+        voltage: 0,
         adminCount: 0,
         totalCustomers: 0,
+        systemUserCount: 0,
         interfaces: [],
         billing: {
             totalRevenue: 0,
             thisMonthRevenue: 0,
             todaysRevenue: 0,
             totalUnpaid: 0,
-            pendingCount: 0
+            pendingCount: 0,
+            monthlyRevenue: [],
+            recentTransactions: []
         },
         agentStats: null,
         pendingRegistrations: 0
@@ -126,9 +131,9 @@ export default function DashboardContent() {
                             memoryTotal: data.memoryTotal,
                             temperature: data.temperature,
                             voltage: data.voltage,
-                            interfaces: data.interfaces,
                             adminCount: data.adminCount,
                             totalCustomers: data.totalCustomers,
+                            systemUserCount: data.systemUserCount || 0,
                             serverCpuLoad: data.serverCpuLoad,
                             serverMemoryUsed: data.serverMemoryUsed,
                             serverMemoryTotal: data.serverMemoryTotal
@@ -275,22 +280,118 @@ export default function DashboardContent() {
                 </div>
             </motion.div>
 
-            {/* Widgets */}
+            {/* Unified General Overview */}
             <AnimatePresence>
                 {userRole === 'superadmin' ? (
                     <SuperadminStats key="superadmin" stats={stats} />
                 ) : (
-                    <>
-                        {visibleWidgets.financial && userRole !== 'staff' && (
-                            <FinancialStats key="financial" stats={stats} formatCurrency={formatCurrency} resolvedLanguage={resolvedLanguage} />
+                    <div className="space-y-6">
+
+                        {/* Admin/Agent Stats Section (Restored) */}
+                        {stats.agentStats && stats.agentStats.role === 'admin' && (
+                            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-lg">
+                                    <p className="text-blue-100 font-medium text-xs md:text-sm mb-1">{t('dashboard.totalGross')}</p>
+                                    <h3 className="text-xl md:text-2xl font-bold">{formatCurrency(stats.agentStats.grandTotal?.revenue || 0)}</h3>
+                                </div>
+                                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 text-white shadow-lg">
+                                    <p className="text-orange-100 font-medium text-xs md:text-sm mb-1">{t('dashboard.komisiStaff')}</p>
+                                    <h3 className="text-xl md:text-2xl font-bold">{formatCurrency(stats.agentStats.grandTotal?.commission || 0)}</h3>
+                                </div>
+                                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white shadow-lg">
+                                    <p className="text-green-100 font-medium text-xs md:text-sm mb-1">{t('dashboard.netRevenue')}</p>
+                                    <h3 className="text-xl md:text-2xl font-bold">{formatCurrency(stats.agentStats.grandTotal?.netRevenue || 0)}</h3>
+                                </div>
+                            </motion.div>
                         )}
 
                         <PendingRegistrationStats key="pending" stats={stats} />
 
-                        {visibleWidgets.pppoe && (
-                            <PppoeStats key="pppoe" stats={stats} />
-                        )}
-                    </>
+                        {/* New Unified Top Cards */}
+                        <motion.div variants={itemVariants}>
+                            <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                                <Activity size={20} className="text-indigo-600 dark:text-indigo-400" />
+                                {t('dashboard.systemOverview') || "General Overview"}
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {/* System Users */}
+                                <Link href="/system-users" className="block">
+                                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow h-full cursor-pointer">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">{t('sidebar.systemUsers') || "System Users"}</h3>
+                                            <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+                                                <Users size={20} />
+                                            </div>
+                                        </div>
+                                        <p className="text-3xl font-bold text-gray-800 dark:text-white">{stats.systemUserCount}</p>
+                                        <p className="text-xs text-gray-500 mt-2">{t('dashboard.registeredAdmins') || "Registered Users"}</p>
+                                    </div>
+                                </Link>
+                                
+                                {/* PPPoE Active */}
+                                <Link href="/users?status=online" className="block">
+                                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow h-full cursor-pointer">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">{t('dashboard.pppoeActive') || "PPPoE Active"}</h3>
+                                            <div className="p-2 bg-green-50 dark:bg-green-900/30 rounded-lg text-green-600 dark:text-green-400">
+                                                <Wifi size={20} />
+                                            </div>
+                                        </div>
+                                        <p className="text-3xl font-bold text-gray-800 dark:text-white">{stats.pppoeActive}</p>
+                                        <p className="text-xs text-gray-500 mt-2">{t('dashboard.usersOnline') || "Users currently online"}</p>
+                                    </div>
+                                </Link>
+
+                                {/* PPPoE Offline */}
+                                <Link href="/users?status=offline" className="block">
+                                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow h-full cursor-pointer">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">{t('dashboard.pppoeOffline') || "PPPoE Offline"}</h3>
+                                            <div className="p-2 bg-red-50 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400">
+                                                <WifiOff size={20} />
+                                            </div>
+                                        </div>
+                                        <p className="text-3xl font-bold text-gray-800 dark:text-white">{stats.pppoeOffline}</p>
+                                        <p className="text-xs text-gray-500 mt-2">{t('dashboard.usersOffline') || "Users currently offline"}</p>
+                                    </div>
+                                </Link>
+
+                                {/* Revenue */}
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">{t('dashboard.revenueMonth') || "Revenue"}</h3>
+                                        <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                                            <DollarSign size={20} />
+                                        </div>
+                                    </div>
+                                    <p className="text-2xl font-bold text-gray-800 dark:text-white truncate" title={formatCurrency(stats.billing.thisMonthRevenue)}>
+                                        {formatCurrency(stats.billing.thisMonthRevenue)}
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-2">{t('dashboard.revenueFor') || "For"} {new Date().toLocaleString(resolvedLanguage, { month: 'long', year: 'numeric' })}</p>
+                                </div>
+
+                                {/* Unpaid Invoices */}
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-red-100 dark:border-red-900 shadow-sm hover:shadow-md transition-shadow">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-red-500 dark:text-red-400 text-sm font-semibold uppercase">{t('dashboard.totalUnpaid') || "Unpaid Invoices"}</h3>
+                                        <div className="p-2 bg-red-50 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400">
+                                            <CreditCard size={20} />
+                                        </div>
+                                    </div>
+                                    <p className="text-2xl font-bold text-red-600 dark:text-red-400 truncate" title={formatCurrency(stats.billing.totalUnpaid)}>
+                                        {formatCurrency(stats.billing.totalUnpaid)}
+                                    </p>
+                                    <p className="text-xs text-red-400 mt-2">{t('dashboard.totalOutstanding') || "Outstanding balance"}</p>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        {/* Visual Charts & Recent Activities Grid */}
+                        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
+                            <RevenueChart data={stats.billing.monthlyRevenue} />
+                            <RecentTransactions transactions={stats.billing.recentTransactions} />
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </motion.div>

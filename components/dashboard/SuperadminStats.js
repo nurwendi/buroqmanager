@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Users, AlertCircle, Server, Database, Shield, Activity, Cpu, HardDrive } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SuperadminStats({ stats }) {
@@ -39,7 +40,9 @@ export default function SuperadminStats({ stats }) {
     }, []);
 
     // Stats from API
-    const adminCount = stats?.adminCount || 0;
+    // Combine adminCount and systemUserCount for Superadmin if they want to see all system users
+    // Or just use systemUserCount which we now pass from the API. Let's use systemUserCount.
+    const systemUserCount = stats?.systemUserCount || stats?.adminCount || 0;
     const totalCustomers = stats?.totalCustomers || 0;
 
     // Server Stats (Fallback to Router stats if server stats missing for some reason)
@@ -185,24 +188,26 @@ export default function SuperadminStats({ stats }) {
                 animate="visible"
             >
                 {/* Total Admins (Owners) */}
-                <motion.div
-                    variants={itemVariants}
-                    className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden group"
-                >
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Users size={64} className="text-blue-500" />
-                    </div>
-                    <div>
-                        <p className="text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wider">{t('dashboard.partners')}</p>
-                        <h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-2">{adminCount}</h3>
-                    </div>
-                    <div className="mt-4 flex items-center gap-2 text-sm text-blue-500 font-medium">
-                        <Shield size={16} />
-                        <span>{t('dashboard.registeredAdmins')}</span>
-                    </div>
-                    {/* Decorative gradient bar */}
-                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
-                </motion.div>
+                <Link href="/system-users" className="block">
+                    <motion.div
+                        variants={itemVariants}
+                        className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden group h-full cursor-pointer hover:shadow-xl transition-shadow"
+                    >
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <Users size={64} className="text-blue-500" />
+                        </div>
+                        <div>
+                            <p className="text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wider">{t('sidebar.systemUsers') || "System Users"}</p>
+                            <h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-2">{systemUserCount}</h3>
+                        </div>
+                        <div className="mt-4 flex items-center gap-2 text-sm text-blue-500 font-medium">
+                            <Shield size={16} />
+                            <span>{t('dashboard.registeredAdmins') || "Registered Users"}</span>
+                        </div>
+                        {/* Decorative gradient bar */}
+                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
+                    </motion.div>
+                </Link>
 
                 {/* Total Customers (Global) */}
                 <motion.div

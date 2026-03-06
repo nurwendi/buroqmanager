@@ -178,19 +178,34 @@ export async function GET(request) {
             // Health not available
         }
 
-        // Fetch System Users Count (Admins) for Superadmin
+        // Fetch System Users Count
         let adminCount = 0;
         let totalCustomers = 0;
+        let systemUserCount = 0;
 
         if (currentUser.role === 'superadmin') {
             const adminCountPromise = db.user.count({
                 where: { role: 'admin' }
             });
             const totalCustomersPromise = db.customer.count();
+            const systemUserCountPromise = db.user.count({
+                where: { role: { notIn: ['superadmin', 'admin', 'customer'] } }
+            });
 
-            const [ac, tc] = await Promise.all([adminCountPromise, totalCustomersPromise]);
+            const [ac, tc, sc] = await Promise.all([adminCountPromise, totalCustomersPromise, systemUserCountPromise]);
             adminCount = ac;
             totalCustomers = tc;
+            systemUserCount = sc;
+        } else if (currentUser.role === 'admin' || currentUser.role === 'manager') {
+            const ownerId = currentUser.role === 'manager' ? currentUser.ownerId : currentUser.id;
+            if (ownerId) {
+                // Admins/Managers see all system users under their ownerId tree
+                systemUserCount = await db.user.count({
+                    where: {
+                        ownerId: ownerId
+                    }
+                });
+            }
         }
 
         // Fetch interface statistics
@@ -226,7 +241,8 @@ export async function GET(request) {
             voltage,
             interfaces: interfaceStats,
             adminCount,
-            totalCustomers
+            totalCustomers,
+            systemUserCount
         });
     } catch (error) {
         console.error('Dashboard stats error:', error);
@@ -238,7 +254,8 @@ export async function GET(request) {
             memoryUsed: 0,
             memoryTotal: 0,
             temperature: null,
-            interfaces: []
+            interfaces: [],
+            systemUserCount: 0
         }, { status: 500 });
     }
 }

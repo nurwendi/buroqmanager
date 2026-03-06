@@ -101,13 +101,50 @@ export async function GET(request) {
             .filter(p => p.status === 'pending')
             .reduce((sum, p) => sum + Number(p.amount), 0);
 
+        // --- NEW: Calculate 6-month historical revenue for chart ---
+        const monthlyRevenue = [];
+        for (let i = 5; i >= 0; i--) {
+            const targetDate = new Date(jakartaNow);
+            targetDate.setMonth(jakartaNow.getMonth() - i);
+            const targetMonthStr = targetDate.toISOString().slice(0, 7); // YYYY-MM
+            
+            const monthTotal = payments
+                .filter(p => {
+                    if (p.status !== 'completed') return false;
+                    const paymentDate = new Date(p.date);
+                    const pJakarta = new Date(paymentDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+                    return pJakarta.toISOString().slice(0, 7) === targetMonthStr;
+                })
+                .reduce((sum, p) => sum + Number(p.amount), 0);
+
+            // Format month name (e.g. "Jan", "Feb")
+            const monthName = targetDate.toLocaleString('id-ID', { month: 'short' });
+            monthlyRevenue.push({ name: monthName, revenue: monthTotal });
+        }
+
+        // --- NEW: Top 5 Recent Transactions ---
+        // Sort descending by date and grab first 5 completed
+        const recentTransactions = payments
+            .filter(p => p.status === 'completed')
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5)
+            .map(p => ({
+                id: p.id,
+                customerName: p.customerName || 'Unknown Customer',
+                amount: Number(p.amount),
+                date: p.date,
+                method: p.method || 'cash'
+            }));
+
         return NextResponse.json({
             totalRevenue,
             thisMonthRevenue,
             todaysRevenue,
             pendingCount,
             totalUnpaid,
-            totalTransactions: payments.length
+            totalTransactions: payments.length,
+            monthlyRevenue,
+            recentTransactions
         });
     } catch (error) {
         console.error('Stats Error:', error);
