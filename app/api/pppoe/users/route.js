@@ -84,24 +84,11 @@ export async function GET(request) {
                 allUsers = [...allUsers, ...users];
             });
 
-            // Attach Customer IDs (Login ID)
-            const usernames = [...new Set(allUsers.map(u => u.name))];
-            if (usernames.length > 0) {
-                const customers = await db.customer.findMany({
-                    where: { username: { in: usernames } },
-                    select: { username: true, customerId: true }
-                });
-
-                const customerMap = {};
-                customers.forEach(c => {
-                    customerMap[c.username] = c.customerId;
-                });
-
-                allUsers = allUsers.map(u => ({
-                    ...u,
-                    _customerId: customerMap[u.name] || '-'
-                }));
-            }
+            // Attach Customer IDs (Login ID) - Removed, frontend handles it.
+            allUsers = allUsers.map(u => ({
+                ...u,
+                _customerId: '-'
+            }));
 
             // Attach Usage Data (Global)
             const { getAllMonthlyUsage } = await import('@/lib/usage-tracker');
@@ -229,24 +216,11 @@ export async function GET(request) {
             }
         }
 
-        // Attach Customer IDs (Standard Mode)
-        const usernames = [...new Set(users.map(u => u.name))];
-        if (usernames.length > 0) {
-            const customers = await db.customer.findMany({
-                where: { username: { in: usernames } },
-                select: { username: true, customerId: true }
-            });
-
-            const customerMap = {};
-            customers.forEach(c => {
-                customerMap[c.username] = c.customerId;
-            });
-
-            users = users.map(u => ({
-                ...u,
-                _customerId: customerMap[u.name] || '-'
-            }));
-        }
+        // Attach Customer IDs (Standard Mode) - Removed, frontend handles it.
+        users = users.map(u => ({
+            ...u,
+            _customerId: '-'
+        }));
 
         // Attach monthly usage data
         const { getAllMonthlyUsage } = await import('@/lib/usage-tracker');

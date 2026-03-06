@@ -4,6 +4,8 @@ import db from '@/lib/db';
 
 export async function GET(request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const isLite = searchParams.get('lite') === 'true';
         const user = await getUserFromRequest(request); // Await the promise!
         let where = {};
 
@@ -34,13 +36,28 @@ export async function GET(request) {
             }
         }
 
-        const customersList = await db.customer.findMany({
-            where,
-            include: {
+        const queryOptions = { where };
+
+        if (isLite) {
+            queryOptions.select = {
+                username: true,
+                name: true,
+                customerId: true,
+                phone: true,
+                address: true,
+                email: true,
+                agentId: true,
+                technicianId: true,
+                ownerId: true
+            };
+        } else {
+            queryOptions.include = {
                 agent: { select: { username: true, id: true } },
                 technician: { select: { username: true, id: true } }
-            }
-        });
+            };
+        }
+
+        const customersList = await db.customer.findMany(queryOptions);
 
         // Convert array to object to maintain API compatibility
         const customers = customersList.reduce((acc, curr) => {

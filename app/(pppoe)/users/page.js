@@ -80,7 +80,7 @@ export default function UsersPage() {
                 fetch('/api/pppoe/profiles'),
                 fetch('/api/pppoe/active'),
                 fetch('/api/genieacs/devices'),
-                fetch('/api/customers'),
+                fetch('/api/customers?lite=true'),
                 fetch('/api/admin/users'),
                 fetch('/api/settings'),
                 fetch('/api/registrations')
@@ -311,7 +311,7 @@ export default function UsersPage() {
 
     const fetchCustomersData = async () => {
         try {
-            const res = await fetch('/api/customers');
+            const res = await fetch('/api/customers?lite=true');
             const data = await res.json();
             setCustomersData(data);
         } catch (error) {
