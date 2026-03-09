@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, Bell, ShieldAlert, Activity, ChevronDown } from 'lucide-react';
+import { Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, Bell, ShieldAlert, Activity, ChevronDown, Router } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -68,6 +68,7 @@ export default function Navbar() {
         { href: '/active', icon: Activity, label: t('sidebar.activeConnections') },
         { href: '/profiles', icon: Settings, label: t('sidebar.profiles') },
         { href: '/drop-users', icon: ShieldAlert, label: t('sidebar.dropIsolir') },
+        { href: '/genieacs', icon: Router, label: t('sidebar.genieacs') },
     ];
 
     const settingsItems = [

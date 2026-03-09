@@ -161,6 +161,7 @@ export async function GET(request) {
 
         return NextResponse.json({
             name,
+            avatar: asCustomer?.avatar || "", // Include avatar
             usage,
             billing,
             session

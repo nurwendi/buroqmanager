@@ -40,7 +40,6 @@
     "**/*.jsx"
   ],
   "exclude": [
-    "node_modules",
-    "mobile-app"
+    "node_modules"
   ]
 }

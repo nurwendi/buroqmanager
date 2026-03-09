@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -13,7 +13,8 @@ export default function CustomerDashboard() {
         name: '',
         usage: { download: 0, upload: 0 },
         billing: { status: 'loading', amount: 0, invoice: '' },
-        session: { id: null, uptime: '', active: false, ipAddress: null, currentSpeed: null }
+        session: { id: null, uptime: '', active: false, ipAddress: null, currentSpeed: null },
+        avatar: ''
     });
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -152,13 +153,23 @@ export default function CustomerDashboard() {
         >
             {/* Header */}
             <motion.div variants={itemVariants} className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-                        {t('dashboard.title')}
-                    </h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1">
-                        {t('customerDashboard.welcomePrefix')} <span className="font-semibold text-blue-600 dark:text-blue-400">{cleanName}</span>!
-                    </p>
+                <div className="flex items-center gap-4">
+                    {/* Avatar */}
+                    <div className="w-16 h-16 rounded-full border-4 border-white dark:border-gray-700 shadow-md bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center overflow-hidden">
+                        {stats.avatar ? (
+                            <img src={stats.avatar} alt={cleanName} className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="text-2xl font-bold text-white uppercase">{cleanName.charAt(0)}</span>
+                        )}
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+                            {t('dashboard.title')}
+                        </h1>
+                        <p className="text-gray-500 dark:text-gray-400 mt-1">
+                            {t('customerDashboard.welcomePrefix')} <span className="font-semibold text-blue-600 dark:text-blue-400">{cleanName}</span>!
+                        </p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
                     <button

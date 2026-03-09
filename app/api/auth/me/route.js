@@ -24,6 +24,7 @@ export async function GET(request) {
         role: "customer",
         ownerId: customer.ownerId,
         language: customer.language,
+        avatar: customer.avatar,
       };
     }
   } else {

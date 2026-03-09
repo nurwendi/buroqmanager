@@ -28,10 +28,18 @@ export async function POST(request) {
         const filePath = path.join(uploadDir, filename);
 
         await writeFile(filePath, buffer);
-
-        // Update user profile with new avatar URL
         const avatarUrl = `/uploads/avatars/${filename}`;
-        await updateUser(user.id, { avatar: avatarUrl });
+
+        // Update user or customer profile with new avatar URL
+        if (user.role === 'customer') {
+            const db = (await import('@/lib/db')).default;
+            await db.customer.update({
+                where: { id: user.id },
+                data: { avatar: avatarUrl }
+            });
+        } else {
+            await updateUser(user.id, { avatar: avatarUrl });
+        }
 
         return NextResponse.json({ success: true, avatarUrl });
     } catch (error) {

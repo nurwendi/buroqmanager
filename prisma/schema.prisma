@@ -74,6 +74,7 @@ model Customer {
   address        String   @default("")
   phone          String   @default("")
   email          String   @default("")
+  avatar         String   @default("")
   
   agentId        String?
   technicianId   String?
