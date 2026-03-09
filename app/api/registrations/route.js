@@ -38,6 +38,10 @@ export async function POST(request) {
         const body = await request.json();
         const { username, action, updatedData, type, targetUsername, newValues, agentId } = body;
 
+        // Auth check
+        const user = await getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
         // --- SUBMIT REQUEST (Register, Edit, Delete) ---
         if (type) {
             if (type === 'register') {
@@ -160,9 +164,15 @@ export async function POST(request) {
 
                 // Merge with overrides from Admin if any
                 if (updatedData) {
+                    // Preserve routerIds from registration unless admin explicitly changed them
+                    const savedRouterIds = finalData.routerIds;
                     Object.assign(finalData, updatedData);
+                    // Restore routerIds if updatedData didn't supply a valid one
+                    if (!updatedData.routerIds || (Array.isArray(updatedData.routerIds) && updatedData.routerIds.length === 0)) {
+                        finalData.routerIds = savedRouterIds;
+                    }
                     // If username changed in Admin update
-                    if (updatedData.username && updatedData.username !== finalData.username) {
+                    if (updatedData.username && updatedData.username !== registration.username) {
                         // Check collision
                         const exists = await db.user.findUnique({ where: { username: updatedData.username } });
                         if (exists) return NextResponse.json({ error: "New username already exists" }, { status: 400 });
@@ -171,6 +181,9 @@ export async function POST(request) {
                 }
 
                 // Create User + Customer Transactionally
+                if (!finalData.password) {
+                    return NextResponse.json({ error: "Password is required" }, { status: 400 });
+                }
                 const passwordHash = require('bcryptjs').hashSync(finalData.password, 10);
 
                 let newUser, newCustomer;

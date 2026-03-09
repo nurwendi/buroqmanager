@@ -1,0 +1,51 @@
+{
+  "id": "40484bb7-0819-477e-a75f-916fa854043e",
+  "status": "ERRORED",
+  "platform": "ANDROID",
+  "error": {
+    "errorCode": "EAS_BUILD_UNKNOWN_GRADLE_ERROR",
+    "message": "Gradle build failed with unknown error. See logs for the \"Run gradlew\" phase for more information."
+  },
+  "artifacts": {},
+  "fingerprint": {
+    "id": "019cc7b8-c449-72ca-8e25-0465ec049bb6",
+    "hash": "41097712720f41a2a300a7dadf618e35eaace40d"
+  },
+  "initiatingActor": {
+    "id": "d5bab788-fcc0-4bcb-a2cc-5f96253ca10d",
+    "displayName": "nurwendi"
+  },
+  "logFiles": [
+    "https://job-logs.eascdn.net/production/40484bb7-0819-477e-a75f-916fa854043e/1772887545976-a4326f25-d29b-48bf-a25f-562b3018001f.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260307%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260307T132152Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=74c431848ac246c65ebabbb39c2c644b159cd9fe8367dd6fad597d3361a5ad6d1bfa110810c505b3f0cebf5a3a7cd602e4eec5e2de07e7f1daf2ac96e872fd1fb181e43e8b5cea8003491e8992ea5ce24a0a5f14fa5c0ba1a05d3fa07fc1d95625abc48e45accb0629f27cc1e58134e6d13cd8f27ec9472f5293856831c8ece5eddd2dd19a09db91dec21927223f5eb6041674e9b344cca32297c09ddacb6f66702e0918dda34beadbec8256fe306984cb65d5141e32eb43b285e38e752ae84a3127a62b5eea804a8d3a34dcc06ed005b3829ceee31568eab0e72cd2434cad1358dc7fe63464f1e3d5853066a9552d9165a7914039a3522f7705da0879341d57",
+    "https://job-logs.eascdn.net/production/40484bb7-0819-477e-a75f-916fa854043e/1772887553287-bb9b310c-9ca4-49a9-ae30-1394b5d8f26f.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260307%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260307T132152Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=4df73c12a8af28175645e844bbdccd83f5776391fd4ba81bd5ec22c1b680ff03363adb1afbaf664fc0c1dc475fc11fe1568570507b527612811a79c49250e2b1cf97f34425c0812da130c33dbb25fe60b50a75eb2dfd6678363fdee379f7a719e53632e03ff6e0baa7da2dd9a30a4d8c2e3f07de38f2efec55c7e45412d2cf45e3eaafad4f9a82bc5ddcc263011d2225c36cf063d66c815fc0472d36c6a90924fe57b827e139d8ec10793f8cc66c6c00b5c9dcce763c7f58c41a006b7557b52bb24f62edc6b376b5d34e45491554571ac30e833b596fedc654df494ea9ea9129a97b80971e3452e62f7b0adee77b3599fd1cd1aac316c4a6ae3fcd52735427ec",
+    "https://job-logs.eascdn.net/production/40484bb7-0819-477e-a75f-916fa854043e/1772887553481-17afa905-22a8-464f-86cd-1763f35c201b.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260307%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260307T132152Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=6e6714fe7b0dda8597326187df173af782105979db5ccce86eceebbe83f28c5a2d3d338639b459e523d9c2c8714f82de6c4d54359a497a11f912e5d99007e670f56719fbf903a3a5d79769187f51e5590e66eda2fdc47e1a8657e5a5ee44bb0af29d0a12936d9893c42891a435fd6cb77a749f49eeb14336a83e45f29256d33e771847155533673da8bff7147a49ece38c474a2829671840500a508cc04b9e03b64d2ec4d0d19bbb31f1e617f98dfafa06e0d1c896a20ee86d95a67113940b2613843cd0f758346cbd5ff5dc45cc547edff80f2de33361b647053c60e6aff341b9707958df5fcee67addb59078234cbf9c2ebcaaf72891238d52b318162c0082",
+    "https://job-logs.eascdn.net/production/40484bb7-0819-477e-a75f-916fa854043e/1772887553637-7bed48e0-56e7-4658-9a56-65ba88120f6c.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260307%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260307T132152Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=413c19628ddb463d8806e886f5593d5b10055ae477a93834a2eb4efe4d76c7d40184f1b8c7302c1796c26c027f298a98a548ad335547e8e3ba99ff1a94baaf3f1d1fd9f250d460aee545a744e52738bdcd2d775b317aee32f26e76f291f6082aefecaf16b8cab791295ef8415e6843aae4342dc297d3783e9dd1abb21bd3ff730f0311a99b4b56a749809e08d1534fd751b26645449b3f41317a74d992b7381e994de3ac6fe246fe7db6f4c96bc9257e0f0cfd127913f7b27ff45ce1f55725d98c2e30ef2867e6144178f446a7e4cea989a981a7f78d53877d154e6298b4e1fc4fb982f6162cc4e127957e2324d19551396eca29b20a361b17a0ca1c570896c2"
+  ],
+  "project": {
+    "id": "c54c8d99-862f-4eb1-9359-0dd1ba4f6d9a",
+    "name": "mobile-app",
+    "slug": "mobile-app",
+    "ownerAccount": {
+      "id": "a8a7f74a-2365-4070-b5a6-9c2d5c76c925",
+      "name": "nurwendi"
+    }
+  },
+  "distribution": "STORE",
+  "buildProfile": "preview",
+  "sdkVersion": "54.0.0",
+  "appVersion": "1.0.0",
+  "appBuildVersion": "1",
+  "gitCommitHash": "2435e97e309c82ae6029c481bc9fb20cffb6347a",
+  "gitCommitMessage": "fix(mobile): remove from gitignore to allow eas build to upload source",
+  "priority": "NORMAL",
+  "createdAt": "2026-03-07T12:45:45.706Z",
+  "updatedAt": "2026-03-07T12:49:46.841Z",
+  "completedAt": "2026-03-07T12:49:43.105Z",
+  "expirationDate": "2026-04-06T12:45:45.743Z",
+  "isForIosSimulator": false,
+  "metrics": {
+    "buildWaitTime": 161,
+    "buildQueueTime": 50239,
+    "buildDuration": 186145
+  }
+}

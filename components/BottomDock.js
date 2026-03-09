@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
     Home, Users, Settings, Server, Activity, LogOut, Network, CreditCard, WifiOff, Database, Menu, X, Palette, Bell, Wallet,
-    LayoutGrid, UserCheck, Zap, Wifi, Route, ShieldCheck, HardDrive, Save, SlidersHorizontal, MessageSquare, Shield, FileText, FileCheck, UserCog, Router, Radio, Gauge, Globe, TrendingUp
+    LayoutGrid, UserCheck, Zap, Wifi, Route, ShieldCheck, HardDrive, Save, SlidersHorizontal, MessageSquare, Shield, FileText, FileCheck, UserCog, Router, Radio, Gauge, Globe, TrendingUp, ArrowLeftRight
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -62,6 +62,7 @@ export default function BottomDock() {
         { href: '/superadmin/users', icon: Users, hoverIcon: Globe, label: t('sidebar.allUsers'), roles: ['superadmin'] },
         { href: '/system-admin', icon: Shield, hoverIcon: UserCheck, label: t('sidebar.owners'), roles: ['superadmin'] },
         { href: '/routers', icon: Server, hoverIcon: HardDrive, label: t('sidebar.nat'), roles: ['admin', 'manager'] },
+        { href: '/nat', icon: ArrowLeftRight, hoverIcon: Network, label: 'NAT', roles: ['superadmin', 'admin'] },
 
         { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
         { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin'] },
@@ -85,6 +86,7 @@ export default function BottomDock() {
         { href: '/superadmin/users', icon: Users, label: t('sidebar.allUsers'), roles: ['superadmin'] },
         { href: '/system-admin', icon: Shield, label: t('sidebar.owners'), roles: ['superadmin'] },
         { href: '/routers', icon: Server, label: t('sidebar.nat'), roles: ['admin', 'manager'] },
+        { href: '/nat', icon: ArrowLeftRight, label: 'NAT', roles: ['superadmin', 'admin'] },
 
         { href: '/genieacs', icon: Wifi, label: t('sidebar.genieacs'), roles: ['superadmin'] },
         { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['superadmin'] },
@@ -99,19 +101,12 @@ export default function BottomDock() {
     const dockedNavItems = desktopNavItems;
     const launcherNavItems = mobileLauncherItems;
 
-    // Mobile navigation items (Dynamic based on role)
-    const mobileNavItems = userRole === 'superadmin' ? [
-        { href: '/', icon: Home, label: t('sidebar.dashboard') },
-        { href: '/system-admin', icon: Shield, label: t('sidebar.owners') },
-        { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings') },
-    ] : userRole === 'admin' ? [
-        { href: '/', icon: Home, label: t('sidebar.dashboard') },
-        { href: '/billing', icon: CreditCard, label: t('sidebar.billing') },
-        { href: '/reports/financial', icon: Activity, label: t('sidebar.reports') },
-    ] : [
+    // Mobile navigation items (Static 4 items for Bottom Dock)
+    const mobileNavItems = [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
         { href: '/users', icon: Users, label: t('sidebar.users') },
         { href: '/billing', icon: CreditCard, label: t('sidebar.billing') },
+        { href: '/app-settings', icon: Settings, label: t('sidebar.settings') || "Settings" },
     ];
 
     if (userRole === 'customer') return null;
@@ -366,19 +361,7 @@ export default function BottomDock() {
                                 );
                             })}
 
-                            {/* Logout Button */}
-                            <button
-                                onClick={handleLogout}
-                                title={t('sidebar.logout')}
-                                className="flex flex-col items-center justify-center min-w-[60px]"
-                            >
-                                <div className="p-1 rounded-xl bg-transparent transition-all duration-300">
-                                    <LogOut size={24} className="text-gray-600 dark:text-gray-400" />
-                                </div>
-                                <span className="text-[10px] font-medium mt-1 text-gray-600 dark:text-gray-400">
-                                    {t('sidebar.logout')}
-                                </span>
-                            </button>
+                            
                         </div>
                     </div>
                 </div>

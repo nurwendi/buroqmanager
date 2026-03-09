@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { Plus, Edit2, Trash2, Users as UsersIcon, Shield, Globe, User, MapPin, Phone, Building, Search, ArrowUpDown, Server, RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle, Mail, Loader2, Activity, ExternalLink, Power, Wifi, RotateCcw, Smartphone, Database, Info, MoreHorizontal, X } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Plus, Edit2, Trash2, Users as UsersIcon, Shield, Globe, User, MapPin, Phone, Building, Search, ArrowUpDown, Server, RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle, Mail, Loader2, Activity, ExternalLink, Power, Wifi, RotateCcw, Smartphone, Database, Info, MoreHorizontal, X, ChevronDown } from 'lucide-react';
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDashboard } from '@/contexts/DashboardContext';
@@ -30,6 +30,10 @@ export default function UsersPage() {
     const [editMode, setEditMode] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
     const [selectedUsers, setSelectedUsers] = useState(new Set());
+    const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+    const [showReviewProfileDropdown, setShowReviewProfileDropdown] = useState(false);
+    const profileDropdownRef = useRef(null);
+    const reviewProfileDropdownRef = useRef(null);
 
     // Filter State
     const [filterStatus, setFilterStatus] = useState(searchParams.get('status') || 'all'); // 'all', 'online', 'offline'
@@ -40,6 +44,19 @@ export default function UsersPage() {
             setFilterStatus(status);
         }
     }, [searchParams]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+                setShowProfileDropdown(false);
+            }
+            if (reviewProfileDropdownRef.current && !reviewProfileDropdownRef.current.contains(event.target)) {
+                setShowReviewProfileDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // Form Data
     const [formData, setFormData] = useState({
@@ -59,6 +76,16 @@ export default function UsersPage() {
         coordinates: '',
         ownerId: ''
     });
+
+    const formatCurrency = (amount) => {
+        if (!amount) return 'Rp 0';
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(amount);
+    };
 
     const { preferences } = useDashboard();
 
@@ -98,7 +125,7 @@ export default function UsersPage() {
             const registrationsData = registrationsRes.ok ? await registrationsRes.json() : [];
 
             setUsers(usersData);
-            setProfiles(profilesData);
+            setProfiles((profilesData || []).filter(p => p.name !== 'default' && p.name !== 'billing.default'));
             setActiveConnections(activeData);
             setAcsDevices(acsData);
             setCustomersData(customersDataVals);
@@ -140,6 +167,12 @@ export default function UsersPage() {
         fetchData();
     }, []);
 
+    useEffect(() => {
+        if (showModal && !editMode && connections.length > 0) {
+            fetchRouterIdentities(connections);
+        }
+    }, [showModal, editMode]);
+
     // Helper to get active connection for a user
     const getActiveConnection = (username) => activeConnections.find(c => c.name === username);
 
@@ -162,6 +195,7 @@ export default function UsersPage() {
 
     const [connections, setConnections] = useState([]);
     const [selectedRouterIds, setSelectedRouterIds] = useState([]);
+    const [routerIdentities, setRouterIdentities] = useState({}); // { [connectionId]: 'identity name' }
 
     // Bulk Actions
     const [showBulkEditModal, setShowBulkEditModal] = useState(false);
@@ -247,6 +281,25 @@ export default function UsersPage() {
 
     // Pagination
 
+    const fetchRouterIdentities = async (conns) => {
+        if (!conns || conns.length === 0) return;
+        const results = {};
+        await Promise.all(conns.map(async (conn) => {
+            try {
+                const res = await fetch(`/api/routers/status?id=${conn.id}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    results[conn.id] = data.identity || conn.name;
+                } else {
+                    results[conn.id] = null; // offline
+                }
+            } catch {
+                results[conn.id] = null;
+            }
+        }));
+        setRouterIdentities(results);
+    };
+
     const fetchConnections = async () => {
         try {
             const res = await fetch('/api/settings');
@@ -291,7 +344,8 @@ export default function UsersPage() {
         try {
             const res = await fetch('/api/pppoe/profiles');
             if (res.ok) {
-                setProfiles(await res.json());
+                const data = await res.json();
+                setProfiles((data || []).filter(p => p.name !== 'default' && p.name !== 'billing.default'));
             }
         } catch (error) {
             console.error('Failed to fetch profiles', error);
@@ -922,45 +976,101 @@ export default function UsersPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('users.title')}</h1>
-                <div className="flex flex-col gap-2 md:flex-row md:gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
                     {selectedUsers.size > 0 && !['staff', 'editor', 'agent', 'technician'].includes(userRole) && (
                         <button
                             onClick={() => setShowBulkEditModal(true)}
-                            className="w-full md:w-auto bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors shadow-lg animate-pulse"
+                            className="bg-purple-600 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors shadow-lg animate-pulse text-sm font-medium"
                         >
-                            <UsersIcon size={20} /> {t('pppoe.bulkEdit')} ({selectedUsers.size})
+                            <UsersIcon size={18} /> {t('pppoe.bulkEdit')} ({selectedUsers.size})
                         </button>
                     )}
 
                     <button
-                        onClick={() => setShowModal(true)}
-                        className="w-full md:w-auto bg-accent text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all"
+                        onClick={() => { setShowModal(true); fetchRouterIdentities(connections); }}
+                        className="bg-accent text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all text-sm font-medium shadow-lg shadow-accent/20"
                     >
-                        <Plus size={20} /> {t('pppoe.addUser')}
+                        <Plus size={18} /> {t('pppoe.addUser')}
                     </button>
                 </div>
             </div>
 
             {/* Pending Registrations (Admin & Staff) */}
             {((userRole === 'admin' || userRole === 'editor' || userRole === 'staff') && pendingRegistrations.length > 0) && (
-                <div className="bg-yellow-50/30 dark:bg-yellow-900/30 backdrop-blur-xl border border-yellow-200/50 dark:border-yellow-800/50 rounded-lg p-4 md:p-6 shadow-lg">
-                    <h2 className="text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-4 flex items-center gap-2">
-                        <Clock className="text-yellow-600 dark:text-yellow-400" /> {t('pppoe.pendingRegistrations')}
+                <div className="bg-yellow-50/30 dark:bg-yellow-900/30 backdrop-blur-xl border border-yellow-200/50 dark:border-yellow-800/50 rounded-xl p-4 md:p-6 shadow-lg">
+                    <h2 className="text-lg md:text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-4 flex items-center gap-2">
+                        <Clock className="text-yellow-600 dark:text-yellow-400" size={20} /> {t('pppoe.pendingRegistrations')}
+                        <span className="ml-1 px-2 py-0.5 bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 rounded-full text-sm font-semibold">
+                            {pendingRegistrations.filter(reg => userRole === 'admin' || userRole === 'editor' || (userRole === 'staff' && reg.agentId === currentUserId)).length}
+                        </span>
                     </h2>
-                    <div className="overflow-x-auto bg-white rounded-lg shadow-sm">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50 dark:bg-gray-700">
+
+                    {/* Mobile Cards */}
+                    <div className="md:hidden space-y-3">
+                        {pendingRegistrations
+                            .filter(reg => userRole === 'admin' || userRole === 'editor' || (userRole === 'staff' && reg.agentId === currentUserId))
+                            .map((reg) => {
+                                const agent = systemUsers.find(u => u.id === reg.agentId);
+                                const typeBadge = reg.type === 'edit'
+                                    ? { label: t('common.edit'), cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' }
+                                    : reg.type === 'delete'
+                                    ? { label: t('common.delete'), cls: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' }
+                                    : { label: t('pppoe.register'), cls: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' };
+                                return (
+                                    <div key={reg.username} className="bg-white dark:bg-gray-800 rounded-xl border border-yellow-200/60 dark:border-yellow-800/40 p-4 shadow-sm">
+                                        <div className="flex items-start justify-between gap-2 mb-3">
+                                            <div>
+                                                <div className="font-bold text-gray-900 dark:text-white text-sm">{reg.targetUsername || reg.username}</div>
+                                                {reg.name && <div className="text-xs text-gray-500 mt-0.5">{reg.name}</div>}
+                                            </div>
+                                            <span className={`text-xs font-semibold px-2 py-1 rounded-full shrink-0 ${typeBadge.cls}`}>{typeBadge.label}</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                                            <div>
+                                                <div className="text-gray-400 mb-0.5">{t('users.profile')}</div>
+                                                <div className="font-medium text-gray-700 dark:text-gray-200">{reg.registrationData?.profile || '-'}</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-gray-400 mb-0.5">{t('users.service')}</div>
+                                                <div className="font-medium text-gray-700 dark:text-gray-200">{reg.registrationData?.service || '-'}</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-gray-400 mb-0.5">{t('users.agent')}</div>
+                                                <div className="font-medium text-gray-700 dark:text-gray-200">{agent ? (agent.fullName || agent.username) : '-'}</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-gray-400 mb-0.5">{t('common.status')}</div>
+                                                <div className="font-medium text-yellow-600 dark:text-yellow-400">{t('pppoe.pendingReview')}</div>
+                                            </div>
+                                        </div>
+                                        {(userRole === 'admin' || userRole === 'editor') && (
+                                            <button
+                                                onClick={() => handleReview(reg)}
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                            >
+                                                <Edit2 size={15} /> {t('common.review')}
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead className="bg-gray-50 dark:bg-gray-700/50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.username')}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.status')}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.fullName')}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.agent')}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.profile')}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.status')}</th>
-                                    {userRole === 'admin' && (
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.actions')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.username')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.type')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.fullName')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.agent')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.profile')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.status')}</th>
+                                    {(userRole === 'admin' || userRole === 'editor') && (
+                                        <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.actions')}</th>
                                     )}
                                 </tr>
                             </thead>
@@ -968,36 +1078,30 @@ export default function UsersPage() {
                                 {pendingRegistrations
                                     .filter(reg => userRole === 'admin' || userRole === 'editor' || (userRole === 'staff' && reg.agentId === currentUserId))
                                     .map((reg) => (
-                                        <tr key={reg.username}>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{reg.targetUsername || reg.username}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${reg.type === 'delete' ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300' :
-                                                    reg.type === 'edit' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300' :
-                                                        'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'
-                                                    }`}>
+                                        <tr key={reg.username} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">{reg.targetUsername || reg.username}</td>
+                                            <td className="px-5 py-3.5 whitespace-nowrap">
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${reg.type === 'delete' ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300' : reg.type === 'edit' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'}`}>
                                                     {reg.type === 'edit' ? t('common.edit') : reg.type === 'delete' ? t('common.delete') : t('pppoe.register')}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{reg.name}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                                {(() => {
-                                                    const agent = systemUsers.find(u => u.id === reg.agentId);
-                                                    return agent ? (agent.fullName || agent.username) : '-';
-                                                })()}
+                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{reg.name || '-'}</td>
+                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                                {(() => { const a = systemUsers.find(u => u.id === reg.agentId); return a ? (a.fullName || a.username) : '-'; })()}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                                                 {reg.registrationData?.profile} / {reg.registrationData?.service}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-yellow-600 dark:text-yellow-400 font-medium">
+                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-yellow-600 dark:text-yellow-400 font-medium">
                                                 {t('pppoe.pendingReview')}
                                             </td>
                                             {(userRole === 'admin' || userRole === 'editor') && (
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                                <td className="px-5 py-3.5 whitespace-nowrap text-sm font-medium">
                                                     <button
                                                         onClick={() => handleReview(reg)}
-                                                        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 flex items-center gap-1"
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors text-xs font-semibold"
                                                     >
-                                                        <Edit2 size={18} /> {t('common.review')}
+                                                        <Edit2 size={14} /> {t('common.review')}
                                                     </button>
                                                 </td>
                                             )}
@@ -1008,6 +1112,7 @@ export default function UsersPage() {
                     </div>
                 </div>
             )}
+
 
             <div className="space-y-6">
 
@@ -1122,65 +1227,76 @@ export default function UsersPage() {
                                     <div
                                         key={user['.id']}
                                         onClick={() => setDetailsModal({ ...user, acs, active })}
-                                        className={`rounded-xl p-4 border transition-shadow cursor-pointer ${isOnline ? 'bg-green-50/40 border-green-100 dark:bg-green-900/10 dark:border-green-800/30' : 'bg-white/50 border-gray-100 dark:bg-gray-800/50 dark:border-gray-700/50'}`}
+                                        className={`rounded-xl p-3 border transition-shadow cursor-pointer ${isOnline ? 'bg-green-50/40 border-green-100 dark:bg-green-900/10 dark:border-green-800/30' : 'bg-white/50 border-gray-100 dark:bg-gray-800/50 dark:border-gray-700/50'}`}
                                     >
                                         <div className="flex justify-between items-start mb-2">
-                                            <div className="flex gap-3 items-center">
-                                                <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                                            <div className="flex gap-2 items-center">
+                                                <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}`} />
                                                 <div>
-                                                    <h4 className="font-bold text-gray-900 dark:text-white text-base">{user.name}</h4>
-                                                    <p className="text-xs text-gray-500 dark:text-gray-400">{getCustomerName(user.name) || '-'}</p>
+                                                    <h4 className="font-bold text-gray-900 dark:text-white text-[15px] leading-tight">{user.name}</h4>
+                                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{getCustomerName(user.name) || '-'}</p>
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); setDetailsModal({ ...user, acs, active }); }}
-                                                className="p-1 -mr-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                                className="p-1 -mr-1 -mt-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                                             >
-                                                <MoreHorizontal size={20} />
+                                                <MoreHorizontal size={18} />
                                             </button>
                                         </div>
 
-                                        <div className="flex flex-wrap items-center gap-2 mb-3">
-                                            <span className="px-2 py-1 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded text-xs font-medium">
+                                        <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                                            <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded text-[10px] font-medium border border-blue-100 dark:border-blue-800/30">
                                                 {user.profile || 'Default'}
                                             </span>
                                             {(user._customerId || customersData[user.name]?.customerId) && (user._customerId !== '-' && customersData[user.name]?.customerId !== '-') && (
-                                                <span className="px-2 py-1 bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 rounded text-xs font-medium">
+                                                <span className="px-1.5 py-0.5 bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 rounded text-[10px] font-medium border border-purple-100 dark:border-purple-800/30">
                                                     ID: {user._customerId || customersData[user.name]?.customerId}
+                                                </span>
+                                            )}
+                                            {getPartnerName(user.name) && getPartnerName(user.name) !== '-' && (
+                                                <span className="px-1.5 py-0.5 bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 rounded text-[10px] font-medium flex items-center gap-1 border border-orange-100 dark:border-orange-800/30">
+                                                    <User size={10} /> {getPartnerName(user.name)}
                                                 </span>
                                             )}
                                         </div>
 
                                         {isOnline && (
-                                            <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-300 mb-3 bg-white/40 dark:bg-black/20 p-2 rounded-lg">
-                                                <div className="flex items-center gap-1 font-medium text-green-600 dark:text-green-400">
-                                                    <Clock size={14} />
+                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-gray-600 dark:text-gray-300 mb-2 bg-white/40 dark:bg-black/20 px-2 py-1.5 rounded-lg">
+                                                <div className="flex items-center gap-1 font-medium text-green-600 dark:text-green-400 w-full sm:w-auto">
+                                                    <Clock size={12} />
                                                     <span>{formatUptime(active.uptime)}</span>
                                                 </div>
                                                 <div className="flex items-center gap-1 font-mono text-gray-500">
-                                                    <Globe size={14} />
+                                                    <Globe size={12} />
                                                     <span>{active.address}</span>
                                                 </div>
+                                                {active['caller-id'] && (
+                                                    <div className="flex items-center gap-1 font-mono text-gray-400">
+                                                        <span>|</span>
+                                                        <span>{active['caller-id']}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
 
-                                        <div className="flex space-x-4 border-t border-gray-100 dark:border-gray-700/50 pt-3">
+                                        <div className="flex space-x-3 border-t border-gray-100 dark:border-gray-700/50 pt-2.5">
                                             <div className="flex-1">
-                                                <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t('pppoe.usage')}</div>
-                                                <div className="flex gap-3">
-                                                    <span className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-medium">
-                                                        <ArrowUpDown size={12} className="rotate-180" /> {formatBytes(user.usage?.tx || 0)}
+                                                <div className="text-[9px] text-gray-400 uppercase tracking-wider mb-0.5">{t('pppoe.usage')}</div>
+                                                <div className="flex gap-2.5">
+                                                    <span className="flex items-center gap-0.5 text-green-600 dark:text-green-400 text-[11px] font-medium">
+                                                        <ArrowUpDown size={10} className="rotate-180" /> {formatBytes(user.usage?.tx || 0)}
                                                     </span>
-                                                    <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 text-xs font-medium">
-                                                        <ArrowUpDown size={12} /> {formatBytes(user.usage?.rx || 0)}
+                                                    <span className="flex items-center gap-0.5 text-blue-600 dark:text-blue-400 text-[11px] font-medium">
+                                                        <ArrowUpDown size={10} /> {formatBytes(user.usage?.rx || 0)}
                                                     </span>
                                                 </div>
                                             </div>
                                             {acs && (
-                                                <div className="flex-1 border-l border-gray-100 dark:border-gray-700/50 pl-4">
-                                                    <div className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">{t('device.signal')}</div>
-                                                    <div className={`flex items-center gap-1 text-xs font-bold ${parseFloat(acs.rx_power) < -25 ? 'text-red-500' : 'text-green-500'}`}>
-                                                        <Wifi size={12} /> {acs.rx_power || '-'} dBm
+                                                <div className="flex-1 border-l border-gray-100 dark:border-gray-700/50 pl-3">
+                                                    <div className="text-[9px] text-gray-400 uppercase tracking-wider mb-0.5">{t('device.signal')}</div>
+                                                    <div className={`flex items-center gap-1 text-[11px] font-bold ${parseFloat(acs.rx_power) < -25 ? 'text-red-500' : 'text-green-500'}`}>
+                                                        <Wifi size={10} /> {acs.rx_power || '-'} dBm
                                                     </div>
                                                 </div>
                                             )}
@@ -1590,18 +1706,48 @@ export default function UsersPage() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.profile')} <span className="text-red-500">*</span></label>
-                                            <select
-                                                required
-                                                value={formData.profile}
-                                                onChange={(e) => setFormData({ ...formData, profile: e.target.value })}
-                                                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                                            >
-                                                <option value="" disabled>{t('users.selectProfile')}</option>
-                                                <option value="default">{t('billing.default') || 'Default'}</option>
-                                                {profiles.map(profile => (
-                                                    <option key={profile['.id']} value={profile.name}>{profile.name}</option>
-                                                ))}
-                                            </select>
+                                            <div className="relative" ref={profileDropdownRef}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                                                    className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white flex items-center justify-between"
+                                                >
+                                                    <span className={!formData.profile ? "text-gray-400 dark:text-gray-500" : ""}>
+                                                        {formData.profile || t('users.selectProfile')}
+                                                    </span>
+                                                    <ChevronDown size={18} className={`transition-transform duration-200 ${showProfileDropdown ? 'rotate-180' : ''}`} />
+                                                </button>
+                                                <AnimatePresence>
+                                                    {showProfileDropdown && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: -10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            exit={{ opacity: 0, y: -10 }}
+                                                            className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto"
+                                                        >
+                                                            {profiles.map(profile => {
+                                                                const price = profile.comment?.toLowerCase().includes('price:') 
+                                                                    ? profile.comment.split('price:')[1].split(',')[0].trim() 
+                                                                    : 0;
+                                                                return (
+                                                                    <button
+                                                                        key={profile['.id'] || profile.name}
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setFormData({ ...formData, profile: profile.name });
+                                                                            setShowProfileDropdown(false);
+                                                                        }}
+                                                                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-between items-center ${formData.profile === profile.name ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}
+                                                                    >
+                                                                        <span className="font-medium">{profile.name}</span>
+                                                                        {price > 0 && <span className="text-xs opacity-70">{formatCurrency(price)}</span>}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.service')}</label>
@@ -1646,9 +1792,19 @@ export default function UsersPage() {
                                                             }}
                                                             className="rounded text-blue-600 focus:ring-blue-500"
                                                         />
-                                                        <div>
+                                                        <div className="flex-1 min-w-0">
                                                             <div className="font-medium text-sm text-gray-800 dark:text-white">{conn.name}</div>
-                                                            <div className="text-xs text-gray-500">{conn.host}</div>
+                                                            <div className="text-xs text-gray-500 font-mono">{conn.host}</div>
+                                                            {routerIdentities[conn.id] !== undefined && (
+                                                                <div className={`text-xs mt-0.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-medium ${
+                                                                    routerIdentities[conn.id]
+                                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                                                                        : 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400'
+                                                                }`}>
+                                                                    <span className={`w-1.5 h-1.5 rounded-full ${routerIdentities[conn.id] ? 'bg-green-500' : 'bg-red-500'}`} />
+                                                                    {routerIdentities[conn.id] || 'Offline'}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </label>
                                                 ))}
@@ -1865,16 +2021,48 @@ export default function UsersPage() {
                                             </div>
                                             <div>
                                                 <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.profile')}</label>
-                                                <select
-                                                    value={reviewFormData.profile}
-                                                    onChange={(e) => setReviewFormData({ ...reviewFormData, profile: e.target.value })}
-                                                    className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
-                                                >
-                                                    <option value="">{t('users.selectProfile')}</option>
-                                                    {profiles.map(p => (
-                                                        <option key={p.name} value={p.name}>{p.name}</option>
-                                                    ))}
-                                                </select>
+                                                <div className="relative" ref={reviewProfileDropdownRef}>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowReviewProfileDropdown(!showReviewProfileDropdown)}
+                                                        className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white flex items-center justify-between min-h-[30px]"
+                                                    >
+                                                        <span className={!reviewFormData.profile ? "text-gray-400 dark:text-gray-500" : ""}>
+                                                            {reviewFormData.profile || t('users.selectProfile')}
+                                                        </span>
+                                                        <ChevronDown size={14} className={`transition-transform duration-200 ${showReviewProfileDropdown ? 'rotate-180' : ''}`} />
+                                                    </button>
+                                                    <AnimatePresence>
+                                                        {showReviewProfileDropdown && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, y: -10 }}
+                                                                animate={{ opacity: 1, y: 0 }}
+                                                                exit={{ opacity: 0, y: -10 }}
+                                                                className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-xl max-h-48 overflow-y-auto"
+                                                            >
+                                                                {profiles.map(p => {
+                                                                    const price = p.comment?.toLowerCase().includes('price:') 
+                                                                        ? p.comment.split('price:')[1].split(',')[0].trim() 
+                                                                        : 0;
+                                                                    return (
+                                                                        <button
+                                                                            key={p.name}
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                setReviewFormData({ ...reviewFormData, profile: p.name });
+                                                                                setShowReviewProfileDropdown(false);
+                                                                            }}
+                                                                            className={`w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-between items-center ${reviewFormData.profile === p.name ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}
+                                                                        >
+                                                                            <span className="truncate mr-2">{p.name}</span>
+                                                                            {price > 0 && <span className="text-[10px] opacity-70 whitespace-nowrap">{formatCurrency(price)}</span>}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
                                             </div>
                                             <div>
                                                 <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.service')}</label>
@@ -1918,32 +2106,32 @@ export default function UsersPage() {
                                     {/* Customer Details */}
                                     <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
                                         <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('pppoe.customerInfo')}</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.fullName')}</label>
+                                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('users.fullName')}</label>
                                                 <input
                                                     type="text"
                                                     value={reviewFormData.name}
                                                     onChange={(e) => setReviewFormData({ ...reviewFormData, name: e.target.value })}
-                                                    className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
+                                                    className="w-full px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.phone')}</label>
+                                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('users.phone')}</label>
                                                 <input
                                                     type="text"
                                                     value={reviewFormData.phone}
                                                     onChange={(e) => setReviewFormData({ ...reviewFormData, phone: e.target.value })}
-                                                    className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
+                                                    className="w-full px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                                 />
                                             </div>
-                                            <div className="col-span-2">
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.address')}</label>
+                                            <div className="md:col-span-2">
+                                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('users.address')}</label>
                                                 <input
                                                     type="text"
                                                     value={reviewFormData.address}
                                                     onChange={(e) => setReviewFormData({ ...reviewFormData, address: e.target.value })}
-                                                    className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
+                                                    className="w-full px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                                 />
                                             </div>
                                         </div>

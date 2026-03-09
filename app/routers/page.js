@@ -14,6 +14,8 @@ export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState(null);
     const [interfaces, setInterfaces] = useState([]);
+    const [identities, setIdentities] = useState({});
+    const [checkingStatus, setCheckingStatus] = useState({});
 
     // Modal/Form state for connection
     const [isEditing, setIsEditing] = useState(false);
@@ -114,6 +116,31 @@ export default function SettingsPage() {
             setLoading(false);
         }
     };
+
+    const fetchRouterStatus = async (connections) => {
+        connections.forEach(async (conn) => {
+            setCheckingStatus(prev => ({ ...prev, [conn.id]: true }));
+            try {
+                const res = await fetch(`/api/routers/status?id=${conn.id}`);
+                const data = await res.json();
+                if (data.success) {
+                    setIdentities(prev => ({ ...prev, [conn.id]: data.identity }));
+                } else {
+                    setIdentities(prev => ({ ...prev, [conn.id]: 'OFFLINE' }));
+                }
+            } catch (err) {
+                setIdentities(prev => ({ ...prev, [conn.id]: 'OFFLINE' }));
+            } finally {
+                setCheckingStatus(prev => ({ ...prev, [conn.id]: false }));
+            }
+        });
+    };
+
+    useEffect(() => {
+        if (settings.connections?.length > 0) {
+            fetchRouterStatus(settings.connections);
+        }
+    }, [settings.connections]);
 
     const openEditModal = (conn = null) => {
         if (conn) {
@@ -348,7 +375,22 @@ export default function SettingsPage() {
                                             <Power size={20} />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-800 dark:text-white">{conn.name || t('routers.unnamedConnection')}</h3>
+                                            <h3 className="font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                                                {conn.name || t('routers.unnamedConnection')}
+                                                {identities[conn.id] && identities[conn.id] !== 'OFFLINE' && (
+                                                    <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded font-mono font-bold">
+                                                        {identities[conn.id]}
+                                                    </span>
+                                                )}
+                                                {identities[conn.id] === 'OFFLINE' && (
+                                                    <span className="text-[10px] bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 px-1.5 py-0.5 rounded font-mono font-bold uppercase">
+                                                        Offline
+                                                    </span>
+                                                )}
+                                                {checkingStatus[conn.id] && (
+                                                    <Loader2 size={12} className="animate-spin text-gray-400" />
+                                                )}
+                                            </h3>
                                             <p className="text-sm text-gray-600 dark:text-gray-400">{conn.host}:{conn.port} ({conn.user})</p>
                                         </div>
                                     </div>

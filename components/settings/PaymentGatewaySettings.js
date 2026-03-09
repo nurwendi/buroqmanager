@@ -69,10 +69,10 @@ export default function PaymentGatewaySettings() {
         }
     };
 
-    if (loading) return <div className="p-8 text-center text-gray-500">{t('appSettings.loadingSettings')}</div>;
+    if (loading) return <div className="p-8 text-left text-gray-500">{t('appSettings.loadingSettings')}</div>;
 
     return (
-        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
+        <div className="w-full text-left bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
             <div className="flex items-center gap-3 mb-6">
                 <CreditCard className="text-pink-600 dark:text-pink-400" size={24} />
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('appSettings.paymentGateway')}</h2>

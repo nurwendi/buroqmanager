@@ -5,6 +5,7 @@ import { Users, AlertCircle, Server, Database, Shield, Activity, Cpu, HardDrive 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
+import RouterStatusCard from './RouterStatusCard';
 
 export default function SuperadminStats({ stats }) {
     const { t } = useLanguage();
@@ -228,6 +229,25 @@ export default function SuperadminStats({ stats }) {
                     <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500" />
                 </motion.div>
             </motion.div>
+            {/* Router Status Section for Superadmin */}
+            {stats?.routers && stats.routers.length > 0 && (
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="mt-8"
+                >
+                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                        <Server className="text-blue-600" size={24} />
+                        {t('routers.mikrotikConnections') || "Router Connections"}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {stats.routers.map((router) => (
+                            <RouterStatusCard key={router.id} router={router} />
+                        ))}
+                    </div>
+                </motion.div>
+            )}
 
             {/* Owner Statistics Table */}
             <div className="mt-8">
