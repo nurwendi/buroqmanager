@@ -162,87 +162,196 @@ export default function GenieAcsPage() {
                 </form>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700 text-xs uppercase text-gray-500 dark:text-gray-400">
+                                <th className="px-6 py-4 font-semibold">{t('common.status') || 'Status'}</th>
+                                <th className="px-6 py-4 font-semibold">{t('genieacs.device') || 'Device'}</th>
+                                <th className="px-6 py-4 font-semibold">User / IP / SN</th>
+                                <th className="px-6 py-4 font-semibold">SSID</th>
+                                <th className="px-6 py-4 font-semibold">Metrics</th>
+                                <th className="px-6 py-4 font-semibold text-right">{t('common.actions') || 'Actions'}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                            {devices.length === 0 && !loading ? (
+                                <tr>
+                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                                        {t('genieacs.noDevices')}
+                                    </td>
+                                </tr>
+                            ) : (
+                                devices.map(device => {
+                                    const isOnline = (Date.now() - new Date(device.lastInform).getTime()) < 300000;
+                                    const rx = parseFloat(device.rx_power);
+                                    const rxColor = !isNaN(rx) && rx < -25 ? 'text-red-600' : 'text-green-600';
+                                    
+                                    return (
+                                        <tr key={device.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wide ${isOnline
+                                                    ? 'bg-green-100 text-green-700 border-green-200'
+                                                    : 'bg-gray-100 text-gray-500 border-gray-200'
+                                                }`}>
+                                                    {isOnline ? 'Online' : 'Offline'}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-gray-50 rounded-lg text-orange-500">
+                                                        <Router size={16} />
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-gray-900 dark:text-white text-sm">
+                                                            {device.model || t('genieacs.unknownDevice')}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500">
+                                                            {device.manufacturer}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col gap-0.5 text-xs">
+                                                    <div className="flex items-center gap-1.5"><span className="text-gray-400 w-8">User:</span><span className="font-semibold">{device.pppoe_user}</span></div>
+                                                    <div className="flex items-center gap-1.5"><span className="text-gray-400 w-8">IP:</span><span className="font-mono">{device.ip}</span></div>
+                                                    <div className="flex items-center gap-1.5"><span className="text-gray-400 w-8">SN:</span><span className="font-mono">{device.serial}</span></div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <Wifi size={14} className="text-blue-500" />
+                                                    <span className="font-bold text-gray-700 text-sm" title={device.ssid}>
+                                                        {device.ssid || '-'}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col gap-1 text-xs">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-gray-400 w-10">Signal:</span>
+                                                        <span className={`font-bold ${rxColor}`}>
+                                                            {device.rx_power !== '-' ? device.rx_power + ' dBm' : '-'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-gray-400 w-10">Temp:</span>
+                                                        <span className="font-semibold">
+                                                            {device.temp !== '-' ? device.temp + '°C' : '-'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-right whitespace-nowrap">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => openEditWifi(device)}
+                                                        className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-100"
+                                                        title={t('users.wifiSettingsShort') || 'WiFi'}
+                                                    >
+                                                        <Wifi size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleReboot(device.id, device.serial)}
+                                                        className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-100"
+                                                        title={t('users.rebootShort') || 'Reboot'}
+                                                    >
+                                                        <Power size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
                 {devices.map(device => {
                     // Dynamic background based on RX Power
-                    let bgClass = "bg-white";
+                    let bgClass = "bg-white dark:bg-gray-800";
                     const rx = parseFloat(device.rx_power);
                     if (!isNaN(rx)) {
-                        bgClass = rx < -25 ? "bg-red-50" : "bg-green-50";
+                        bgClass = rx < -25 ? "bg-red-50 dark:bg-red-900/10" : "bg-green-50 dark:bg-green-900/10";
                     }
 
                     return (
-                        <div key={device.id} className={`${bgClass} rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden`}>
+                        <div key={device.id} className={`${bgClass} rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden`}>
                             {/* Unified Header Area */}
-                            <div className="p-5 border-b border-gray-100/50 bg-white/60 backdrop-blur-sm">
+                            <div className="p-4 border-b border-gray-100/50 dark:border-gray-700/50 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm">
                                 {/* Top Row: Icon, Model, Status */}
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2.5 bg-white rounded-xl shadow-sm border border-gray-100 text-orange-600">
-                                            <Router size={22} />
+                                        <div className="p-2 bg-white dark:bg-gray-700 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600 text-orange-500">
+                                            <Router size={20} />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-gray-800 text-base leading-tight">{device.model || t('genieacs.unknownDevice')}</h3>
-                                            <p className="text-xs text-gray-500 font-medium">{device.manufacturer}</p>
+                                            <h3 className="font-bold text-gray-800 dark:text-white text-sm leading-tight">{device.model || t('genieacs.unknownDevice')}</h3>
+                                            <p className="text-[10px] text-gray-500 uppercase tracking-wide mt-0.5">{device.manufacturer}</p>
                                         </div>
                                     </div>
-                                    <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wide ${(Date.now() - new Date(device.lastInform).getTime()) < 300000
+                                    <span className={`px-2 py-0.5 rounded-md border text-[10px] font-bold uppercase tracking-wide ${(Date.now() - new Date(device.lastInform).getTime()) < 300000
                                         ? 'bg-green-100 text-green-700 border-green-200'
-                                        : 'bg-gray-100 text-gray-500 border-gray-200'
+                                        : 'bg-gray-100 text-gray-500 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600'
                                         }`}>
                                         {(Date.now() - new Date(device.lastInform).getTime()) < 300000 ? 'Online' : 'Offline'}
                                     </span>
                                 </div>
 
                                 {/* Metadata Row: User | IP | SN */}
-                                <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs text-gray-600 mt-2 bg-white/50 p-2 rounded-lg border border-gray-100/50">
-                                    <div className="flex items-center gap-1.5" title="PPPoE User">
-                                        <span className="font-semibold text-gray-400">User:</span>
-                                        <span className="font-medium">{device.pppoe_user}</span>
+                                <div className="flex flex-col gap-1.5 text-xs text-gray-600 mt-3 bg-white/50 dark:bg-gray-900/50 p-2.5 rounded-lg border border-gray-100/50 dark:border-gray-700/50">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-400">User</span>
+                                        <span className="font-semibold text-gray-800 dark:text-gray-200">{device.pppoe_user}</span>
                                     </div>
-                                    <div className="w-px h-3 bg-gray-300 hidden sm:block"></div>
-                                    <div className="flex items-center gap-1.5" title="IP Address">
-                                        <span className="font-semibold text-gray-400">IP:</span>
-                                        <span className="font-mono">{device.ip}</span>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-400">IP</span>
+                                        <span className="font-mono text-gray-800 dark:text-gray-200">{device.ip}</span>
                                     </div>
-                                    <div className="w-px h-3 bg-gray-300 hidden sm:block"></div>
-                                    <div className="flex items-center gap-1.5" title="Serial Number">
-                                        <span className="font-semibold text-gray-400">SN:</span>
-                                        <span className="font-mono">{device.serial}</span>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-gray-400">SN</span>
+                                        <span className="font-mono text-gray-800 dark:text-gray-200">{device.serial}</span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Card Body: Single Line Metrics */}
-                            <div className="px-5 py-4 flex-1 flex items-center">
-                                <div className="w-full bg-white/70 rounded-xl p-3 border border-gray-100 flex items-center justify-between text-xs gap-2">
+                            <div className="px-4 py-3 flex-1 flex items-center">
+                                <div className="w-full bg-white/70 dark:bg-gray-800/70 rounded-xl p-3 border border-gray-100 dark:border-gray-700 flex items-center justify-between text-xs gap-2">
                                     {/* SSID */}
                                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                                        <Wifi size={16} className="text-blue-500 flex-shrink-0" />
+                                        <Wifi size={14} className="text-blue-500 flex-shrink-0" />
                                         <div className="flex flex-col truncate">
                                             <span className="text-[10px] text-gray-400 leading-none mb-0.5">SSID</span>
-                                            <span className="font-bold text-gray-700 truncate" title={device.ssid}>{device.ssid || '-'}</span>
+                                            <span className="font-bold text-gray-700 dark:text-gray-200 truncate" title={device.ssid}>{device.ssid || '-'}</span>
                                         </div>
                                     </div>
 
                                     {/* Divider */}
-                                    <div className="w-px h-8 bg-gray-200 mx-1"></div>
+                                    <div className="w-px h-8 bg-gray-200 dark:bg-gray-700 mx-1"></div>
 
                                     {/* Signal */}
-                                    <div className="flex flex-col items-center min-w-[60px]">
+                                    <div className="flex flex-col items-center min-w-[50px]">
                                         <span className="text-[10px] text-gray-400 leading-none mb-0.5">Signal</span>
-                                        <span className={`font-bold ${parseFloat(device.rx_power) < -25 ? 'text-red-600' : 'text-green-600'}`}>
+                                        <span className={`font-bold ${parseFloat(device.rx_power) < -25 ? 'text-red-500' : 'text-green-500'}`}>
                                             {device.rx_power !== '-' ? device.rx_power + ' dBm' : '-'}
                                         </span>
                                     </div>
 
                                     {/* Divider */}
-                                    <div className="w-px h-8 bg-gray-200 mx-1"></div>
+                                    <div className="w-px h-8 bg-gray-200 dark:bg-gray-700 mx-1"></div>
 
                                     {/* Temp */}
-                                    <div className="flex flex-col items-end min-w-[50px]">
+                                    <div className="flex flex-col items-end min-w-[40px]">
                                         <span className="text-[10px] text-gray-400 leading-none mb-0.5">Temp</span>
-                                        <span className="font-bold text-gray-700">
+                                        <span className="font-bold text-gray-700 dark:text-gray-200">
                                             {device.temp !== '-' ? device.temp + '°C' : '-'}
                                         </span>
                                     </div>
@@ -250,16 +359,16 @@ export default function GenieAcsPage() {
                             </div>
 
                             {/* Actions Footer */}
-                            <div className="px-5 pb-5 pt-0 flex gap-3">
+                            <div className="px-4 pb-4 pt-1 flex gap-3">
                                 <button
                                     onClick={() => openEditWifi(device)}
-                                    className="flex-1 flex justify-center items-center gap-2 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 py-2.5 rounded-xl transition-colors border border-blue-100"
+                                    className="flex-1 flex justify-center items-center gap-2 text-xs font-semibold text-blue-700 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400 hover:bg-blue-100 py-2.5 rounded-lg transition-colors border border-blue-100 dark:border-blue-800"
                                 >
                                     <Wifi size={14} /> {t('users.wifiSettingsShort') || 'WiFi'}
                                 </button>
                                 <button
                                     onClick={() => handleReboot(device.id, device.serial)}
-                                    className="flex-1 flex justify-center items-center gap-2 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 py-2.5 rounded-xl transition-colors border border-red-100"
+                                    className="flex-1 flex justify-center items-center gap-2 text-xs font-semibold text-red-700 bg-red-50 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-100 py-2.5 rounded-lg transition-colors border border-red-100 dark:border-red-800"
                                 >
                                     <Power size={14} /> {t('users.rebootShort') || 'Reboot'}
                                 </button>
@@ -269,7 +378,7 @@ export default function GenieAcsPage() {
                 })}
 
                 {!loading && devices.length === 0 && (
-                    <div className="col-span-full p-8 text-center text-gray-500 bg-gray-50 rounded-xl border border-dashed">
+                    <div className="p-8 text-center text-gray-500 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed dark:border-gray-700">
                         {t('genieacs.noDevices')}
                     </div>
                 )}
