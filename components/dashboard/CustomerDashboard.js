@@ -153,12 +153,12 @@ export default function CustomerDashboard() {
         >
             {/* Premium Header with Banner & Overlapping Avatar */}
             <motion.div variants={itemVariants} className="relative mb-12 sm:mb-14 -mx-4 sm:-mx-0">
-                {/* Banner Area - Sharp Corners & Seamless Curve */}
-                <div className="relative h-40 sm:h-52 w-full overflow-hidden sm:rounded-2xl">
+                {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
+                <div className="relative h-40 sm:h-56 w-full overflow-hidden sm:rounded-2xl border-0 shadow-none">
                     <img 
                         src="/dashboard-bg.png" 
                         alt="Banner" 
-                        className="w-full h-full object-cover scale-105"
+                        className="w-full h-full object-cover scale-110"
                     />
                     <div className="absolute inset-0 bg-indigo-900/10 mix-blend-multiply"></div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
@@ -181,8 +181,8 @@ export default function CustomerDashboard() {
                         </button>
                     </div>
 
-                    {/* Upward Curve Effect - Perfectly Seamless */}
-                    <div className="absolute bottom-0 left-0 w-full h-10 bg-background border-none rounded-t-[100%] scale-x-150 translate-y-6"></div>
+                    {/* Upward Curve Effect - More Pronounced & Perfectly Seamless */}
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[200%] h-28 bg-background border-none rounded-[100%] translate-y-16 shadow-none"></div>
                 </div>
 
                 {/* Overlapping Profile Section */}

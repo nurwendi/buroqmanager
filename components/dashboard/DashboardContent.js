@@ -301,12 +301,12 @@ export default function DashboardContent() {
     >
       {/* Premium Header with Banner & Overlapping Avatar */}
       <motion.div variants={itemVariants} className="relative mb-8 sm:mb-12 -mx-4 md:-mx-8 -mt-4 md:-mt-8">
-        {/* Banner Area - Sharp Corners & Seamless Curve */}
-        <div className="relative h-48 sm:h-60 w-full overflow-hidden">
+        {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
+        <div className="relative h-48 sm:h-64 w-full overflow-hidden border-0 shadow-none outline-none">
           <img 
             src={bgUrl} 
             alt="Dashboard Background" 
-            className="absolute inset-0 w-full h-full object-cover object-center scale-105"
+            className="absolute inset-0 w-full h-full object-cover object-center scale-110"
             style={{ imageRendering: "high-quality" }}
           />
           <div className="absolute inset-0 bg-blue-900/10 mix-blend-multiply"></div>
@@ -323,8 +323,8 @@ export default function DashboardContent() {
             </button>
           </div>
 
-          {/* Upward Curve Effect - Perfectly Seamless */}
-          <div className="absolute bottom-0 left-0 w-full h-12 bg-background border-none rounded-t-[100%] scale-x-150 translate-y-7"></div>
+          {/* Upward Curve Effect - More Pronounced & Perfectly Seamless */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[200%] h-32 bg-background border-none rounded-[100%] translate-y-20 shadow-none"></div>
         </div>
 
         {/* Overlapping Profile Section */}
