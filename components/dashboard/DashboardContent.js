@@ -301,33 +301,36 @@ export default function DashboardContent() {
     >
       {/* Premium Header with Banner & Overlapping Avatar */}
       <motion.div variants={itemVariants} className="relative mb-8 sm:mb-12 -mx-4 md:-mx-8 -mt-4 md:-mt-8">
-        {/* Banner Area */}
-        <div className="relative h-48 sm:h-64 w-full overflow-hidden shadow-2xl rounded-b-[2.5rem] md:rounded-b-[4rem]">
+        {/* Banner Area - Sharp Corners */}
+        <div className="relative h-48 sm:h-60 w-full overflow-hidden shadow-sm">
           <img 
             src={bgUrl} 
             alt="Dashboard Background" 
-            className="absolute inset-0 w-full h-full object-cover object-center md:blur-[1px] scale-105"
+            className="absolute inset-0 w-full h-full object-cover object-center scale-105"
             style={{ imageRendering: "high-quality" }}
           />
-          <div className="absolute inset-0 bg-blue-900/20 mix-blend-multiply"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-blue-900/10 mix-blend-multiply"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
           
           {/* Header Action: Refresh */}
           <div className="absolute top-6 right-6 z-20">
             <button
               onClick={fetchStats}
-              className="p-3 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/40 transition-all shadow-lg group"
+              className="p-2.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/40 transition-all shadow-lg group"
               title={t("common.refresh")}
             >
-              <RefreshCw size={22} className="group-active:rotate-180 transition-transform duration-500" />
+              <RefreshCw size={18} className="group-active:rotate-180 transition-transform duration-500" />
             </button>
           </div>
+
+          {/* Upward Curve Effect at the bottom of banner */}
+          <div className="absolute bottom-0 left-0 w-full h-12 bg-gray-50 dark:bg-gray-900 rounded-t-[100%] scale-x-125 translate-y-6"></div>
         </div>
 
         {/* Overlapping Profile Section */}
-        <div className="relative -mt-20 sm:-mt-28 flex flex-col items-center z-10 px-4">
+        <div className="relative -mt-20 sm:-mt-24 flex flex-col items-center z-10 px-4">
           <div className="relative group">
-            <div className="w-36 h-36 sm:w-48 sm:h-48 rounded-full border-[7px] border-white dark:border-gray-900 shadow-[0_20px_50px_rgba(0,0,0,0.3)] bg-gradient-to-br from-blue-600 to-indigo-800 flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_25px_60px_rgba(0,0,0,0.4)]">
+            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-[6px] border-white dark:border-gray-900 shadow-xl bg-gradient-to-br from-blue-600 to-indigo-800 flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:scale-105">
               {avatar ? (
                 <img
                   src={avatar}
@@ -335,33 +338,33 @@ export default function DashboardContent() {
                   className="w-full h-full object-cover rounded-full"
                 />
               ) : (
-                <span className="text-6xl sm:text-8xl font-black text-white drop-shadow-2xl uppercase">
+                <span className="text-5xl sm:text-7xl font-bold text-white drop-shadow-lg uppercase">
                   {username ? username.charAt(0) : "U"}
                 </span>
               )}
             </div>
-            {/* Role/Status Tag Overlook */}
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-white dark:bg-gray-800 rounded-full shadow-lg border border-gray-100 dark:border-gray-700 flex items-center gap-2 whitespace-nowrap">
-               <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.8)]"></span>
-               <span className="text-xs font-bold text-gray-700 dark:text-gray-200 uppercase tracking-widest">{userRole}</span>
-            </div>
           </div>
 
-          <div className="mt-6 text-center">
-            <h1 className="text-xs sm:text-sm tracking-[0.3em] uppercase text-indigo-600 dark:text-indigo-400 font-black mb-1 opacity-80">
+          <div className="mt-4 text-center">
+            <h1 className="text-[10px] sm:text-xs tracking-[0.4em] uppercase text-indigo-600 dark:text-indigo-400 font-bold mb-1 opacity-70">
               {t("dashboard.title")}
             </h1>
-            <h2 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight leading-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white tracking-tight">
               {t("dashboard.welcome")},{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 capitalize">
+              <span className="text-indigo-600 dark:text-indigo-400 capitalize">
                 {username}
               </span>
               !
             </h2>
-            <p className="mt-3 text-xs sm:text-sm text-gray-500 font-medium flex items-center justify-center gap-2">
-              <Activity size={14} className="text-green-500" />
-              {t("dashboard.lastUpdate")}: {lastUpdate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-            </p>
+            <div className="mt-2 flex items-center justify-center gap-3">
+               <span className="px-3 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-full text-[10px] font-bold uppercase tracking-widest border border-indigo-100 dark:border-indigo-800">
+                  {userRole}
+               </span>
+               <p className="text-[10px] sm:text-xs text-gray-400 font-medium flex items-center gap-1">
+                 <Activity size={12} className="text-green-500" />
+                 {lastUpdate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+               </p>
+            </div>
           </div>
         </div>
       </motion.div>
