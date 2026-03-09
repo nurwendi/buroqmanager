@@ -68,8 +68,8 @@ export default function Navbar() {
         { href: '/active', icon: Activity, label: t('sidebar.activeConnections') },
         { href: '/profiles', icon: Settings, label: t('sidebar.profiles') },
         { href: '/drop-users', icon: ShieldAlert, label: t('sidebar.dropIsolir') },
-        { href: '/genieacs', icon: Router, label: t('sidebar.genieacs') },
-    ];
+        { href: '/genieacs', icon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
+    ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
     const settingsItems = [
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings') },

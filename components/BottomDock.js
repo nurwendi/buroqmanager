@@ -64,7 +64,7 @@ export default function BottomDock() {
         { href: '/routers', icon: Server, hoverIcon: HardDrive, label: t('sidebar.nat'), roles: ['admin', 'manager'] },
         { href: '/nat', icon: ArrowLeftRight, hoverIcon: Network, label: 'NAT', roles: ['superadmin'] },
 
-        { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: t('sidebar.genieacs'), roles: ['superadmin', 'admin', 'manager', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
         { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
@@ -88,7 +88,7 @@ export default function BottomDock() {
         { href: '/routers', icon: Server, label: t('sidebar.nat'), roles: ['admin', 'manager'] },
         { href: '/nat', icon: ArrowLeftRight, label: 'NAT', roles: ['superadmin'] },
 
-        { href: '/genieacs', icon: Wifi, label: t('sidebar.genieacs'), roles: ['superadmin', 'admin', 'manager', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/genieacs', icon: Wifi, label: t('sidebar.genieacs'), roles: ['superadmin'] },
         { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },

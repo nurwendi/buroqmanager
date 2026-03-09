@@ -19,10 +19,8 @@ export default function GenieAcsPage() {
             const res = await fetch('/api/auth/me');
             if (res.ok) {
                 const user = await res.json();
-                // Allow all management roles (Superadmin, Admin, Manager, Staff, etc.)
-                // Block only 'customer' to prevent seeing sibling data via ownerId logic
-                // NOTE: Page is hidden from menu, but accessible if needed (as requested).
-                if (user.role === 'customer') {
+                // Restricted to superadmin only as requested
+                if (user.role !== 'superadmin') {
                     setAccessDenied(true);
                     setLoading(false);
                     return;
