@@ -342,6 +342,7 @@ function RouterCard({ router }) {
 // Main Page
 export default function NatPage() {
     const { t } = useLanguage();
+    const router = require('next/navigation').useRouter();
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -351,6 +352,10 @@ export default function NatPage() {
         try {
             setLoading(true);
             const res = await fetch('/api/nat/data');
+            if (res.status === 403) {
+                router.push('/');
+                return;
+            }
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const json = await res.json();
             setData(json);
@@ -358,10 +363,13 @@ export default function NatPage() {
             setError(null);
         } catch (e) {
             setError(e.message);
+            if (e.message.includes('403')) {
+                router.push('/');
+            }
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [router]);
 
     useEffect(() => {
         fetchData();
