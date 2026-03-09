@@ -93,7 +93,7 @@ export default function SetupPage() {
                             <input
                                 type="text"
                                 required
-                                placeholder="http://192.168.1.100:3000"
+                                placeholder="http://192.168.1.100:2000"
                                 value={serverUrl}
                                 onChange={(e) => setServerUrl(e.target.value)}
                                 className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"

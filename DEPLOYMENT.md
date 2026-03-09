@@ -176,7 +176,7 @@ crontab -e
 
 2. Add the following line to run the check daily at 00:05 AM:
 ```bash
-5 0 * * * curl -s http://localhost:3000/api/cron/auto-isolation >> /var/log/buroq-cron.log 2>&1
+5 0 * * * curl -s http://localhost:2000/api/cron/auto-isolation >> /var/log/buroq-cron.log 2>&1
 ```
 
 3. Save and exit.
