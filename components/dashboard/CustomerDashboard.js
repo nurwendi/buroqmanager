@@ -151,41 +151,68 @@ export default function CustomerDashboard() {
             initial="hidden"
             animate="visible"
         >
-            {/* Header */}
-            <motion.div variants={itemVariants} className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    {/* Avatar */}
-                    <div className="w-16 h-16 rounded-full border-4 border-white dark:border-gray-700 shadow-md bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center overflow-hidden">
-                        {stats.avatar ? (
-                            <img src={stats.avatar} alt={cleanName} className="w-full h-full object-cover" />
-                        ) : (
-                            <span className="text-2xl font-bold text-white uppercase">{cleanName.charAt(0)}</span>
-                        )}
-                    </div>
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
-                            {t('dashboard.title')}
-                        </h1>
-                        <p className="text-gray-500 dark:text-gray-400 mt-1">
-                            {t('customerDashboard.welcomePrefix')} <span className="font-semibold text-blue-600 dark:text-blue-400">{cleanName}</span>!
-                        </p>
+            {/* Premium Header with Banner & Overlapping Avatar */}
+            <motion.div variants={itemVariants} className="relative mb-12 sm:mb-16">
+                {/* Banner Area */}
+                <div className="relative h-40 sm:h-56 w-full rounded-2xl sm:rounded-[2.5rem] overflow-hidden shadow-lg">
+                    <img 
+                        src="/dashboard-bg.png" 
+                        alt="Banner" 
+                        className="w-full h-full object-cover scale-105 active:scale-100 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-indigo-900/30 mix-blend-multiply"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    
+                    {/* Header Actions (Refresh & Logout) - Absolute Positioned on Banner */}
+                    <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+                        <button
+                            onClick={handleRefresh}
+                            className={`p-2.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/40 transition-all ${refreshing ? 'animate-spin' : ''}`}
+                            title={t('customerDashboard.refresh')}
+                        >
+                            <RefreshCw size={20} />
+                        </button>
+                        <button
+                            onClick={handleLogout}
+                            className="p-2.5 rounded-full bg-red-500/20 backdrop-blur-md border border-red-500/30 text-red-100 hover:bg-red-500/40 transition-all"
+                            title="Logout"
+                        >
+                            <LogOut size={20} />
+                        </button>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={handleRefresh}
-                        className={`p-2 rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${refreshing ? 'animate-spin' : ''}`}
-                        title={t('customerDashboard.refresh')}
-                    >
-                        <RefreshCw size={20} className="text-blue-600" />
-                    </button>
-                    <button
-                        onClick={handleLogout}
-                        className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 transition-colors"
-                        title="Logout"
-                    >
-                        <LogOut size={20} />
-                    </button>
+
+                {/* Overlapping Profile Section */}
+                <div className="relative -mt-16 sm:-mt-24 flex flex-col items-center z-10">
+                    <div className="relative group">
+                        <div className="w-32 h-32 sm:w-44 sm:h-44 rounded-full border-[6px] border-white dark:border-gray-900 shadow-2xl bg-gradient-to-br from-indigo-500 to-blue-700 flex items-center justify-center overflow-hidden transition-transform duration-500 group-hover:scale-105">
+                            {stats.avatar ? (
+                                <img src={stats.avatar} alt={cleanName} className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="text-5xl sm:text-7xl font-black text-white uppercase drop-shadow-md">
+                                    {cleanName.charAt(0)}
+                                </span>
+                            )}
+                        </div>
+                        {/* Status Pulse Indicator */}
+                        <div className={`absolute bottom-2 right-2 sm:bottom-4 sm:right-4 w-6 h-6 sm:w-8 sm:h-8 rounded-full border-4 border-white dark:border-gray-900 ${stats.session.active ? 'bg-green-500' : 'bg-red-500'} shadow-lg`}>
+                            {stats.session.active && <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></div>}
+                        </div>
+                    </div>
+
+                    <div className="mt-4 text-center">
+                        <h1 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight">
+                            {cleanName}
+                        </h1>
+                        <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                            <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-bold uppercase tracking-wider border border-indigo-200 dark:border-indigo-800">
+                                {t('customerDashboard.customerRole') || 'PELANGGAN'}
+                            </span>
+                            <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-full text-xs font-medium border border-gray-200 dark:border-gray-700">
+                                {stats.session.ipAddress || 'No IP'}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </motion.div>
 
