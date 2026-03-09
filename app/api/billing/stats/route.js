@@ -142,7 +142,7 @@ export async function GET(request) {
 
         const recentTransactions = recentPayments.map(p => ({
             id: p.id,
-            customerName: customerMap[p.username] || (p.username ? `${p.username}` : 'Unknown Customer'),
+            customerName: String(customerMap[p.username] || p.username || 'Unknown Customer'),
             amount: Number(p.amount),
             date: p.date,
             method: p.method || 'cash'

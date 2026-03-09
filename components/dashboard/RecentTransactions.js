@@ -35,7 +35,7 @@ export default function RecentTransactions({ transactions = [] }) {
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
                                         <span className="font-bold text-sm">
-                                            {tx.customerName ? tx.customerName.charAt(0).toUpperCase() : '?'}
+                                            {tx.customerName ? String(tx.customerName).charAt(0).toUpperCase() : '?'}
                                         </span>
                                     </div>
                                     <div className="min-w-0">
