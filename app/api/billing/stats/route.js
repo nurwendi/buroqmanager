@@ -124,17 +124,29 @@ export async function GET(request) {
 
         // --- NEW: Top 5 Recent Transactions ---
         // Sort descending by date and grab first 5 completed
-        const recentTransactions = payments
+        const recentPayments = payments
             .filter(p => p.status === 'completed')
             .sort((a, b) => new Date(b.date) - new Date(a.date))
-            .slice(0, 5)
-            .map(p => ({
-                id: p.id,
-                customerName: p.customerName || 'Unknown Customer',
-                amount: Number(p.amount),
-                date: p.date,
-                method: p.method || 'cash'
-            }));
+            .slice(0, 5);
+
+        // Fetch customer names for these 5 recent payments
+        const recentUsernames = [...new Set(recentPayments.map(p => p.username))];
+        const recentCustomers = await db.customer.findMany({
+            where: { username: { in: recentUsernames } },
+            select: { username: true, name: true }
+        });
+        const customerMap = recentCustomers.reduce((acc, curr) => {
+            acc[curr.username] = curr.name;
+            return acc;
+        }, {});
+
+        const recentTransactions = recentPayments.map(p => ({
+            id: p.id,
+            customerName: customerMap[p.username] || (p.username ? `${p.username}` : 'Unknown Customer'),
+            amount: Number(p.amount),
+            date: p.date,
+            method: p.method || 'cash'
+        }));
 
         return NextResponse.json({
             totalRevenue,
