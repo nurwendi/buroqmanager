@@ -186,27 +186,14 @@ export async function POST(request) {
                 }
                 const passwordHash = require('bcryptjs').hashSync(finalData.password, 10);
 
-                let newUser, newCustomer;
+                let newCustomer;
                 try {
-                    [newUser, newCustomer] = await db.$transaction(async (tx) => {
-                        const u = await tx.user.create({
-                            data: {
-                                username: finalData.username,
-                                passwordHash: passwordHash,
-                                role: 'viewer',
-                                fullName: finalData.name || '',
-                                phone: finalData.phone || '',
-                                address: finalData.address || '',
-                                isAgent: false,
-                                isTechnician: false,
-                                ownerId: registration.ownerId
-                            }
-                        });
-
+                    newCustomer = await db.$transaction(async (tx) => {
                         const c = await tx.customer.create({
                             data: {
                                 username: finalData.username,
                                 customerId: finalData.username, // Using username as customerId initially
+                                password: passwordHash, // Save hashed password to Customer table
                                 name: finalData.name || '',
                                 phone: finalData.phone || '',
                                 address: finalData.address || '',
@@ -214,7 +201,7 @@ export async function POST(request) {
                                 ownerId: registration.ownerId
                             }
                         });
-                        return [u, c];
+                        return c;
                     });
                 } catch (dbError) {
                     console.error('[RegApprove] DB Transaction Failed:', dbError);
@@ -278,14 +265,10 @@ export async function POST(request) {
                 }
 
                 if (successCount === 0 && targetRouterIds.length > 0) {
-                    // Rollback DB
+                    // No longer rolling back User since it's not created
                     try {
                         await db.customer.delete({ where: { id: newCustomer.id } });
                     } catch (e) { console.error('Rollback customer failed', e); }
-
-                    try {
-                        await db.user.delete({ where: { id: newUser.id } });
-                    } catch (e) { console.error('Rollback user failed', e); }
 
                     const errorDetails = errors.map(e => `${e.routerId}: ${e.error}`).join(', ');
                     return NextResponse.json({
@@ -359,8 +342,8 @@ export async function POST(request) {
 
                     if (exists) return NextResponse.json({ error: "New username already exists" }, { status: 400 });
 
-                    // Update User username
-                    await db.user.update({
+                    // Update User username (if exists)
+                    await db.user.updateMany({
                         where: { username: targetUsername },
                         data: { username: newValues.username }
                     });
@@ -449,7 +432,7 @@ export async function POST(request) {
                             }
                         }
                     });
-                    await db.user.delete({ where: { username: targetUsername } });
+                    await db.user.deleteMany({ where: { username: targetUsername } });
                 } catch (e) {
                     console.log('Error deleting DB records:', e);
                 }

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
-import NativeBridge from '@/components/NativeBridge';
 import { apiClient } from '@/lib/apiClient';
 
 
@@ -20,15 +19,6 @@ export default function LoginPage() {
     const [logoUrl, setLogoUrl] = useState('/logo.png');
 
     useEffect(() => {
-        // Mobile: Auto-configure default server if not set
-        import('@/lib/isMobile').then(({ isMobileApp }) => {
-            if (isMobileApp() && !localStorage.getItem('buroq_server_url')) {
-                localStorage.setItem('buroq_server_url', 'http://103.150.33.187');
-                // Ensure page reloads or context updates if needed (for now, just setting it is enough for next fetch)
-                // Optional: router.refresh() if needed, but apiClient reads localstorage on every call
-            }
-        });
-
         fetch('/api/app-settings')
             .then(res => res.json())
             .then(data => {
@@ -110,11 +100,6 @@ export default function LoginPage() {
                     >
                         {loading ? t('common.loading') : t('login.loginButton')}
                     </button>
-
-                    <NativeBridge onBiometricSuccess={() => {
-                        // TODO: Auto-login logic would go here
-                        // For now, let user know it worked
-                    }} />
                 </form>
             </div>
         </div>

@@ -20,13 +20,6 @@ export default function BottomDock() {
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-        // Check if running in mobile app context
-        import('@/lib/isMobile').then(mod => {
-            setIsMobile(mod.isMobileApp());
-        });
-    }, []);
-
-    useEffect(() => {
         fetch('/api/auth/me')
             .then(res => {
                 if (res.ok) return res.json();

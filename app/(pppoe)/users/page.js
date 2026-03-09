@@ -534,6 +534,14 @@ export default function UsersPage() {
                     aVal = aSignal;
                     bVal = bSignal;
                     break;
+                case 'id':
+                    aVal = String(a._customerId || customersData[a.name]?.customerId || '').toLowerCase();
+                    bVal = String(b._customerId || customersData[b.name]?.customerId || '').toLowerCase();
+                    break;
+                case 'password':
+                    aVal = String(a.password || '').toLowerCase();
+                    bVal = String(b.password || '').toLowerCase();
+                    break;
                 default:
                     aVal = String(a[sortConfig.key] || '');
                     bVal = String(b[sortConfig.key] || '');
@@ -1333,6 +1341,22 @@ export default function UsersPage() {
                                         </div>
                                     </th>
                                     <th
+                                        onClick={() => sortData('id')}
+                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            {t('users.customerId')} <ArrowUpDown size={14} />
+                                        </div>
+                                    </th>
+                                    <th
+                                        onClick={() => sortData('password')}
+                                        className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-1">
+                                            {t('users.password')} <ArrowUpDown size={14} />
+                                        </div>
+                                    </th>
+                                    <th
                                         onClick={() => sortData('device_signal')}
                                         className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                     >
@@ -1427,13 +1451,6 @@ export default function UsersPage() {
                                                                 >
                                                                     <ExternalLink size={18} />
                                                                 </a>
-                                                                <button
-                                                                    onClick={() => handleDisconnect(active['.id'], user.name)}
-                                                                    title={t('pppoe.disconnectUserTitle')}
-                                                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                                                                >
-                                                                    <Power size={18} />
-                                                                </button>
                                                                 {acs && (
                                                                     <>
                                                                         <button
@@ -1481,22 +1498,30 @@ export default function UsersPage() {
                                                 {/* Unified User Column */}
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}`} title={isOnline ? t('users.online') : t('users.offline')} />
-                                                        <div className="flex flex-col">
-                                                            <span className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1">
+                                                        <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}`} title={isOnline ? t('users.online') : t('users.offline')} />
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="text-sm font-bold text-gray-900 dark:text-white truncate" title={user.name}>
                                                                 {user.name}
                                                             </span>
-                                                            <div className="flex flex-col gap-0.5">
-                                                                {(user._customerId || customersData[user.name]?.customerId) && (user._customerId !== '-' && customersData[user.name]?.customerId !== '-') && (
-                                                                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-1.5 py-0.5 rounded-md inline-block w-fit">
-                                                                        {user._customerId || customersData[user.name]?.customerId}
-                                                                    </span>
-                                                                )}
-                                                                <span className="text-xs text-gray-400 font-mono tracking-wide">{user.password}</span>
-                                                                <span className="text-xs text-gray-500 dark:text-gray-400">{getCustomerName(user.name)}</span>
-                                                            </div>
+                                                            <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{getCustomerName(user.name)}</span>
                                                         </div>
                                                     </div>
+                                                </td>
+
+                                                {/* Customer ID Column */}
+                                                <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
+                                                    {(user._customerId || customersData[user.name]?.customerId) && (user._customerId !== '-' && customersData[user.name]?.customerId !== '-') ? (
+                                                        <span className="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded-md font-medium border border-blue-200 dark:border-blue-800/50">
+                                                            {user._customerId || customersData[user.name]?.customerId}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-400">-</span>
+                                                    )}
+                                                </td>
+
+                                                {/* Password Column */}
+                                                <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
+                                                    <span className="text-xs text-gray-400 dark:text-gray-500 font-mono tracking-wide">{user.password || '-'}</span>
                                                 </td>
 
                                                 {/* Device Column (ACS) */}

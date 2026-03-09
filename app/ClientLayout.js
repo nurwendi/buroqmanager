@@ -16,28 +16,7 @@ export default function ClientLayout({ children }) {
     const isIsolirPage = pathname.startsWith('/isolir');
     const isPublicPage = isLoginPage || isInvoicePage || isIsolirPage;
 
-    const [isMobile, setIsMobile] = useState(false);
-
     useEffect(() => {
-        // Mobile: Global Fetch Interceptor
-        import('@/lib/isMobile').then(({ isMobileApp }) => {
-            if (isMobileApp()) {
-                setIsMobile(true);
-                const originalFetch = window.fetch;
-                window.fetch = async (input, init) => {
-                    let url = input;
-                    if (typeof input === 'string' && input.startsWith('/')) {
-                        const baseUrl = localStorage.getItem('buroq_server_url');
-                        if (baseUrl) {
-                            const cleanBase = baseUrl.replace(/\/$/, '');
-                            url = `${cleanBase}${input}`;
-                        }
-                    }
-                    return originalFetch(url, init);
-                };
-            }
-        });
-
         // Sync Title from Settings
         fetch('/api/app-settings')
             .then(res => res.json())
