@@ -456,24 +456,23 @@ export default function UsersPage() {
 
 
     const filteredUsers = useMemo(() => {
-        const searchLower = searchTerm.toLowerCase();
+        const searchLower = String(searchTerm).toLowerCase();
 
         return users.filter(user => {
             // Online filter
-            // Note: We use getActiveConnection helper but it expects state which isn't in scope of this pure function?
-            // Actually it is in scope of the component.
-            // But getActiveConnection relies on 'activeConnections' state which needs to be in dependency array.
-            // Status filter
             const isActive = activeConnections.some(c => c.name === user.name);
             if (filterStatus === 'online' && !isActive) return false;
             if (filterStatus === 'offline' && isActive) return false;
 
-            const customerName = customersData[user.name]?.name || '';
-            const customerId = customersData[user.name]?.customerId || '';
+            const customerName = String(customersData[user.name]?.name || '');
+            const customerId = String(customersData[user.name]?.customerId || '');
+            const userProfile = String(user.profile || '');
+            const userService = String(user.service || '');
+            const userNameStr = String(user.name || '');
 
-            return user.name.toLowerCase().includes(searchLower) ||
-                (user.profile && user.profile.toLowerCase().includes(searchLower)) ||
-                (user.service && user.service.toLowerCase().includes(searchLower)) ||
+            return userNameStr.toLowerCase().includes(searchLower) ||
+                (userProfile && userProfile.toLowerCase().includes(searchLower)) ||
+                (userService && userService.toLowerCase().includes(searchLower)) ||
                 customerName.toLowerCase().includes(searchLower) ||
                 customerId.toLowerCase().includes(searchLower);
         });
@@ -498,20 +497,20 @@ export default function UsersPage() {
             switch (sortConfig.key) {
                 // ... (rest of sort logic)
                 case 'username':
-                    aVal = (a.name || '').toLowerCase();
-                    bVal = (b.name || '').toLowerCase();
+                    aVal = String(a.name || '').toLowerCase();
+                    bVal = String(b.name || '').toLowerCase();
                     break;
                 case 'customer':
-                    aVal = (getCustomerName(a.name) || '').toLowerCase();
-                    bVal = (getCustomerName(b.name) || '').toLowerCase();
+                    aVal = String(getCustomerName(a.name) || '').toLowerCase();
+                    bVal = String(getCustomerName(b.name) || '').toLowerCase();
                     break;
                 case 'profile':
-                    aVal = (a.profile || '').toLowerCase();
-                    bVal = (b.profile || '').toLowerCase();
+                    aVal = String(a.profile || '').toLowerCase();
+                    bVal = String(b.profile || '').toLowerCase();
                     break;
                 case 'staff':
-                    aVal = (getPartnerName(a.name) || '').toLowerCase();
-                    bVal = (getPartnerName(b.name) || '').toLowerCase();
+                    aVal = String(getPartnerName(a.name) || '').toLowerCase();
+                    bVal = String(getPartnerName(b.name) || '').toLowerCase();
                     break;
                 case 'usage':
                     // Sort by total usage (rx + tx)
@@ -522,8 +521,8 @@ export default function UsersPage() {
                     // Sort by active status/IP
                     const aActive = activeConnections.find(c => c.name === a.name);
                     const bActive = activeConnections.find(c => c.name === b.name);
-                    aVal = aActive ? (aActive.address || 'z') : 'z'; // 'z' to put offline at bottom (or top depending on asc/desc)
-                    bVal = bActive ? (bActive.address || 'z') : 'z';
+                    aVal = aActive ? String(aActive.address || 'z') : 'z';
+                    bVal = bActive ? String(bActive.address || 'z') : 'z';
                     break;
                 case 'device_signal':
                     const aDevice = getAcsDevice(a.name);
@@ -536,8 +535,8 @@ export default function UsersPage() {
                     bVal = bSignal;
                     break;
                 default:
-                    aVal = a[sortConfig.key] || '';
-                    bVal = b[sortConfig.key] || '';
+                    aVal = String(a[sortConfig.key] || '');
+                    bVal = String(b[sortConfig.key] || '');
             }
 
             if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
