@@ -16,8 +16,21 @@ export default function StaffBillingPage() {
     const [payments, setPayments] = useState([]);
     const [filteredPayments, setFilteredPayments] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [user, setUser] = useState({ name: '', avatar: '', role: '' });
 
     useEffect(() => {
+        // Fetch User Info
+        fetch('/api/auth/me')
+            .then(res => res.json())
+            .then(data => {
+                setUser({
+                    name: data.user.fullName || data.user.username,
+                    avatar: data.user.avatar || '',
+                    role: data.user.role
+                });
+            })
+            .catch(err => console.error('Failed to fetch user', err));
+
         fetchStats();
         fetchYearlyStats();
         fetchPayments();
@@ -113,39 +126,72 @@ export default function StaffBillingPage() {
     }
 
     return (
-        <div className="space-y-8 p-6 bg-gray-50/50 min-h-screen">
-            {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div>
-                    <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-                        {t('billing.staffDashboardTitle')}
-                    </h1>
-                    <p className="text-gray-500 mt-1">{t('billing.staffDashboardSubtitle')}</p>
+        <div className="space-y-8 pb-12 bg-background min-h-screen -m-6 p-6">
+            {/* Premium Header with Banner & Overlapping Avatar */}
+            <div className="relative mb-12 sm:mb-14 -mx-6 -mt-6">
+                {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
+                <div className="relative h-48 sm:h-64 w-full overflow-hidden border-0 shadow-none outline-none">
+                    <img 
+                        src="/dashboard-bg.png" 
+                        alt="Banner" 
+                        className="w-full h-full object-cover scale-110"
+                    />
+                    <div className="absolute inset-0 bg-indigo-900/10 mix-blend-multiply"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                    
+                    {/* Date Selector - Absolute Positioned on Banner */}
+                    <div className="absolute top-6 right-6 z-20">
+                        <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md border border-white/30 text-white p-2 rounded-xl shadow-lg">
+                            <div className="p-1 px-2 text-xs font-bold uppercase tracking-widest opacity-80 border-r border-white/20">
+                                {selectedYear}
+                            </div>
+                            <select
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                                className="bg-transparent outline-none font-bold cursor-pointer text-sm appearance-none pr-1"
+                            >
+                                {months.map((m, i) => (
+                                    <option key={i} value={i} className="text-gray-900">{m}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Upward Curve Effect - Perfectly Seamless */}
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[200%] h-32 bg-background border-none rounded-[100%] translate-y-20 shadow-none"></div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-200">
-                    <div className="p-2 bg-white rounded-lg shadow-sm text-blue-600">
-                        <Calendar size={20} />
+                {/* Overlapping Profile Section */}
+                <div className="relative -mt-20 sm:-mt-24 flex flex-col items-center z-10 px-4">
+                    <div className="relative group">
+                        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-[6px] border-white dark:border-gray-900 shadow-xl bg-gradient-to-br from-indigo-500 to-blue-700 flex items-center justify-center overflow-hidden transition-all duration-500">
+                            {user.avatar ? (
+                                <img src={user.avatar} alt={user.name} className="w-full h-full object-cover rounded-full" />
+                            ) : (
+                                <span className="text-5xl sm:text-7xl font-bold text-white uppercase drop-shadow-lg">
+                                    {user.name ? user.name.charAt(0) : 'S'}
+                                </span>
+                            )}
+                        </div>
                     </div>
-                    <select
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                        className="bg-transparent outline-none text-gray-700 font-semibold cursor-pointer py-1"
-                    >
-                        {months.map((m, i) => (
-                            <option key={i} value={i}>{m}</option>
-                        ))}
-                    </select>
-                    <div className="w-px h-6 bg-gray-300 mx-1"></div>
-                    <select
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                        className="bg-transparent outline-none text-gray-700 font-semibold cursor-pointer py-1"
-                    >
-                        {availableYears.map(y => (
-                            <option key={y} value={y}>{y}</option>
-                        ))}
-                    </select>
+
+                    <div className="mt-4 text-center">
+                        <h1 className="text-[10px] sm:text-xs tracking-[0.4em] uppercase text-indigo-600 dark:text-indigo-400 font-bold mb-1 opacity-70">
+                            {t('billing.staffDashboardTitle')}
+                        </h1>
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white tracking-tight">
+                            {t('dashboard.welcome') || 'Selamat Datang'},{' '}
+                            <span className="text-indigo-600 dark:text-indigo-400 capitalize">
+                                {user.name}
+                            </span>
+                            !
+                        </h2>
+                        <div className="mt-2 flex items-center justify-center gap-2">
+                           <span className="px-3 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-[10px] font-bold uppercase tracking-widest border border-indigo-100 dark:border-indigo-800">
+                              {user.role}
+                           </span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
