@@ -20,7 +20,7 @@ async function readJsonFile(filename) {
 // Helper to get base URL from request headers
 async function getBaseUrl() {
     const headersList = await headers();
-    const host = headersList.get('host') || 'localhost:3000';
+    const host = headersList.get('host') || 'localhost:2000';
     const protocol = headersList.get('x-forwarded-proto') || 'http';
     return `${protocol}://${host}`;
 }
