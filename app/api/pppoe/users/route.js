@@ -84,12 +84,6 @@ export async function GET(request) {
                 allUsers = [...allUsers, ...users];
             });
 
-            // Attach Customer IDs (Login ID) - Removed, frontend handles it.
-            allUsers = allUsers.map(u => ({
-                ...u,
-                _customerId: '-'
-            }));
-
             // Attach Usage Data (Global)
             const { getAllMonthlyUsage } = await import('@/lib/usage-tracker');
             const allUsageData = await getAllMonthlyUsage();
@@ -215,12 +209,6 @@ export async function GET(request) {
                 }
             }
         }
-
-        // Attach Customer IDs (Standard Mode) - Removed, frontend handles it.
-        users = users.map(u => ({
-            ...u,
-            _customerId: '-'
-        }));
 
         // Attach monthly usage data
         const { getAllMonthlyUsage } = await import('@/lib/usage-tracker');

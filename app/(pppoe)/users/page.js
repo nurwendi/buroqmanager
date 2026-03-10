@@ -1256,11 +1256,15 @@ export default function UsersPage() {
                                             <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded text-[10px] font-medium border border-blue-100 dark:border-blue-800/30">
                                                 {user.profile || 'Default'}
                                             </span>
-                                            {(user._customerId || customersData[user.name]?.customerId) && (user._customerId !== '-' && customersData[user.name]?.customerId !== '-') && (
-                                                <span className="px-1.5 py-0.5 bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 rounded text-[10px] font-medium border border-purple-100 dark:border-purple-800/30">
-                                                    ID: {user._customerId || customersData[user.name]?.customerId}
-                                                </span>
-                                            )}
+                                            {(() => {
+                                                const cid = (user._customerId && user._customerId !== '-') ? user._customerId : (customersData[user.name]?.customerId && customersData[user.name]?.customerId !== '-') ? customersData[user.name].customerId : null;
+                                                if (!cid) return null;
+                                                return (
+                                                    <span className="px-1.5 py-0.5 bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 rounded text-[10px] font-medium border border-purple-100 dark:border-purple-800/30">
+                                                        ID: {cid}
+                                                    </span>
+                                                );
+                                            })()}
                                             {getPartnerName(user.name) && getPartnerName(user.name) !== '-' && (
                                                 <span className="px-1.5 py-0.5 bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 rounded text-[10px] font-medium flex items-center gap-1 border border-orange-100 dark:border-orange-800/30">
                                                     <User size={10} /> {getPartnerName(user.name)}
@@ -1508,15 +1512,18 @@ export default function UsersPage() {
                                                     </div>
                                                 </td>
 
-                                                {/* Customer ID Column */}
                                                 <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
-                                                    {(user._customerId || customersData[user.name]?.customerId) && (user._customerId !== '-' && customersData[user.name]?.customerId !== '-') ? (
-                                                        <span className="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded-md font-medium border border-blue-200 dark:border-blue-800/50">
-                                                            {user._customerId || customersData[user.name]?.customerId}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-xs text-gray-400">-</span>
-                                                    )}
+                                                    {(() => {
+                                                        const cid = (user._customerId && user._customerId !== '-') ? user._customerId : (customersData[user.name]?.customerId && customersData[user.name]?.customerId !== '-') ? customersData[user.name].customerId : null;
+                                                        if (cid) {
+                                                            return (
+                                                                <span className="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded-md font-medium border border-blue-200 dark:border-blue-800/50">
+                                                                    {cid}
+                                                                </span>
+                                                            );
+                                                        }
+                                                        return <span className="text-xs text-gray-400">-</span>;
+                                                    })()}
                                                 </td>
 
                                                 {/* Password Column */}
