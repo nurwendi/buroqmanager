@@ -58,8 +58,8 @@ export default function LoginPage() {
                 : { background: 'linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)' }
             }
         >
-            {loginBgUrl && <div className="absolute inset-0 bg-black/40" />}
-            <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-sm border border-white/20 dark:border-white/10">
+            {loginBgUrl && <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />}
+            <div className="relative z-10 bg-white/10 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-white/20" style={{boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'}}>
 
                 <div className="flex justify-center mb-6">
                     <img src={logoUrl} alt="Logo" className="w-48 h-32 object-contain" />
@@ -67,35 +67,35 @@ export default function LoginPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label className="block text-sm font-semibold text-white drop-shadow mb-1">
                             Username / ID Pelanggan
                         </label>
                         <input
                             type="text"
                             required
                             placeholder="Username atau ID Pelanggan"
-                            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                            className="w-full bg-white/10 border border-white/25 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 text-white placeholder-white/50 backdrop-blur-sm transition-all"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label className="block text-sm font-semibold text-white drop-shadow mb-1">
                             {t('login.password')}
                         </label>
                         <div className="relative">
                             <input
                                 type={showPassword ? 'text' : 'password'}
                                 required
-                                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                className="w-full bg-white/10 border border-white/25 rounded-xl px-4 py-3 pr-11 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 text-white placeholder-white/50 backdrop-blur-sm transition-all"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
                             >
                                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                             </button>
@@ -103,7 +103,7 @@ export default function LoginPage() {
                     </div>
 
                     {error && (
-                        <div className="p-3 bg-red-50/30 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg text-sm border border-red-200/50 dark:border-red-800/50">
+                        <div className="p-3 bg-red-500/20 text-red-100 rounded-xl text-sm border border-red-400/30 backdrop-blur-sm">
                             {error}
                         </div>
                     )}
@@ -111,7 +111,7 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 shadow-lg font-medium"
+                        className="w-full bg-white/20 hover:bg-white/30 text-white font-semibold py-3 rounded-xl border border-white/30 hover:border-white/50 transition-all disabled:opacity-50 shadow-lg backdrop-blur-sm mt-2 tracking-wide"
                     >
                         {loading ? 'Memproses...' : t('login.loginButton')}
                     </button>
