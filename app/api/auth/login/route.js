@@ -9,52 +9,64 @@ export async function POST(request) {
 
         let user = await verifyPassword(username, password);
 
-        // If local user not found, check if input is Customer ID
+        // If local system user not found, check if input is Customer ID or PPPoE username
         if (!user) {
             const db = (await import('@/lib/db')).default;
 
-            // Find Customer by customerId
-            const customer = await db.customer.findUnique({
-                where: { customerId: username }
+            // Find Customer by customerId (primary login method for customers)
+            const customer = await db.customer.findFirst({
+                where: {
+                    OR: [
+                        { customerId: username },   // Login by Customer ID (e.g. BRQ-0001)
+                        { username: username }       // Fallback: login by PPPoE username
+                    ]
+                }
             });
 
             if (customer) {
-                // Determine password verification method
-                // 1. Check if Customer has a local password (hashed)
+                let authenticated = false;
+
+                // Method 1: Check cached/local password (hashed in DB)
                 if (customer.password) {
-                    const isValid = await import('bcryptjs').then(bcrypt => bcrypt.compare(password, customer.password));
+                    const bcrypt = await import('bcryptjs');
+                    const isValid = await bcrypt.compare(password, customer.password);
                     if (isValid) {
-                        // Construct simplified user object for token
-                        user = {
-                            id: customer.id,
-                            username: customer.customerId, // Identity is CustomerID
-                            role: 'customer', // Use 'customer' role
-                            ownerId: customer.ownerId,
-                            fullName: customer.name
-                        };
+                        authenticated = true;
                     }
                 }
 
-                // 2. Fallback: Check PPPoE credentials (if no local password or it failed?)
-                // Usually if local password set, we only check that.
-                // If not set, check PPPoE.
-                if (!user && !customer.password) {
-                    const { verifyPppoeCredentials } = await import('@/lib/mikrotik');
-                    // Note: We need to verify against the SPECIFIC username and potentially scoped to owner?
-                    // verifyPppoeCredentials currently just checks if username/password pair exists in ANY connected router.
-                    // Since "username" is just the PPPoE username, and we have it in customer.username
-                    const pppoeUser = await verifyPppoeCredentials(customer.username, password);
+                // Method 2: Verify against Mikrotik PPPoE (if no local password or local failed)
+                if (!authenticated) {
+                    try {
+                        const { verifyPppoeCredentials } = await import('@/lib/mikrotik');
+                        // Use the customer's PPPoE username (not CustomerID) to verify against Mikrotik
+                        const pppoeUser = await verifyPppoeCredentials(customer.username, password);
 
-                    if (pppoeUser) {
-                        // Basic match found
-                        user = {
-                            id: customer.id,
-                            username: customer.customerId,
-                            role: 'customer',
-                            ownerId: customer.ownerId,
-                            fullName: customer.name
-                        };
+                        if (pppoeUser) {
+                            authenticated = true;
+
+                            // Cache the PPPoE password as hashed local password for offline fallback
+                            const bcrypt = await import('bcryptjs');
+                            const hashed = await bcrypt.hash(password, 10);
+                            await db.customer.update({
+                                where: { id: customer.id },
+                                data: { password: hashed }
+                            });
+                        }
+                    } catch (mikrotikError) {
+                        console.error('[Login] Mikrotik verification failed:', mikrotikError.message);
+                        // Mikrotik offline — authentication fails if no cached password
                     }
+                }
+
+                if (authenticated) {
+                    user = {
+                        id: customer.id,
+                        username: customer.customerId,
+                        role: 'customer',
+                        ownerId: customer.ownerId,
+                        fullName: customer.name
+                    };
                 }
             }
         }
@@ -74,7 +86,7 @@ export async function POST(request) {
 
             response.cookies.set('auth_token', token, {
                 httpOnly: true,
-                secure: false, // Set to true if using HTTPS
+                secure: false,
                 maxAge: 60 * 60 * 24 * 7, // 1 week
                 path: '/',
             });
@@ -82,13 +94,12 @@ export async function POST(request) {
             return response;
         }
 
-        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+        return NextResponse.json({ error: 'ID Pelanggan atau password salah.' }, { status: 401 });
     } catch (error) {
         console.error('Login error:', error);
         return NextResponse.json({
             error: 'Internal server error',
             details: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
         }, { status: 500 });
     }
 }
