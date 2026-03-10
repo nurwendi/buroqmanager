@@ -23,6 +23,8 @@ export async function POST(request) {
       filename = "favicon.ico";
     } else if (type === "background") {
       filename = "dashboard-bg.png";
+    } else if (type === "loginbg") {
+      filename = "login-bg.png";
     } else {
       filename = "logo.png";
     }
@@ -49,6 +51,8 @@ export async function POST(request) {
       settings.faviconUrl = `/${filename}?t=${Date.now()}`;
     } else if (type === "background") {
       settings.dashboardBgUrl = `/${filename}?t=${Date.now()}`;
+    } else if (type === "loginbg") {
+      settings.loginBgUrl = `/${filename}?t=${Date.now()}`;
     }
 
     // Save updated settings

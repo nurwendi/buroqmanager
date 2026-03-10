@@ -94,6 +94,7 @@ export default function AppSettingsPage() {
     appName: "Mikrotik Manager",
     logoUrl: "",
     dashboardBgUrl: "",
+    loginBgUrl: "",
     adminUsername: "",
     adminPassword: "",
     newPassword: "",
@@ -206,6 +207,7 @@ export default function AppSettingsPage() {
           appName: data.appName || "Mikrotik Manager",
           logoUrl: data.logoUrl || "",
           dashboardBgUrl: data.dashboardBgUrl || "",
+          loginBgUrl: data.loginBgUrl || "",
         }));
       }
     } catch (error) {
@@ -297,6 +299,7 @@ export default function AppSettingsPage() {
           appName: settings.appName,
           logoUrl: settings.logoUrl,
           dashboardBgUrl: settings.dashboardBgUrl,
+          loginBgUrl: settings.loginBgUrl,
         }),
       });
 
@@ -903,6 +906,69 @@ export default function AppSettingsPage() {
                           <p className="text-red-500 text-sm hidden p-4">
                             {t("appSettings.failedLoadBackground")}
                           </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <hr className="my-8 border-gray-200 dark:border-gray-700" />
+
+                  {/* Login Page Background */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <ImageIcon size={20} className="text-green-600 dark:text-green-400" />
+                    <h3 className="text-lg font-medium text-gray-800 dark:text-white">
+                      Background Halaman Login
+                    </h3>
+                  </div>
+
+                  <div className="mb-6 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Upload Gambar Background Login
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/png, image/jpeg, image/webp"
+                        onChange={(e) => handleFileUpload(e, "loginbg")}
+                        className="block w-full text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-green-50 file:text-green-700
+                                hover:file:bg-green-100 dark:file:bg-green-900/40 dark:file:text-green-300"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Ukuran disarankan: 1920×1080px atau lebih. Format: PNG, JPG, WebP.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Atau gunakan URL gambar
+                      </label>
+                      <input
+                        type="text"
+                        value={settings.loginBgUrl}
+                        onChange={(e) =>
+                          setSettings({ ...settings, loginBgUrl: e.target.value })
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="/login-bg.png atau https://..."
+                      />
+                    </div>
+
+                    {settings.loginBgUrl && (
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Preview
+                        </label>
+                        <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700/50">
+                          <img
+                            src={settings.loginBgUrl}
+                            alt="Login Background preview"
+                            className="w-full h-32 object-cover object-center"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
                         </div>
                       </div>
                     )}

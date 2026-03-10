@@ -15,11 +15,15 @@ export default function LoginPage() {
     const router = useRouter();
     const { t } = useLanguage();
     const [logoUrl, setLogoUrl] = useState('/logo.png');
+    const [loginBgUrl, setLoginBgUrl] = useState('');
 
     useEffect(() => {
         fetch('/api/app-settings')
             .then(res => res.json())
-            .then(data => { if (data.logoUrl) setLogoUrl(data.logoUrl); })
+            .then(data => {
+                if (data.logoUrl) setLogoUrl(data.logoUrl);
+                if (data.loginBgUrl) setLoginBgUrl(data.loginBgUrl);
+            })
             .catch(() => {});
     }, []);
 
@@ -47,7 +51,14 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-black transition-colors p-4">
+        <div
+            className="relative min-h-screen flex items-center justify-center transition-colors p-4"
+            style={loginBgUrl
+                ? { backgroundImage: `url(${loginBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                : { background: 'linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)' }
+            }
+        >
+            {loginBgUrl && <div className="absolute inset-0 bg-black/40" />}
             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-sm border border-white/20 dark:border-white/10">
 
                 <div className="flex justify-center mb-6">

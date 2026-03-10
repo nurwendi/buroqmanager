@@ -18,6 +18,7 @@ export async function GET() {
       appName: "Buroq Billing",
       logoUrl: "",
       dashboardBgUrl: "",
+      loginBgUrl: "",
     });
   } catch (error) {
     return NextResponse.json(
@@ -30,7 +31,7 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { appName, logoUrl, dashboardBgUrl } = body;
+    const { appName, logoUrl, dashboardBgUrl, loginBgUrl } = body;
 
     // Fetch existing settings to preserve other fields like faviconUrl
     const existingRecord = await db.systemSetting.findUnique({
@@ -50,6 +51,10 @@ export async function POST(request) {
         dashboardBgUrl !== undefined
           ? dashboardBgUrl
           : currentSettings.dashboardBgUrl || "",
+      loginBgUrl:
+        loginBgUrl !== undefined
+          ? loginBgUrl
+          : currentSettings.loginBgUrl || "",
     };
 
     await db.systemSetting.upsert({
