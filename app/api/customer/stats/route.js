@@ -28,34 +28,39 @@ export async function GET(request) {
             if (u) targetOwnerId = u.ownerId;
         }
 
+        let asCustomer = null;
+
         // Check for customerId lookup (Query Param has priority)
         const { searchParams } = new URL(request.url);
         const searchId = searchParams.get('customerId');
 
+
         if (searchId) {
             console.log(`[CustomerStats] Searching for customerId: ${searchId}`);
+
             const customer = await db.customer.findFirst({
                 where: { customerId: searchId }
             });
 
             if (customer) {
+                asCustomer = customer;
                 username = customer.username;
-                targetOwnerId = customer.ownerId; // vital update
+                targetOwnerId = customer.ownerId;
                 console.log(`[CustomerStats] Found user ${username} for ID ${searchId}`);
             } else {
                 return NextResponse.json({ error: 'Customer ID not found' }, { status: 404 });
             }
         } else {
-            // Implicit Lookup: Check if logged-in 'username' is actually a 'customerId'
-            // This handles the case where user logs in with ID "10100010"
-            const asCustomer = await db.customer.findUnique({
+            // Implicit Lookup: user logged in with CustomerID
+            const found = await db.customer.findFirst({
                 where: { customerId: username }
             });
 
-            if (asCustomer) {
-                console.log(`[CustomerStats] Logged in with CustomerID ${username}, resolving to ${asCustomer.username}`);
-                username = asCustomer.username;
-                targetOwnerId = asCustomer.ownerId; // vital update
+            if (found) {
+                asCustomer = found;
+                console.log(`[CustomerStats] Logged in with CustomerID ${username}, resolving to ${found.username}`);
+                username = found.username;
+                targetOwnerId = found.ownerId;
             }
         }
 
@@ -148,20 +153,27 @@ export async function GET(request) {
             console.error('Error reading billing data', e);
         }
 
-        // 4. Get Customer Name
+        // 4. Get Customer Name & Avatar from Customer table
         let name = username;
+        let avatar = asCustomer?.avatar || '';
         try {
-            const userProfile = await db.user.findUnique({ where: { username } });
-            if (userProfile && userProfile.fullName) {
-                name = userProfile.fullName;
+            if (!asCustomer) {
+                // Try to look up by PPPoE username
+                const customerProfile = await db.customer.findFirst({ where: { username } });
+                if (customerProfile) {
+                    name = customerProfile.name || username;
+                    avatar = customerProfile.avatar || '';
+                }
+            } else {
+                name = asCustomer.name || username;
             }
         } catch (e) {
-            console.error('Error reading user profile', e);
+            console.error('Error reading customer profile', e);
         }
 
         return NextResponse.json({
             name,
-            avatar: asCustomer?.avatar || "", // Include avatar
+            avatar,
             usage,
             billing,
             session
