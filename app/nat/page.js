@@ -341,13 +341,9 @@ function RouterCard({ router }) {
     );
 }
 
-import { useRouter } from 'next/navigation';
-
 // Main Page
 export default function NatPage() {
-    console.log("[NatPage] Rendering...");
     const { t } = useLanguage();
-
     const router = useRouter();
 
     const [data, setData] = useState(null);
