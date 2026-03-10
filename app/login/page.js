@@ -58,7 +58,7 @@ export default function LoginPage() {
                 : { background: 'linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%)' }
             }
         >
-            {loginBgUrl && <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />}
+            {loginBgUrl && <div className="absolute inset-0 bg-black/40" />}
             <div className="relative z-10 bg-white/10 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl w-full max-w-sm border border-white/20" style={{boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'}}>
 
                 <div className="flex justify-center mb-6">
