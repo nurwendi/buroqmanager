@@ -12,9 +12,24 @@ export async function GET(request) {
         const user = await getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        // IF CUSTOMER: Only allow searching match their specific username (for security)
+        // IF CUSTOMER: Resolve their actual PPPoE username from DB (token stores CustomerID)
         if (user.role === 'customer') {
-            const regex = { $regex: user.username, $options: 'i' };
+            // Look up the customer to get their PPPoE username
+            const customer = await db.customer.findFirst({
+                where: {
+                    OR: [
+                        { customerId: user.username },
+                        { username: user.username }
+                    ]
+                }
+            });
+
+            if (!customer) {
+                return NextResponse.json([]);
+            }
+
+            const pppoeUsername = customer.username;
+            const regex = { $regex: pppoeUsername, $options: 'i' };
             query = {
                 $or: [
                     { "VirtualParameters.pppoeUsername": regex },
@@ -22,7 +37,19 @@ export async function GET(request) {
                     { "Device.PPP.Interface.1.Username": regex }
                 ]
             };
-        } else if (search) {
+
+            const devices = await findDevices(query);
+            const cleanedDevices = devices.map(parseGenieACSDevice);
+
+            const myDevice = cleanedDevices.find(d =>
+                d.pppoe_user &&
+                d.pppoe_user.toLowerCase() === pppoeUsername.toLowerCase()
+            );
+
+            return NextResponse.json(myDevice ? [myDevice] : []);
+        }
+
+        if (search) {
             const regex = { $regex: search, $options: 'i' };
             query = {
                 $or: [
@@ -41,24 +68,12 @@ export async function GET(request) {
 
         // --- MULTITENANCY & ROLE FILTERING ---
 
-        // 1. CUSTOMER: Strict One-to-One Match
-        if (user.role === 'customer') {
-            // Only return device if the extracted PPPoE username matches their login username (case-insensitive)
-            const myDevice = cleanedDevices.find(d =>
-                d.pppoe_user &&
-                d.pppoe_user.toLowerCase() === (user.username || '').toLowerCase()
-            );
-
-            return NextResponse.json(myDevice ? [myDevice] : []);
-        }
-
-        // 2. SUPERADMIN / ADMIN: Global View
+        // SUPERADMIN / ADMIN: Global View
         if (user.role === 'superadmin' || user.role === 'admin') {
-            // console.log(`[GenieACS] Found ${cleanedDevices.length} devices (Bypassed for ${user.role})`);
             return NextResponse.json(cleanedDevices);
         }
 
-        // 3. STAFF / MANAGER: OwnerId Filtering
+        // STAFF / MANAGER: OwnerId Filtering
         const ownerId = user.ownerId;
         if (!ownerId) {
             return NextResponse.json([]);
