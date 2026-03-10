@@ -20,8 +20,8 @@ export default function GenieAcsPage() {
             if (res.ok) {
                 const data = await res.json();
                 const role = data.user?.role;
-                // Allow superadmin and admin
-                if (role !== 'superadmin' && role !== 'admin') {
+                // Restricted to superadmin only
+                if (role !== 'superadmin') {
                     setAccessDenied(true);
                     setLoading(false);
                     return;
