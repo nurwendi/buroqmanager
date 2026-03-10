@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Server, RefreshCw, Wifi, WifiOff, Shield, Network, Cpu, MemoryStick, Clock, ChevronDown, ChevronRight, Activity, Globe, AlertTriangle, CheckCircle, XCircle, Info, Filter, ArrowLeftRight, Zap } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -339,10 +341,15 @@ function RouterCard({ router }) {
     );
 }
 
+import { useRouter } from 'next/navigation';
+
 // Main Page
 export default function NatPage() {
+    console.log("[NatPage] Rendering...");
     const { t } = useLanguage();
-    const router = require('next/navigation').useRouter();
+
+    const router = useRouter();
+
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
