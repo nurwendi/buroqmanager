@@ -60,6 +60,7 @@ export default function BottomDock() {
         { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
         { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
+        { href: '/notifications', icon: Bell, hoverIcon: Bell, label: 'Notif', roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/logs', icon: ClipboardList, hoverIcon: MessageSquare, label: t('sidebar.logs'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
     ].filter(item => {
@@ -162,14 +163,6 @@ export default function BottomDock() {
 
                                 return (
                                     <div key={item.href} className="flex items-center gap-14">
-                                        {item.href === '/logs' && (
-                                            <div className="flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2">
-                                                <NotificationPopover />
-                                                <span className="text-[10px] font-medium mt-2 whitespace-nowrap px-2 rounded-md transition-all duration-300 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200">
-                                                    Notif
-                                                </span>
-                                            </div>
-                                        )}
                                         <Link
                                             href={item.href}
                                             className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-10"
@@ -193,6 +186,11 @@ export default function BottomDock() {
                                                         }
                                                     `}
                                                 />
+                                                {item.href === '/notifications' && (
+                                                    <div className="absolute -top-1 -right-1">
+                                                        <NotificationPopover isBadgeOnly={true} />
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <span className={`

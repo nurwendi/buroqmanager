@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, ClipboardList, ShieldAlert, Activity, ChevronDown, Router, Megaphone } from 'lucide-react';
+import { Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, ClipboardList, ShieldAlert, Activity, ChevronDown, Router, Megaphone, Bell } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import NotificationPopover from './NotificationPopover';
@@ -174,10 +174,20 @@ export default function Navbar() {
                                 <span>{item.label}</span>
                             </Link>
                         ))}
-                        {/* Notifications Popover */}
-                        <div className="mr-2">
-                            <NotificationPopover />
-                        </div>
+                        {/* Notifications Link */}
+                        <Link
+                            href="/notifications"
+                            className={`p-2 rounded-lg transition-colors relative mr-2 ${pathname === '/notifications'
+                                ? 'bg-accent/10 text-accent'
+                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-accent dark:hover:text-accent'
+                                }`}
+                            title="Notifications"
+                        >
+                            <Bell size={20} />
+                            <div className="absolute top-1 right-1">
+                                <NotificationPopover isBadgeOnly={true} />
+                            </div>
+                        </Link>
 
                         {/* Logs */}
                         <Link

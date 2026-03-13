@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Bell, Check, Trash2, X, Info, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
 
-export default function NotificationPopover({ isBadgeOnly = false }) {
+export default function NotificationPopover({ isBadgeOnly = false, position = 'bottom' }) {
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -106,6 +106,10 @@ export default function NotificationPopover({ isBadgeOnly = false }) {
         );
     }
 
+    const popoverPositionClass = position === 'top'
+        ? 'bottom-full mb-2 animate-in fade-in slide-in-from-bottom-2'
+        : 'top-full mt-2 animate-in fade-in slide-in-from-top-2';
+
     return (
         <div className="relative" ref={popoverRef}>
             <button
@@ -122,7 +126,7 @@ export default function NotificationPopover({ isBadgeOnly = false }) {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 md:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className={`absolute right-0 w-80 md:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[100] ${popoverPositionClass} duration-200`}>
                     <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
                         <h3 className="font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                             Pemberitahuan
