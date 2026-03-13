@@ -50,7 +50,6 @@ export default function BottomDock() {
         { href: '/users', icon: Users, hoverIcon: Route, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/offline', icon: WifiOff, hoverIcon: Network, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/profiles', icon: Gauge, hoverIcon: Settings, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
-        { href: '/logs', icon: ClipboardList, hoverIcon: MessageSquare, label: t('sidebar.logs'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
 
         { href: '/system-users', icon: UserCog, hoverIcon: ShieldCheck, label: t('sidebar.systemUsers'), roles: ['admin'] },
         { href: '/superadmin/users', icon: Users, hoverIcon: Globe, label: t('sidebar.allUsers'), roles: ['superadmin'] },
@@ -61,9 +60,9 @@ export default function BottomDock() {
         { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
         { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
+        { href: '/logs', icon: ClipboardList, hoverIcon: MessageSquare, label: t('sidebar.logs'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
     ].filter(item => {
-
         return !item.roles || (userRole && item.roles.includes(userRole));
     });
 
@@ -88,7 +87,6 @@ export default function BottomDock() {
         { href: '/invoice-settings', icon: FileText, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
     ].filter(item => {
-
         return !item.roles || (userRole && item.roles.includes(userRole));
     });
 
@@ -100,7 +98,7 @@ export default function BottomDock() {
     const mobileNavItems = [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
         { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'staff'] },
-        { href: '/notifications', icon: Bell, label: 'Notif', roles: ['admin', 'manager', 'partner', 'staff', 'customer'] }, 
+        { href: '/notifications', icon: Bell, label: 'Notif', roles: ['admin', 'manager', 'partner', 'staff', 'customer'] },
         { href: '/app-settings', icon: Settings, label: t('sidebar.settings') || "Settings" },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
@@ -158,61 +156,62 @@ export default function BottomDock() {
                                 <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-accent/20 blur-xl" />
                             </button>
 
-                            {/* Separator */}
-                            <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2" />
-
                             {dockedNavItems.map((item) => {
                                 const isActive = pathname === item.href || (item.label === 'PPPoE' && ['/users', '/active', '/offline', '/profiles', '/logs'].some(path => pathname.startsWith(path)));
                                 const Icon = item.icon;
-                                const HoverIcon = item.hoverIcon;
 
                                 return (
-                                    <Link
-                                        key={item.href}
-                                        href={item.href}
-                                        className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-10"
-                                    >
-                                        {/* Icon Container */}
-                                        <div className={`
-                                        relative flex flex-col items-center justify-center
-                                        w-10 h-10 rounded-xl
-                                        transition-all duration-300
-                                        ${isActive
-                                                ? 'bg-accent shadow-lg shadow-accent/50'
-                                                : 'bg-gray-100 dark:bg-gray-800'
-                                            }
-                                    `}>
-                                            <Icon
-                                                size={20}
-                                                className={`
+                                    <div key={item.href} className="flex items-center gap-14">
+                                        {item.href === '/logs' && (
+                                            <div className="flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2">
+                                                <NotificationPopover />
+                                                <span className="text-[10px] font-medium mt-2 whitespace-nowrap px-2 rounded-md transition-all duration-300 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200">
+                                                    Notif
+                                                </span>
+                                            </div>
+                                        )}
+                                        <Link
+                                            href={item.href}
+                                            className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-10"
+                                        >
+                                            <div className={`
+                                                relative flex flex-col items-center justify-center
+                                                w-10 h-10 rounded-xl
                                                 transition-all duration-300
                                                 ${isActive
-                                                        ? 'text-white'
-                                                        : 'text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)]'
-                                                    }
-                                            `}
-                                            />
-                                        </div>
+                                                    ? 'bg-accent shadow-lg shadow-accent/50'
+                                                    : 'bg-gray-100 dark:bg-gray-800'
+                                                }
+                                            `}>
+                                                <Icon
+                                                    size={20}
+                                                    className={`
+                                                        transition-all duration-300
+                                                        ${isActive
+                                                            ? 'text-white'
+                                                            : 'text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)]'
+                                                        }
+                                                    `}
+                                                />
+                                            </div>
 
-                                        {/* Label - visible below icon */}
-                                        <span className={`
-                                        text-[11px] font-medium mt-2 whitespace-nowrap px-2 rounded-md
-                                        transition-all duration-300
-                                        ${isActive
-                                                ? 'text-accent dark:text-blue-400'
-                                                : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200'
-                                            }
-                                    `}>
-                                            {item.label}
-                                        </span>
+                                            <span className={`
+                                                text-[10px] font-medium mt-2 whitespace-nowrap px-2 rounded-md
+                                                transition-all duration-300
+                                                ${isActive
+                                                    ? 'text-accent dark:text-blue-400'
+                                                    : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200'
+                                                }
+                                            `}>
+                                                {item.label}
+                                            </span>
 
-                                        {/* Hover glow effect */}
-                                        <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-accent/20 blur-xl" />
-                                    </Link>
+                                            <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-accent/20 blur-xl" />
+                                        </Link>
+                                    </div>
                                 );
                             })}
 
-                            {/* Separator */}
                             <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2" />
 
                             {/* Logout Button */}
@@ -233,13 +232,6 @@ export default function BottomDock() {
                                 {/* Hover glow effect */}
                                 <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-red-400/10 blur-xl" />
                             </button>
-
-                            {/* Separator */}
-                            <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2" />
-
-                            <div className="hover:scale-125 transition-transform duration-300">
-                                <NotificationPopover />
-                            </div>
                         </div>
                     </div>
                 </div>

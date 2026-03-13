@@ -174,10 +174,15 @@ export default function Navbar() {
                                 <span>{item.label}</span>
                             </Link>
                         ))}
+                        {/* Notifications Popover */}
+                        <div className="mr-2">
+                            <NotificationPopover />
+                        </div>
+
                         {/* Logs */}
                         <Link
                             href="/logs"
-                            className={`p-2 rounded-lg transition-colors ml-2 ${pathname === '/logs'
+                            className={`p-2 rounded-lg transition-colors ${pathname === '/logs'
                                 ? 'bg-accent/10 text-accent'
                                 : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-accent dark:hover:text-accent'
                                 }`}
@@ -185,11 +190,6 @@ export default function Navbar() {
                         >
                             <ClipboardList size={20} />
                         </Link>
-
-                        {/* Notifications Popover */}
-                        <div className="ml-2">
-                            <NotificationPopover />
-                        </div>
 
                         {/* Logout Button - Hide for customers as they have it in dashboard */}
                         {userRole !== 'customer' && (
