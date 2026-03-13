@@ -16,7 +16,7 @@ export default function SystemUsersPage() {
     const [formData, setFormData] = useState({
         username: '',
         password: '',
-        role: 'viewer',
+        role: 'staff',
         isAgent: false,
         isTechnician: false,
         agentRate: 0,
@@ -136,7 +136,7 @@ export default function SystemUsersPage() {
         setFormData({
             username: '',
             password: '',
-            role: 'viewer',
+            role: 'staff',
             isAgent: false,
             isTechnician: false,
             agentRate: 0,
@@ -174,7 +174,7 @@ export default function SystemUsersPage() {
                 <button
                     onClick={() => {
                         setEditMode(false);
-                        const defaultRole = currentUserRole === 'superadmin' ? 'admin' : 'viewer';
+                        const defaultRole = currentUserRole === 'superadmin' ? 'admin' : 'staff';
                         setFormData({ username: '', password: '', role: defaultRole, isAgent: false, isTechnician: false, agentRate: 0, technicianRate: 0, prefix: '' });
                         setShowModal(true);
                     }}
@@ -470,7 +470,7 @@ export default function SystemUsersPage() {
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('systemUsers.systemRole')}</label>
                                     <select
-                                        value={formData.role ?? (currentUserRole === 'superadmin' ? 'admin' : 'viewer')}
+                                        value={formData.role ?? (currentUserRole === 'superadmin' ? 'admin' : 'staff')}
                                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                         className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                                         disabled={currentUserRole === 'superadmin'} // Superadmin only creates Admin, so lock it? Or just show 1 option.
@@ -482,9 +482,7 @@ export default function SystemUsersPage() {
                                         ) : (
                                             <>
                                                 <option value="manager">{t('systemUsers.managerNoUsers')}</option>
-                                                <option value="editor">{t('systemUsers.editorCanEdit')}</option>
                                                 <option value="staff">{t('systemUsers.staffAgentTech')}</option>
-                                                <option value="viewer">{t('systemUsers.viewerReadOnly')}</option>
                                             </>
                                         )}
                                     </select>
