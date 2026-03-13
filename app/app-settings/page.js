@@ -12,10 +12,6 @@ import {
   Gauge,
   Globe,
   LogOut,
-  Bell,
-  Shield,
-  Moon,
-  Sun,
   Monitor,
   Camera,
   MapPin,
@@ -25,6 +21,7 @@ import {
   Zap,
   Calendar,
   Play,
+  ClipboardList,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -117,7 +114,7 @@ export default function AppSettingsPage() {
     tables: {
       rowsPerPage: 25,
     },
-    notifications: {
+    logs: {
       enabled: false,
       highCpu: true,
       cpuThreshold: 80,
@@ -157,9 +154,9 @@ export default function AppSettingsPage() {
           ...(contextPreferences.dashboard || {}),
         },
         tables: { ...prev.tables, ...(contextPreferences.tables || {}) },
-        notifications: {
-          ...prev.notifications,
-          ...(contextPreferences.notifications || {}),
+        logs: {
+          ...prev.logs,
+          ...(contextPreferences.logs || {}),
         },
         security: { ...prev.security, ...(contextPreferences.security || {}) },
       }));
@@ -1463,16 +1460,16 @@ export default function AppSettingsPage() {
             </div>
           )}
 
-          {/* Notification Settings */}
+          {/* Log Settings */}
           {activeTab === "system" && isSuperAdmin && (
             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
               <div className="flex items-center gap-3 mb-4">
-                <Bell
+                <ClipboardList
                   className="text-yellow-600 dark:text-yellow-400"
                   size={24}
                 />
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-                  {t("appSettings.notificationSettings")}
+                  {t("appSettings.logSettings")}
                 </h2>
               </div>
 
@@ -1480,41 +1477,41 @@ export default function AppSettingsPage() {
                 <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
                   <div>
                     <h3 className="font-medium text-gray-900 dark:text-white">
-                      {t("appSettings.browserNotifications")}
+                      {t("appSettings.browserLogs")}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {t("appSettings.enablePushNotifications")}
+                      {t("appSettings.enablePushLogs")}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={async () => {
-                      const { requestNotificationPermission } = await import(
-                        "@/components/NotificationManager"
+                      const { requestLogPermission } = await import(
+                        "@/components/LogManager"
                       );
-                      const granted = await requestNotificationPermission();
+                      const granted = await requestLogPermission();
                       if (granted) {
                         setPreferences((prev) => ({
                           ...prev,
-                          notifications: {
-                            ...prev.notifications,
+                          logs: {
+                            ...prev.logs,
                             enabled: true,
                           },
                         }));
-                        alert(t("appSettings.notificationsEnabled"));
+                        alert(t("appSettings.logsEnabled"));
                       } else {
-                        alert(t("appSettings.notificationDenied"));
+                        alert(t("appSettings.logDenied"));
                       }
                     }}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      preferences.notifications?.enabled
+                      preferences.logs?.enabled
                         ? "bg-green-600"
                         : "bg-gray-200 dark:bg-gray-700"
                     }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        preferences.notifications?.enabled
+                        preferences.logs?.enabled
                           ? "translate-x-6"
                           : "translate-x-1"
                       }`}
@@ -1528,12 +1525,12 @@ export default function AppSettingsPage() {
                       <label className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
                         <input
                           type="checkbox"
-                          checked={preferences.notifications?.highCpu !== false}
+                          checked={preferences.logs?.highCpu !== false}
                           onChange={(e) =>
                             setPreferences({
                               ...preferences,
-                              notifications: {
-                                ...preferences.notifications,
+                              logs: {
+                                ...preferences.logs,
                                 highCpu: e.target.checked,
                               },
                             })
@@ -1550,12 +1547,12 @@ export default function AppSettingsPage() {
                           type="number"
                           min="50"
                           max="100"
-                          value={preferences.notifications?.cpuThreshold || 80}
+                          value={preferences.logs?.cpuThreshold || 80}
                           onChange={(e) =>
                             setPreferences({
                               ...preferences,
-                              notifications: {
-                                ...preferences.notifications,
+                              logs: {
+                                ...preferences.logs,
                                 cpuThreshold: parseInt(e.target.value),
                               },
                             })
@@ -1570,13 +1567,13 @@ export default function AppSettingsPage() {
                       <input
                         type="checkbox"
                         checked={
-                          preferences.notifications?.voltageLow !== false
+                          preferences.logs?.voltageLow !== false
                         }
                         onChange={(e) =>
                           setPreferences({
                             ...preferences,
-                            notifications: {
-                              ...preferences.notifications,
+                            logs: {
+                              ...preferences.logs,
                               voltageLow: e.target.checked,
                             },
                           })
@@ -1596,7 +1593,7 @@ export default function AppSettingsPage() {
                   <Save size={18} />
                   {loading
                     ? t("common.saving")
-                    : t("appSettings.saveNotifications")}
+                    : t("appSettings.saveLogs")}
                 </button>
               </form>
             </div>

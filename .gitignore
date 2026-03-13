@@ -57,3 +57,9 @@ generate-*.js
 
 public/uploads/
 node_modules
+
+# Temporary and test data
+data/
+/tmp/
+app/api/notifications/test-seed/
+/home/hudi/.gemini/antigravity/brain/

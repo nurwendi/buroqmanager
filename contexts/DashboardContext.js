@@ -18,7 +18,7 @@ export function DashboardProvider({ children }) {
             refreshInterval: 5000,
             layout: []
         },
-        notifications: {
+        logs: {
             enabled: false,
             highCpu: true,
             cpuThreshold: 80,
@@ -49,7 +49,7 @@ export function DashboardProvider({ children }) {
                     ...prev,
                     ...data,
                     dashboard: { ...prev.dashboard, ...data.dashboard },
-                    notifications: { ...prev.notifications, ...data.notifications },
+                    logs: { ...prev.logs, ...data.logs },
                     tables: { ...prev.tables, ...data.tables },
                     security: { ...prev.security, ...data.security },
                     display: { ...prev.display, ...data.display }
@@ -67,7 +67,7 @@ export function DashboardProvider({ children }) {
             ...preferences,
             ...newPreferences,
             dashboard: { ...preferences.dashboard, ...newPreferences.dashboard },
-            notifications: { ...preferences.notifications, ...newPreferences.notifications },
+            logs: { ...preferences.logs, ...newPreferences.logs },
             tables: { ...preferences.tables, ...newPreferences.tables },
             display: { ...preferences.display, ...newPreferences.display }
         };
@@ -124,7 +124,7 @@ export function DashboardProvider({ children }) {
                 },
                 refreshInterval: 5000
             },
-            notifications: {
+            logs: {
                 enabled: false,
                 highCpu: true,
                 cpuThreshold: 80,

@@ -5,7 +5,13 @@ import db from '@/lib/db';
 import os from 'os';
 
 async function getCurrentUser(request) {
-    const token = request.cookies.get('auth_token')?.value;
+    let token = request.cookies.get('auth_token')?.value;
+    if (!token) {
+        const authHeader = request.headers.get('authorization');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            token = authHeader.substring(7);
+        }
+    }
     if (!token) return null;
     return await verifyToken(token);
 }
@@ -82,6 +88,7 @@ export async function GET(request) {
                     id: conn.id,
                     name: conn.name,
                     host: conn.host,
+                    ownerId: conn.ownerId,
                     identity,
                     status: 'online',
                     cpuLoad: parseInt(res['cpu-load'] || 0),
@@ -93,6 +100,7 @@ export async function GET(request) {
                     id: conn.id,
                     name: conn.name,
                     host: conn.host,
+                    ownerId: conn.ownerId,
                     status: 'offline'
                 };
             }

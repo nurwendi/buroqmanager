@@ -54,6 +54,7 @@ export async function POST(request) {
             ...newPreferences,
             display: { ...currentPreferences.display, ...newPreferences.display },
             dashboard: { ...currentPreferences.dashboard, ...newPreferences.dashboard },
+            logs: { ...currentPreferences.logs, ...newPreferences.logs },
             tables: { ...currentPreferences.tables, ...newPreferences.tables }
         };
 

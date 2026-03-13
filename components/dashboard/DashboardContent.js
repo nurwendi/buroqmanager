@@ -15,7 +15,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDashboard } from "@/contexts/DashboardContext";
-import { sendNotification } from "@/components/NotificationManager";
+import { sendLog } from "@/components/LogManager";
 import StaffBillingPage from "@/app/billing/staff/page";
 
 // Widgets
@@ -32,7 +32,7 @@ import RouterStatusCard from "./RouterStatusCard";
 export default function DashboardContent() {
   const { t, resolvedLanguage } = useLanguage();
   const { preferences } = useDashboard();
-  const { dashboard = {}, notifications = {} } = preferences || {};
+  const { dashboard = {}, logsPreferences = {} } = preferences || {};
   const { visibleWidgets = {}, refreshInterval } = dashboard;
 
   const [stats, setStats] = useState({

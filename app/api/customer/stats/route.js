@@ -10,7 +10,13 @@ export const dynamic = 'force-dynamic';
 export async function GET(request) {
     try {
         const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
+        let token = cookieStore.get('auth_token')?.value;
+        if (!token) {
+            const authHeader = request.headers.get('authorization');
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                token = authHeader.substring(7);
+            }
+        }
         if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const decoded = await verifyToken(token);

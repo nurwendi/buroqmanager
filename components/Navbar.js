@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, Bell, ShieldAlert, Activity, ChevronDown, Router } from 'lucide-react';
+import { Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, ClipboardList, ShieldAlert, Activity, ChevronDown, Router } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import NotificationPopover from './NotificationPopover';
 
 export default function Navbar() {
     const pathname = usePathname();
@@ -172,17 +173,22 @@ export default function Navbar() {
                                 <span>{item.label}</span>
                             </Link>
                         ))}
-                        {/* Notifications */}
+                        {/* Logs */}
                         <Link
-                            href="/notifications"
-                            className={`p-2 rounded-lg transition-colors ml-2 ${pathname === '/notifications'
+                            href="/logs"
+                            className={`p-2 rounded-lg transition-colors ml-2 ${pathname === '/logs'
                                 ? 'bg-accent/10 text-accent'
                                 : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-accent dark:hover:text-accent'
                                 }`}
-                            title={t('sidebar.notifications')}
+                            title={t('sidebar.logs')}
                         >
-                            <Bell size={20} />
+                            <ClipboardList size={20} />
                         </Link>
+
+                        {/* Notifications Popover */}
+                        <div className="ml-2">
+                            <NotificationPopover />
+                        </div>
 
                         {/* Logout Button - Hide for customers as they have it in dashboard */}
                         {userRole !== 'customer' && (

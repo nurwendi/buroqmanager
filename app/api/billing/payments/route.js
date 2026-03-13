@@ -251,15 +251,21 @@ export async function POST(request) {
             });
         }
 
-        // Inject Notification
+        // Send Notification
         try {
-            const { addNotification } = await import('@/lib/notifications-db');
+            const { sendNotification } = await import('@/lib/notifications-db');
             const currencyFormatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' });
-            const notifMessage = `"System" : Payment of ${currencyFormatter.format(Number(paymentResult.amount))} for Invoice ${paymentResult.invoiceNumber} received.`;
-            // Owner aware notification? Notification DB likely needs ownerId too, but keeping it simple for now
-            await addNotification(notifMessage, { username: paymentResult.username });
+            const amountStr = currencyFormatter.format(Number(paymentResult.amount));
+            
+            await sendNotification({
+                title: 'Pembayaran Berhasil',
+                message: `Pembayaran sebesar ${amountStr} untuk Invoice ${paymentResult.invoiceNumber} telah diterima. Terima kasih!`,
+                type: 'success',
+                ownerId: paymentResult.ownerId,
+                recipients: [{ customerId: customer?.id }]
+            });
         } catch (notifError) {
-            console.error('Failed to add payment notification:', notifError);
+            console.error('Failed to send payment notification:', notifError);
         }
 
         // Send Email

@@ -148,6 +148,11 @@ export async function GET(request) {
             method: p.method || 'cash'
         }));
 
+        const [activeCustomers, totalCustomersCount] = await Promise.all([
+            db.customer.count({ where: { ...where, status: 'active' } }),
+            db.customer.count({ where })
+        ]);
+
         return NextResponse.json({
             totalRevenue,
             thisMonthRevenue,
@@ -156,7 +161,10 @@ export async function GET(request) {
             totalUnpaid,
             totalTransactions: payments.length,
             monthlyRevenue,
-            recentTransactions
+            recentTransactions,
+            pppoeActive: activeCustomers,
+            pppoeOffline: totalCustomersCount - activeCustomers,
+            totalCustomers: totalCustomersCount
         });
     } catch (error) {
         console.error('Stats Error:', error);

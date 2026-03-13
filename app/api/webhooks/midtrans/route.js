@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 export async function POST(request) {
     try {
-        const notification = await request.json();
+        const data = await request.json();
 
         const {
             order_id,
@@ -17,10 +17,10 @@ export async function POST(request) {
             transaction_status,
             fraud_status,
             payment_type
-        } = notification;
+        } = data;
 
         if (!order_id) {
-            return NextResponse.json({ message: 'Invalid notification' }, { status: 400 });
+            return NextResponse.json({ message: 'Invalid data' }, { status: 400 });
         }
 
         // 1. Find the Payment record to identify the owner/keys

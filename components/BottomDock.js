@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-    Home, Users, Settings, Server, Activity, LogOut, Network, CreditCard, WifiOff, Database, Menu, X, Palette, Bell, Wallet,
-    LayoutGrid, UserCheck, Zap, Wifi, Route, ShieldCheck, HardDrive, Save, SlidersHorizontal, MessageSquare, Shield, FileText, FileCheck, UserCog, Router, Radio, Gauge, Globe, TrendingUp, ArrowLeftRight
+    Home, Users, Settings, Server, Activity, LogOut, Network, CreditCard, WifiOff, Database, Menu, X, Palette, ClipboardList, Wallet,
+    LayoutGrid, UserCheck, Zap, Wifi, Route, ShieldCheck, HardDrive, Save, SlidersHorizontal, MessageSquare, Shield, FileText, FileCheck, UserCog, Router, Radio, Gauge, Globe, TrendingUp, ArrowLeftRight, Bell
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import AppLauncher from './AppLauncher';
+import NotificationPopover from './NotificationPopover';
 
 export default function BottomDock() {
     const pathname = usePathname();
@@ -49,7 +50,7 @@ export default function BottomDock() {
         { href: '/users', icon: Users, hoverIcon: Route, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/offline', icon: WifiOff, hoverIcon: Network, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/profiles', icon: Gauge, hoverIcon: Settings, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
-        { href: '/notifications', icon: Bell, hoverIcon: MessageSquare, label: t('sidebar.notifications'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/logs', icon: ClipboardList, hoverIcon: MessageSquare, label: t('sidebar.logs'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
 
         { href: '/system-users', icon: UserCog, hoverIcon: ShieldCheck, label: t('sidebar.systemUsers'), roles: ['admin'] },
         { href: '/superadmin/users', icon: Users, hoverIcon: Globe, label: t('sidebar.allUsers'), roles: ['superadmin'] },
@@ -72,7 +73,7 @@ export default function BottomDock() {
         { href: '/billing', icon: CreditCard, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/reports/financial', icon: Activity, label: t('sidebar.reports'), roles: ['admin'] },
         { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/notifications', icon: Bell, label: t('sidebar.notifications'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/logs', icon: ClipboardList, label: t('sidebar.logs'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/offline', icon: WifiOff, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/profiles', icon: Network, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
         { href: '/system-users', icon: UserCog, label: t('sidebar.systemUsers'), roles: ['admin'] },
@@ -98,11 +99,11 @@ export default function BottomDock() {
     const mobileNavItems = [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
         { href: '/users', icon: Users, label: t('sidebar.users') },
-        { href: '/billing', icon: CreditCard, label: t('sidebar.billing') },
+        { href: '/notifications', icon: Bell, label: 'Notif' }, // Swapped Billing with Notifications
         { href: '/app-settings', icon: Settings, label: t('sidebar.settings') || "Settings" },
     ];
 
-    if (userRole === 'customer') return null;
+    // if (userRole === 'customer') return null;
 
     return (
         <>
@@ -160,7 +161,7 @@ export default function BottomDock() {
                             <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2" />
 
                             {dockedNavItems.map((item) => {
-                                const isActive = pathname === item.href || (item.label === 'PPPoE' && ['/users', '/active', '/offline', '/profiles', '/notifications'].some(path => pathname.startsWith(path)));
+                                const isActive = pathname === item.href || (item.label === 'PPPoE' && ['/users', '/active', '/offline', '/profiles', '/logs'].some(path => pathname.startsWith(path)));
                                 const Icon = item.icon;
                                 const HoverIcon = item.hoverIcon;
 
@@ -231,6 +232,13 @@ export default function BottomDock() {
                                 {/* Hover glow effect */}
                                 <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-red-400/10 blur-xl" />
                             </button>
+
+                            {/* Separator */}
+                            <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2" />
+
+                            <div className="hover:scale-125 transition-transform duration-300">
+                                <NotificationPopover />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -325,7 +333,7 @@ export default function BottomDock() {
                                         className="flex flex-col items-center justify-center min-w-[60px]"
                                     >
                                         <div className={`
-                                            p-1 rounded-xl transition-all duration-300
+                                            p-1 rounded-xl transition-all duration-300 relative
                                             ${isActive
                                                 ? 'bg-blue-50 dark:bg-gray-800/50'
                                                 : 'bg-transparent'
@@ -340,6 +348,11 @@ export default function BottomDock() {
                                                     }
                                                 `}
                                             />
+                                            {item.href === '/notifications' && (
+                                                <div className="absolute -top-1 -right-1">
+                                                    <NotificationPopover isBadgeOnly={true} />
+                                                </div>
+                                            )}
                                         </div>
                                         <span className={`
                                             text-[10px] font-medium mt-1
@@ -364,7 +377,7 @@ export default function BottomDock() {
             <AppLauncher
                 isOpen={isLauncherOpen}
                 onClose={() => setIsLauncherOpen(false)}
-                navItems={launcherNavItems} // Use launcherNavItems here
+                navItems={launcherNavItems}
                 currentPath={pathname}
             />
         </>

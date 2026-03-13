@@ -8,7 +8,7 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const CUSTOMER_FILE = path.join(process.cwd(), 'customer-data.json');
 const PAYMENTS_FILE = path.join(process.cwd(), 'billing-payments.json');
-const NOTIFICATIONS_FILE = path.join(DATA_DIR, 'notifications.json');
+const LOGS_FILE = path.join(DATA_DIR, 'logs.json');
 
 async function migrate() {
     console.log('Starting migration...');
@@ -137,14 +137,14 @@ async function migrate() {
         }
     }
 
-    // 4. Migrate Notifications
-    if (fs.existsSync(NOTIFICATIONS_FILE)) {
-        console.log('Migrating Notifications...');
-        const notifications = JSON.parse(fs.readFileSync(NOTIFICATIONS_FILE, 'utf8'));
+    // 4. Migrate Logs
+    if (fs.existsSync(LOGS_FILE)) {
+        console.log('Migrating Logs...');
+        const logs = JSON.parse(fs.readFileSync(LOGS_FILE, 'utf8'));
 
-        for (const n of notifications) {
+        for (const n of logs) {
             try {
-                await prisma.notification.create({
+                await prisma.log.create({
                     data: {
                         mikrotikId: n['.id'],
                         time: n.time,

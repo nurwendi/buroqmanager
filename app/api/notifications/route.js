@@ -1,57 +1,58 @@
 import { NextResponse } from 'next/server';
-import { getNotifications } from '@/lib/notifications-db';
-import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/security';
-
-export const dynamic = 'force-dynamic';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
+import { getNotifications, createBlastNotification } from '@/lib/notifications-db';
 
 export async function GET(request) {
+    const user = await getUserFromRequest(request);
+    if (!user) return unauthorizedResponse();
+
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit')) || 50;
+
+    const queryParams = { limit };
+    if (user.role === 'customer') {
+        queryParams.customerId = user.id;
+    } else {
+        queryParams.userId = user.id;
+    }
+
+    const notifications = await getNotifications(queryParams);
+    return NextResponse.json(notifications);
+}
+
+export async function POST(request) {
+    const user = await getUserFromRequest(request);
+    if (!user) return unauthorizedResponse();
+
+    // Only Admin or Superadmin can send blasts
+    if (user.role !== 'admin' && user.role !== 'superadmin' && user.role !== 'manager') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
+        const body = await request.json();
+        const { title, message, type, target } = body;
 
-        let decoded = null;
-        if (token) decoded = await verifyToken(token);
-
-        // Determine effective OwnerId for filtering
-        let ownerId = null;
-        let connectionId = null;
-        if (decoded) {
-            if (decoded.role === 'admin') ownerId = decoded.id;
-            else if (decoded.role !== 'superadmin') ownerId = decoded.ownerId; // Staff
-
-            // Get Connection ID
-            const config = await (await import('@/lib/config')).getConfig();
-            const { getUserConnectionId } = await import('@/lib/config');
-            connectionId = getUserConnectionId(decoded, config);
+        if (!title || !message) {
+            return NextResponse.json({ error: 'Title and message are required' }, { status: 400 });
         }
 
-        let logs = await getNotifications(ownerId);
+        // Admin can only blast their own organization
+        // Superadmin can blast everything (ownerId null) or specify ownerId
+        const ownerId = user.role === 'superadmin' ? (body.ownerId || null) : user.id;
 
-        // Self-healing: If logs are empty, try to sync immediately
-        if (logs.length === 0) {
-            console.log(`Notifications empty for owner ${ownerId}, forcing sync...`);
-            const { syncNotifications } = await import('@/lib/notifications-db');
-            await syncNotifications(ownerId, connectionId);
-            logs = await getNotifications(ownerId);
-        }
+        const notification = await createBlastNotification({
+            title,
+            message,
+            type: type || 'info',
+            senderId: user.id,
+            ownerId,
+            target: target || 'all'
+        });
 
-        if (token) {
-            const decoded = await verifyToken(token);
-            // If user is a customer, filter logs to only show their own
-            if (decoded && decoded.role === 'customer') {
-                const userLogs = logs.filter(log =>
-                    log.username === decoded.username ||
-                    (log.message && log.message.startsWith(decoded.username + ' :'))
-                );
-                return NextResponse.json(userLogs);
-            }
-        }
-
-        // Admins/Partners/Others see all
-        return NextResponse.json(logs);
+        return NextResponse.json({ success: true, notification });
     } catch (error) {
-        console.error('Error fetching notifications:', error);
+        console.error('[API Notifications] Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

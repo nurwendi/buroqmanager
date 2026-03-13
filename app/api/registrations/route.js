@@ -87,6 +87,20 @@ export async function POST(request) {
                     }
                 });
 
+                // Send Notification to Admin/Owner
+                try {
+                    const { sendNotification } = await import('@/lib/notifications-db');
+                    await sendNotification({
+                        title: 'Pendaftaran Baru',
+                        message: `Pelanggan ${body.name || username} telah didaftarkan oleh ${user.fullName || user.username} dan memerlukan verifikasi.`,
+                        type: 'alert',
+                        ownerId: ownerId,
+                        recipients: [{ userId: ownerId }] // Notify the Admin
+                    });
+                } catch (notifError) {
+                    console.error('Failed to send registration notification:', notifError);
+                }
+
                 return NextResponse.json({ success: true, message: "Registration submitted for approval" });
 
             } else if (type === 'edit' || type === 'delete') {
@@ -141,6 +155,20 @@ export async function POST(request) {
             });
             // Delete to keep clean
             await db.registration.delete({ where: { id: registration.id } });
+
+            // Notify Agent
+            try {
+                const { sendNotification } = await import('@/lib/notifications-db');
+                await sendNotification({
+                    title: 'Pendaftaran Ditolak',
+                    message: `Permintaan ${registration.type} untuk ${registration.name || registration.username} telah ditolak.`,
+                    type: 'error',
+                    ownerId: registration.ownerId,
+                    recipients: [{ userId: registration.agentId }]
+                });
+            } catch (notifError) {
+                console.error('Failed to send rejection notification:', notifError);
+            }
 
             return NextResponse.json({ success: true, message: "Request rejected" });
         }
@@ -279,6 +307,29 @@ export async function POST(request) {
 
                 await db.registration.update({ where: { id: registration.id }, data: { status: 'approved' } });
                 await db.registration.delete({ where: { id: registration.id } });
+
+                // Notify Agent & Customer
+                try {
+                    const { sendNotification } = await import('@/lib/notifications-db');
+                    // Notify Agent
+                    await sendNotification({
+                        title: 'Pendaftaran Disetujui',
+                        message: `Pendaftaran untuk ${finalData.name} telah disetujui. Akun ${finalData.username} telah aktif.`,
+                        type: 'success',
+                        ownerId: registration.ownerId,
+                        recipients: [{ userId: registration.agentId }]
+                    });
+                    // Notify Customer (New account)
+                    await sendNotification({
+                        title: 'Selamat Datang!',
+                        message: `Pendaftaran Anda telah disetujui. Gunakan ID Pelanggan ${finalData.username} untuk masuk ke aplikasi.`,
+                        type: 'success',
+                        ownerId: registration.ownerId,
+                        recipients: [{ customerId: newCustomer.id }]
+                    });
+                } catch (notifError) {
+                    console.error('Failed to send approval notification:', notifError);
+                }
 
                 return NextResponse.json({ success: true, message: "Registration approved and user created" });
 
