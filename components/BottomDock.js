@@ -157,56 +157,57 @@ export default function BottomDock() {
                                 <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-accent/20 blur-xl" />
                             </button>
 
+                            <div className="w-px h-8 bg-gray-300 dark:bg-gray-600 mx-2" />
+
                             {dockedNavItems.map((item) => {
                                 const isActive = pathname === item.href || (item.label === 'PPPoE' && ['/users', '/active', '/offline', '/profiles', '/logs'].some(path => pathname.startsWith(path)));
                                 const Icon = item.icon;
 
                                 return (
-                                    <div key={item.href} className="flex items-center gap-14">
-                                        <Link
-                                            href={item.href}
-                                            className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-10"
-                                        >
-                                            <div className={`
-                                                relative flex flex-col items-center justify-center
-                                                w-10 h-10 rounded-xl
-                                                transition-all duration-300
-                                                ${isActive
-                                                    ? 'bg-accent shadow-lg shadow-accent/50'
-                                                    : 'bg-gray-100 dark:bg-gray-800'
-                                                }
-                                            `}>
-                                                <Icon
-                                                    size={20}
-                                                    className={`
-                                                        transition-all duration-300
-                                                        ${isActive
-                                                            ? 'text-white'
-                                                            : 'text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)]'
-                                                        }
-                                                    `}
-                                                />
-                                                {item.href === '/notifications' && (
-                                                    <div className="absolute -top-1 -right-1">
-                                                        <NotificationPopover isBadgeOnly={true} />
-                                                    </div>
-                                                )}
-                                            </div>
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-10"
+                                    >
+                                        <div className={`
+                                            relative flex flex-col items-center justify-center
+                                            w-10 h-10 rounded-xl
+                                            transition-all duration-300
+                                            ${isActive
+                                                ? 'bg-accent shadow-lg shadow-accent/50'
+                                                : 'bg-gray-100 dark:bg-gray-800'
+                                            }
+                                        `}>
+                                            <Icon
+                                                size={20}
+                                                className={`
+                                                    transition-all duration-300
+                                                    ${isActive
+                                                        ? 'text-white'
+                                                        : 'text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)]'
+                                                    }
+                                                `}
+                                            />
+                                            {item.href === '/notifications' && (
+                                                <div className="absolute -top-1 -right-1">
+                                                    <NotificationPopover isBadgeOnly={true} />
+                                                </div>
+                                            )}
+                                        </div>
 
-                                            <span className={`
-                                                text-[10px] font-medium mt-2 whitespace-nowrap px-2 rounded-md
-                                                transition-all duration-300
-                                                ${isActive
-                                                    ? 'text-accent dark:text-blue-400'
-                                                    : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200'
-                                                }
-                                            `}>
-                                                {item.label}
-                                            </span>
+                                        <span className={`
+                                            text-[10px] font-medium mt-2 whitespace-nowrap px-2 rounded-md
+                                            transition-all duration-300
+                                            ${isActive
+                                                ? 'text-accent dark:text-blue-400'
+                                                : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200'
+                                            }
+                                        `}>
+                                            {item.label}
+                                        </span>
 
-                                            <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-accent/20 blur-xl" />
-                                        </Link>
-                                    </div>
+                                        <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-accent/20 blur-xl" />
+                                    </Link>
                                 );
                             })}
 
