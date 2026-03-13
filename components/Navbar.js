@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, ClipboardList, ShieldAlert, Activity, ChevronDown, Router } from 'lucide-react';
+import { Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, ClipboardList, ShieldAlert, Activity, ChevronDown, Router, Megaphone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import NotificationPopover from './NotificationPopover';
@@ -26,7 +26,7 @@ export default function Navbar() {
             const res = await fetch('/api/auth/me');
             if (res.ok) {
                 const data = await res.json();
-                setUserRole(data.user?.role);
+                setUserRole(data.user?.role?.toLowerCase());
             }
         } catch (error) {
             console.error('Failed to fetch user role', error);
@@ -69,6 +69,7 @@ export default function Navbar() {
         { href: '/active', icon: Activity, label: t('sidebar.activeConnections') },
         { href: '/profiles', icon: Settings, label: t('sidebar.profiles') },
         { href: '/drop-users', icon: ShieldAlert, label: t('sidebar.dropIsolir') },
+        { href: '/admin/notifications/blast', icon: Megaphone, label: 'Blast Notifikasi', roles: ['admin', 'superadmin', 'manager'] },
         { href: '/genieacs', icon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 

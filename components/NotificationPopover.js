@@ -100,7 +100,7 @@ export default function NotificationPopover({ isBadgeOnly = false }) {
     if (isBadgeOnly) {
         if (unreadCount === 0) return null;
         return (
-            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white dark:border-gray-800 scale-75 origin-top-right">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white dark:border-gray-800 shadow-sm animate-pulse">
                 {unreadCount > 9 ? '9+' : unreadCount}
             </span>
         );

@@ -17,7 +17,7 @@ export default function BlastPage() {
     useEffect(() => {
         fetch('/api/auth/me')
             .then(res => res.json())
-            .then(data => setUserRole(data.user?.role));
+            .then(data => setUserRole(data.user?.role?.toLowerCase()));
     }, []);
 
     const handleSubmit = async (e) => {
@@ -62,7 +62,7 @@ export default function BlastPage() {
             <div className="max-w-3xl mx-auto px-4">
                 <div className="mb-8">
                     <h1 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-                        <MegaPhone className="text-accent" />
+                        <Megaphone className="text-accent" />
                         Blast Notifikasi
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400">Kirim pesan massal ke pelanggan dan staff Anda.</p>
@@ -83,15 +83,15 @@ export default function BlastPage() {
                                 <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Target Penerima</label>
                                 <div className="grid grid-cols-3 gap-2 p-1 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-700">
                                     {[
-                                        { id: 'all', label: 'Semua', icon: Users },
-                                        { id: 'customers', label: 'Pelanggan', icon: Users },
-                                        { id: 'staff', label: 'Staff', icon: UserCog }
+                                        { id: 'all', label: 'Keduanya', icon: Users, desc: 'Kirim ke Staff & Pelanggan' },
+                                        { id: 'customers', label: 'Pelanggan', icon: Users, desc: 'Hanya untuk Pelanggan' },
+                                        { id: 'staff', label: 'Staff', icon: UserCog, desc: 'Hanya untuk Staff & Admin' }
                                     ].map((tVal) => (
                                         <button
                                             key={tVal.id}
                                             type="button"
                                             onClick={() => setTarget(tVal.id)}
-                                            className={`flex flex-col items-center gap-1 py-3 rounded-lg transition-all ${
+                                            className={`flex flex-col items-center gap-1 py-3 rounded-lg transition-all relative group ${
                                                 target === tVal.id 
                                                 ? 'bg-white dark:bg-gray-800 text-accent shadow-sm border border-gray-100 dark:border-gray-700' 
                                                 : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
@@ -99,6 +99,11 @@ export default function BlastPage() {
                                         >
                                             <tVal.icon size={18} />
                                             <span className="text-[10px] font-bold uppercase">{tVal.label}</span>
+                                            {target === tVal.id && (
+                                                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[9px] px-2 py-1 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                                                    {tVal.desc}
+                                                </div>
+                                            )}
                                         </button>
                                     ))}
                                 </div>
@@ -187,7 +192,7 @@ export default function BlastPage() {
                              type === 'success' ? 'bg-green-100 text-green-600' :
                              'bg-blue-100 text-blue-600'
                         }`}>
-                            <MegaPhone size={20} />
+                            <Megaphone size={20} />
                         </div>
                         <div className="flex-1">
                             <h4 className="font-bold text-gray-800 dark:text-gray-100">{title || 'Judul Notifikasi'}</h4>

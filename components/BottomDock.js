@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
     Home, Users, Settings, Server, Activity, LogOut, Network, CreditCard, WifiOff, Database, Menu, X, Palette, ClipboardList, Wallet,
-    LayoutGrid, UserCheck, Zap, Wifi, Route, ShieldCheck, HardDrive, Save, SlidersHorizontal, MessageSquare, Shield, FileText, FileCheck, UserCog, Router, Radio, Gauge, Globe, TrendingUp, ArrowLeftRight, Bell
+    LayoutGrid, UserCheck, Zap, Wifi, Route, ShieldCheck, HardDrive, Save, SlidersHorizontal, MessageSquare, Shield, FileText, FileCheck, UserCog, Router, Radio, Gauge, Globe, TrendingUp, ArrowLeftRight, Bell, Megaphone
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -27,7 +27,7 @@ export default function BottomDock() {
                 throw new Error('Failed to fetch user');
             })
             .then(data => {
-                setUserRole(data.user.role);
+                setUserRole(data.user.role?.toLowerCase());
                 setUserData(data.user);
             })
             .catch(() => {
@@ -83,6 +83,7 @@ export default function BottomDock() {
         { href: '/nat', icon: ArrowLeftRight, label: 'NAT', roles: ['superadmin'] },
 
         { href: '/genieacs', icon: Wifi, label: t('sidebar.genieacs'), roles: ['superadmin'] },
+        { href: '/admin/notifications/blast', icon: Megaphone, label: 'Blast Notifikasi', roles: ['admin', 'superadmin', 'manager'] },
         { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
@@ -98,10 +99,10 @@ export default function BottomDock() {
     // Mobile navigation items (Static 4 items for Bottom Dock)
     const mobileNavItems = [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
-        { href: '/users', icon: Users, label: t('sidebar.users') },
-        { href: '/notifications', icon: Bell, label: 'Notif' }, // Swapped Billing with Notifications
+        { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'staff'] },
+        { href: '/notifications', icon: Bell, label: 'Notif', roles: ['admin', 'manager', 'partner', 'staff', 'customer'] }, 
         { href: '/app-settings', icon: Settings, label: t('sidebar.settings') || "Settings" },
-    ];
+    ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
     // if (userRole === 'customer') return null;
 
@@ -349,7 +350,7 @@ export default function BottomDock() {
                                                 `}
                                             />
                                             {item.href === '/notifications' && (
-                                                <div className="absolute -top-1 -right-1">
+                                                <div className="absolute -top-2 -right-2">
                                                     <NotificationPopover isBadgeOnly={true} />
                                                 </div>
                                             )}
