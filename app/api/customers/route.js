@@ -232,23 +232,30 @@ export async function POST(request) {
 
         // Manual Upsert to avoid Prisma Unique Constraint nuances with Compound Keys
         let existing = null;
-        if (ownerId) {
-            existing = await db.customer.findUnique({
-                where: {
-                    username_ownerId: {
-                        username: username,
-                        ownerId: ownerId
+        if (body.id) {
+            // Priority 1: Find by ID (for safe renames)
+            existing = await db.customer.findUnique({ where: { id: body.id } });
+        }
+        
+        if (!existing) {
+            if (ownerId) {
+                existing = await db.customer.findUnique({
+                    where: {
+                        username_ownerId: {
+                            username: username,
+                            ownerId: ownerId
+                        }
                     }
-                }
-            });
-        } else {
-            // Should properly match the unique index anyway, but findFirst is safer if undefined
-            existing = await db.customer.findFirst({
-                where: {
-                    username: username,
-                    ownerId: null
-                }
-            });
+                });
+            } else {
+                // Should properly match the unique index anyway, but findFirst is safer if undefined
+                existing = await db.customer.findFirst({
+                    where: {
+                        username: username,
+                        ownerId: null
+                    }
+                });
+            }
         }
 
         let customer;
@@ -256,6 +263,7 @@ export async function POST(request) {
             customer = await db.customer.update({
                 where: { id: existing.id },
                 data: {
+                    username: username, // Allow updating username if finding by ID
                     name: name,
                     address: address,
                     phone: phone,

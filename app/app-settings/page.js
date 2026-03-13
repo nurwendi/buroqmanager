@@ -22,6 +22,9 @@ import {
   Calendar,
   Play,
   ClipboardList,
+  Sun,
+  Moon,
+  Shield,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";

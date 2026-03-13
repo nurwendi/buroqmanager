@@ -34,7 +34,7 @@ export async function GET(request) {
         // 3. Determine Ownership Context and Allowed Customers
         let allowedUsernames = null; // null means all allowed (superadmin)
 
-        if (user.role !== 'superadmin' && user.role !== 'admin') {
+        if (user.role !== 'superadmin') {
             const db = (await import('@/lib/db')).default;
             let filterWhere = {};
 
