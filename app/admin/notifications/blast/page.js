@@ -34,14 +34,14 @@ export default function BlastPage() {
 
             const data = await res.json();
             if (res.ok) {
-                setStatus({ success: true, message: 'Notifikasi blast berhasil dikirim!' });
+                setStatus({ success: true, message: t('broadcast.success') });
                 setTitle('');
                 setMessage('');
             } else {
-                setStatus({ success: false, message: data.error || 'Gagal mengirim notifikasi.' });
+                setStatus({ success: false, message: data.error || t('broadcast.error') });
             }
         } catch (error) {
-            setStatus({ success: false, message: 'Terjadi kesalahan sistem.' });
+            setStatus({ success: false, message: t('broadcast.systemError') });
         } finally {
             setLoading(false);
         }
@@ -51,8 +51,8 @@ export default function BlastPage() {
         return (
             <div className="p-20 text-center">
                 <AlertCircle className="mx-auto text-red-500 mb-4" size={48} />
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Akses Ditolak</h1>
-                <p className="text-gray-500 dark:text-gray-400">Hanya Admin yang dapat mengirim pesan blast.</p>
+                <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">{t('broadcast.accessDenied')}</h1>
+                <p className="text-gray-500 dark:text-gray-400">{t('broadcast.adminOnly')}</p>
             </div>
         );
     }
@@ -63,9 +63,9 @@ export default function BlastPage() {
                 <div className="mb-8">
                     <h1 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
                         <Megaphone className="text-accent" />
-                        Blast Notifikasi
+                        {t('broadcast.title')}
                     </h1>
-                    <p className="text-gray-500 dark:text-gray-400">Kirim pesan massal ke pelanggan dan staff Anda.</p>
+                    <p className="text-gray-500 dark:text-gray-400">{t('broadcast.subtitle')}</p>
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
@@ -80,12 +80,12 @@ export default function BlastPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Target Selection */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Target Penerima</label>
+                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('broadcast.target')}</label>
                                 <div className="grid grid-cols-3 gap-2 p-1 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-700">
                                     {[
-                                        { id: 'all', label: 'Keduanya', icon: Users, desc: 'Kirim ke Staff & Pelanggan' },
-                                        { id: 'customers', label: 'Pelanggan', icon: Users, desc: 'Hanya untuk Pelanggan' },
-                                        { id: 'staff', label: 'Staff', icon: UserCog, desc: 'Hanya untuk Staff & Admin' }
+                                        { id: 'all', label: t('broadcast.all'), icon: Users, desc: t('broadcast.allDesc') },
+                                        { id: 'customers', label: t('broadcast.customers'), icon: Users, desc: t('broadcast.customersDesc') },
+                                        { id: 'staff', label: t('broadcast.staff'), icon: UserCog, desc: t('broadcast.staffDesc') }
                                     ].map((tVal) => (
                                         <button
                                             key={tVal.id}
@@ -111,7 +111,7 @@ export default function BlastPage() {
 
                             {/* Type Selection */}
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Tipe Pesan</label>
+                                <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('broadcast.messageType')}</label>
                                 <div className="grid grid-cols-4 gap-2">
                                     {[
                                         { id: 'info', color: 'bg-blue-500' },
@@ -138,25 +138,25 @@ export default function BlastPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Judul Notifikasi</label>
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('broadcast.msgTitle')}</label>
                             <input
                                 type="text"
                                 required
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Contoh: Pemberitahuan Maintenance Rutin"
+                                placeholder={t('broadcast.msgTitlePlaceholder')}
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Isi Pesan</label>
+                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('broadcast.msgContent')}</label>
                             <textarea
                                 required
                                 rows={6}
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
-                                placeholder="Tuliskan detail pengumuman Anda di sini..."
+                                placeholder={t('broadcast.msgContentPlaceholder')}
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent/50 transition-all resize-none"
                             />
                         </div>
@@ -164,7 +164,7 @@ export default function BlastPage() {
                         <div className="pt-4 flex flex-col md:flex-row gap-4 items-center justify-between">
                             <div className="text-[11px] text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-lg flex items-center gap-2">
                                 <Info size={14} className="text-accent" />
-                                Pesan akan masuk ke "Pemberitahuan" di akun penerima.
+                                {t('broadcast.footerNote')}
                             </div>
                             <button
                                 type="submit"
@@ -176,7 +176,7 @@ export default function BlastPage() {
                                 ) : (
                                     <Send size={20} />
                                 )}
-                                Kirim Sekarang
+                                {t('broadcast.sendNow')}
                             </button>
                         </div>
                     </form>
@@ -184,7 +184,7 @@ export default function BlastPage() {
 
                 {/* Preview Card */}
                 <div className="mt-12 opacity-50 select-none pointer-events-none">
-                    <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 text-center">Preview Padilan</p>
+                    <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4 text-center">{t('broadcast.preview')}</p>
                     <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 flex gap-4">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                              type === 'alert' ? 'bg-yellow-100 text-yellow-600' :
@@ -195,8 +195,8 @@ export default function BlastPage() {
                             <Megaphone size={20} />
                         </div>
                         <div className="flex-1">
-                            <h4 className="font-bold text-gray-800 dark:text-gray-100">{title || 'Judul Notifikasi'}</h4>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{message || 'Isi pesan pemberitahuan akan muncul di sini...'}</p>
+                            <h4 className="font-bold text-gray-800 dark:text-gray-100">{title || t('broadcast.msgTitle')}</h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{message || t('broadcast.msgContentPlaceholder')}</p>
                         </div>
                     </div>
                 </div>

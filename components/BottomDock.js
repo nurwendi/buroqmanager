@@ -83,7 +83,7 @@ export default function BottomDock() {
         { href: '/nat', icon: ArrowLeftRight, label: 'NAT', roles: ['superadmin'] },
 
         { href: '/genieacs', icon: Wifi, label: t('sidebar.genieacs'), roles: ['superadmin'] },
-        { href: '/admin/notifications/blast', icon: Megaphone, label: 'Blast Notifikasi', roles: ['admin', 'superadmin', 'manager'] },
+        { href: '/admin/notifications/blast', icon: Megaphone, label: t('sidebar.broadcast'), roles: ['admin', 'superadmin', 'manager'] },
         { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },

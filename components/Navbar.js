@@ -69,7 +69,7 @@ export default function Navbar() {
         { href: '/active', icon: Activity, label: t('sidebar.activeConnections') },
         { href: '/profiles', icon: Settings, label: t('sidebar.profiles') },
         { href: '/drop-users', icon: ShieldAlert, label: t('sidebar.dropIsolir') },
-        { href: '/admin/notifications/blast', icon: Megaphone, label: 'Blast Notifikasi', roles: ['admin', 'superadmin', 'manager'] },
+        { href: '/admin/notifications/blast', icon: Megaphone, label: t('sidebar.broadcast'), roles: ['admin', 'superadmin', 'manager'] },
         { href: '/genieacs', icon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
