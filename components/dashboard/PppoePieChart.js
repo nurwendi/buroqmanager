@@ -57,7 +57,7 @@ export default function PppoePieChart({ active = 0, offline = 0, total = 0 }) {
 
       <div className="flex items-center justify-between mb-4 relative z-10 w-full">
         <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">
-          {t("dashboard.customerStatus") || "Customers / NAT"}
+          {t("dashboard.customerStatus") || "Customers / Routers"}
         </h3>
         <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
           <Users size={20} />

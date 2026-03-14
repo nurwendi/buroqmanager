@@ -25,6 +25,7 @@ model User {
   createdAt              DateTime                @default(now())
   ownerId                String?
   language               String                  @default("auto")
+  expoPushToken          String?
   radiusPool             String?                 @default("")
   isAutoIsolationEnabled Boolean                 @default(false)
   autoIsolationDate      Int                     @default(20)
@@ -72,6 +73,7 @@ model Customer {
   profileId     String?
   language      String                  @default("auto")
   avatar        String                  @default("")
+  expoPushToken String?
   agent         User?                   @relation("AgentCustomers", fields: [agentId], references: [id])
   owner         User?                   @relation("CustomerOwner", fields: [ownerId], references: [id])
   profile       Profile?                @relation(fields: [profileId], references: [id])

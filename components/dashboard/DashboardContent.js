@@ -439,7 +439,7 @@ export default function DashboardContent() {
                     size={20}
                     className="text-blue-600 dark:text-blue-400"
                   />
-                  {t("routers.title") || "Routers/NAT Status"}
+                  {t("routers.title") || "Status Router / NAS"}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {stats.routers.map((router) => (

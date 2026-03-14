@@ -112,9 +112,9 @@ function RouterCard({ router }) {
     const isOnline = router.status === 'online';
 
     const tabs = [
-        { id: 'nat', label: 'NAT Rules', icon: ArrowLeftRight, count: router.natRules?.length || 0 },
-        { id: 'interfaces', label: 'Interfaces', icon: Network, count: router.interfaces?.length || 0 },
-        { id: 'ip', label: 'IP Addresses', icon: Globe, count: router.ipAddresses?.length || 0 },
+        { id: 'nat', label: t('sidebar.tabNat'), icon: ArrowLeftRight, count: router.natRules?.length || 0 },
+        { id: 'interfaces', label: t('sidebar.tabInterfaces'), icon: Network, count: router.interfaces?.length || 0 },
+        { id: 'ip', label: t('sidebar.tabIp'), icon: Globe, count: router.ipAddresses?.length || 0 },
     ];
 
     return (
@@ -261,7 +261,7 @@ function RouterCard({ router }) {
                                         ) : (
                                             <div className="text-center py-12 text-gray-400">
                                                 <ArrowLeftRight size={40} className="mx-auto mb-3 opacity-30" />
-                                                <p className="text-sm">No NAT rules found</p>
+                                                <p className="text-sm">{t('sidebar.noNatRules')}</p>
                                             </div>
                                         )}
                                     </div>
@@ -390,12 +390,12 @@ export default function NatPage() {
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
-                            <ArrowLeftRight size={20} className="text-white" />
+                        <ArrowLeftRight size={20} className="text-white" />
                         </div>
-                        NAT & Jaringan
+                        {t('sidebar.networkTitle')}
                     </h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Data NAT, antarmuka, dan jaringan dari semua router
+                        {t('sidebar.networkDesc')}
                         {lastUpdate && <span className="ml-2 text-xs opacity-60">· Terakhir diperbarui: {lastUpdate.toLocaleTimeString()}</span>}
                     </p>
                 </div>
@@ -413,10 +413,10 @@ export default function NatPage() {
             {data && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[
-                        { label: 'Router Online', value: `${onlineRouters}/${totalRouters}`, icon: Server, color: 'blue' },
+                        { label: t('sidebar.routerOnline'), value: `${onlineRouters}/${totalRouters}`, icon: Server, color: 'blue' },
                         { label: 'Total NAT Rules', value: totalNatRules, icon: ArrowLeftRight, color: 'orange' },
-                        { label: 'Total Interface', value: totalInterfaces, icon: Network, color: 'purple' },
-                        { label: 'Firewall (Filter)', value: data.routers?.reduce((s, r) => s + (r.firewallStats?.filter || 0), 0), icon: Shield, color: 'green' },
+                        { label: t('sidebar.totalInterfaces'), value: totalInterfaces, icon: Network, color: 'purple' },
+                        { label: t('sidebar.firewallFilter'), value: data.routers?.reduce((s, r) => s + (r.firewallStats?.filter || 0), 0), icon: Shield, color: 'green' },
                     ].map((stat, idx) => (
                         <motion.div
                             key={stat.label}
@@ -449,7 +449,7 @@ export default function NatPage() {
                     <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                         <RefreshCw size={28} className="text-blue-600 animate-spin" />
                     </div>
-                    <p className="text-gray-500 dark:text-gray-400">Mengambil data NAT dari router...</p>
+                    <p className="text-gray-500 dark:text-gray-400">{t('sidebar.fetchingNat')}</p>
                 </div>
             )}
 

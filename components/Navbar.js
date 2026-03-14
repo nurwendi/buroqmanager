@@ -76,7 +76,7 @@ export default function Navbar() {
     const settingsItems = [
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings') },
         { href: '/routers', icon: Server, label: t('sidebar.routers') },
-        { href: '/nat', icon: Network, label: 'NAT', roles: ['superadmin'] },
+        { href: '/nat', icon: Network, label: t('sidebar.nat'), roles: ['superadmin'] },
     ].filter(item => {
         if (userRole === 'editor') {
             return !['/app-settings', '/routers', '/nat'].includes(item.href);
