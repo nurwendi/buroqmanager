@@ -21,6 +21,7 @@
     "@prisma/client": "^5.22.0",
     "@types/estree": "^1.0.8",
     "autoprefixer": "^10.4.22",
+    "baseline-browser-mapping": "^2.10.7",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.3",
     "pm2": "^6.0.14",

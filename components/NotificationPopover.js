@@ -115,7 +115,7 @@ export default function NotificationPopover({ isBadgeOnly = false, position = 'b
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="relative p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
-                title="Notifications"
+                title={t('sidebar.notification')}
             >
                 <Bell size={20} />
                 {unreadCount > 0 && (

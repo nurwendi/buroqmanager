@@ -60,7 +60,7 @@ export default function BottomDock() {
         { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
         { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
-        { href: '/notifications', icon: Bell, hoverIcon: Bell, label: 'Notif', roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/notifications', icon: Bell, hoverIcon: Bell, label: t('sidebar.notification'), roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/logs', icon: ClipboardList, hoverIcon: MessageSquare, label: t('sidebar.logs'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
     ].filter(item => {
@@ -99,7 +99,7 @@ export default function BottomDock() {
     const mobileNavItems = [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
         { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'staff'] },
-        { href: '/notifications', icon: Bell, label: 'Notif', roles: ['admin', 'manager', 'partner', 'staff', 'customer'] },
+        { href: '/notifications', icon: Bell, label: t('sidebar.notification'), roles: ['admin', 'manager', 'partner', 'staff', 'customer'] },
         { href: '/app-settings', icon: Settings, label: t('sidebar.settings') || "Settings" },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 

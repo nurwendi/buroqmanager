@@ -181,7 +181,7 @@ export default function Navbar() {
                                 ? 'bg-accent/10 text-accent'
                                 : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-accent dark:hover:text-accent'
                                 }`}
-                            title="Notifications"
+                            title={t('sidebar.notification')}
                         >
                             <Bell size={20} />
                             <div className="absolute top-1 right-1">
