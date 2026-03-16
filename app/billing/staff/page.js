@@ -129,13 +129,21 @@ export default function StaffBillingPage() {
 
     return (
         <div className="space-y-8 pb-12 bg-background min-h-screen -m-6 p-6">
-            {/* Premium Header - Flat White & No Blur */}
+            {/* Premium Header - Sharp Image & No Blur */}
             <div className="relative mb-12 sm:mb-14 -mx-6 -mt-6 rounded-none">
-                {/* Banner Area - Flat White */}
+                {/* Banner Area - Sharp Image */}
                 <div className="relative h-48 sm:h-64 w-full bg-white border-b border-gray-100 shadow-none outline-none rounded-none overflow-hidden">
+                    <img 
+                        src="/dashboard-bg.png" 
+                        alt="Banner" 
+                        className="w-full h-full object-cover"
+                        style={{ imageRendering: "high-quality" }}
+                    />
+                    <div className="absolute inset-0 bg-black/10"></div>
+                    
                     {/* Date Selector - Absolute Positioned on Banner */}
                     <div className="absolute top-6 right-6 z-20">
-                        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 text-gray-600 p-2 rounded-xl shadow-sm">
+                        <div className="flex items-center gap-3 bg-white border border-gray-200 text-gray-600 p-2 rounded-xl shadow-sm">
                             <div className="p-1 px-2 text-xs font-bold uppercase tracking-widest opacity-80 border-r border-gray-200 italic">
                                 {selectedYear}
                             </div>

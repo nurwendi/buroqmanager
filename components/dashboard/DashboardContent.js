@@ -317,13 +317,21 @@ export default function DashboardContent() {
     >
       {/* Premium Header with Banner & Overlapping Avatar */}
       <motion.div variants={itemVariants} className="relative mb-8 sm:mb-12 -mx-4 md:-mx-8 -mt-4 md:-mt-8 rounded-none">
-        {/* Banner Area - Flat White & No Blur */}
+        {/* Banner Area - Sharp Image & No Blur */}
         <div className="relative h-48 sm:h-64 w-full bg-white border-b border-gray-100 shadow-none outline-none rounded-none overflow-hidden">
+          <img 
+            src={bgUrl} 
+            alt="Dashboard Background" 
+            className="absolute inset-0 w-full h-full object-cover object-center"
+            style={{ imageRendering: "high-quality" }}
+          />
+          <div className="absolute inset-0 bg-black/10"></div>
+          
           {/* Header Action: Refresh */}
           <div className="absolute top-6 right-6 z-20">
             <button
               onClick={fetchStats}
-              className="p-2.5 rounded-full bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all shadow-sm group"
+              className="p-2.5 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all shadow-sm group"
               title={t("common.refresh")}
             >
               <RefreshCw size={18} className="group-active:rotate-180 transition-transform duration-500" />
