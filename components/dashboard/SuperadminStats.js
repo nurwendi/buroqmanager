@@ -48,9 +48,12 @@ export default function SuperadminStats({ stats }) {
 
     // Server Stats (Fallback to Router stats if server stats missing for some reason)
     const cpuLoad = stats?.serverCpuLoad ?? stats?.cpuLoad ?? 0;
+    const serverCpus = stats?.serverCpus || [];
     const memoryUsage = stats?.serverMemoryUsed ?? stats?.memoryUsage ?? 0;
     const memoryTotal = stats?.serverMemoryTotal ?? stats?.memoryTotal ?? 1;
     const memoryPercent = Math.round((memoryUsage / memoryTotal) * 100) || 0;
+    const serverSwap = stats?.serverSwap || { total: 0, used: 0, free: 0 };
+    const swapPercent = serverSwap.total > 0 ? Math.round((serverSwap.used / serverSwap.total) * 100) : 0;
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -142,22 +145,42 @@ export default function SuperadminStats({ stats }) {
                     </h3>
 
                     <div className="space-y-6">
-                        {/* CPU */}
+                        {/* CPU Aggregate */}
                         <div>
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                                    <Cpu size={16} /> {t('dashboard.cpuLoad')}
+                                    <Cpu size={16} /> {t('dashboard.cpuLoad')} (Total)
                                 </span>
                                 <span className={`text-sm font-bold ${cpuLoad > 80 ? 'text-red-500' : 'text-green-600'}`}>
                                     {cpuLoad}%
                                 </span>
                             </div>
-                            <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                            <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden mb-4">
                                 <div
                                     className={`h-full rounded-full transition-all duration-1000 ${cpuLoad > 80 ? 'bg-red-500' : 'bg-green-500'}`}
                                     style={{ width: `${cpuLoad}%` }}
                                 />
                             </div>
+
+                            {/* Per-Core Display */}
+                            {serverCpus.length > 0 && (
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 mt-4 pt-4 border-t border-gray-100">
+                                    {serverCpus.map((core, idx) => (
+                                        <div key={idx} className="space-y-1">
+                                            <div className="flex justify-between text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                                                <span>Core {idx}</span>
+                                                <span className={core.load > 80 ? 'text-red-500' : 'text-blue-600'}>{core.load}%</span>
+                                            </div>
+                                            <div className="w-full bg-gray-100 h-1 rounded-full overflow-hidden">
+                                                <div 
+                                                    className={`h-full transition-all duration-1000 ${core.load > 80 ? 'bg-red-500' : 'bg-blue-500'}`}
+                                                    style={{ width: `${core.load}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* RAM */}
@@ -170,13 +193,41 @@ export default function SuperadminStats({ stats }) {
                                     {memoryPercent}%
                                 </span>
                             </div>
-                            <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                            <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden mb-1">
                                 <div
                                     className="h-full bg-orange-500 rounded-full transition-all duration-1000"
                                     style={{ width: `${memoryPercent}%` }}
                                 />
                             </div>
+                            <div className="flex justify-between text-[10px] text-gray-400 font-medium">
+                                <span>{formatBytes(memoryUsage)} used</span>
+                                <span>{formatBytes(memoryTotal)} total</span>
+                            </div>
                         </div>
+
+                        {/* Swap */}
+                        {serverSwap.total > 0 && (
+                             <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                                        <Database size={16} /> Swap Usage
+                                    </span>
+                                    <span className="text-sm font-bold text-purple-600">
+                                        {swapPercent}%
+                                    </span>
+                                </div>
+                                <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden mb-1">
+                                    <div
+                                        className="h-full bg-purple-500 rounded-full transition-all duration-1000"
+                                        style={{ width: `${swapPercent}%` }}
+                                    />
+                                </div>
+                                <div className="flex justify-between text-[10px] text-gray-400 font-medium">
+                                    <span>{formatBytes(serverSwap.used)} used</span>
+                                    <span>{formatBytes(serverSwap.total)} total</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

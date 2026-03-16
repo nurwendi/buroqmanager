@@ -3,6 +3,27 @@ import { getMikrotikClient } from '@/lib/mikrotik';
 import { verifyToken } from '@/lib/security';
 import db from '@/lib/db';
 import os from 'os';
+import fs from 'fs';
+
+function getSwapInfo() {
+    if (os.platform() !== 'linux') return { total: 0, free: 0, used: 0 };
+    try {
+        const meminfo = fs.readFileSync('/proc/meminfo', 'utf8');
+        const swapTotalMatch = meminfo.match(/^SwapTotal:\s+(\d+)\s+kB/m);
+        const swapFreeMatch = meminfo.match(/^SwapFree:\s+(\d+)\s+kB/m);
+        
+        const total = swapTotalMatch ? parseInt(swapTotalMatch[1]) * 1024 : 0;
+        const free = swapFreeMatch ? parseInt(swapFreeMatch[1]) * 1024 : 0;
+        
+        return {
+            total,
+            free,
+            used: total - free
+        };
+    } catch (e) {
+        return { total: 0, free: 0, used: 0 };
+    }
+}
 
 async function getCurrentUser(request) {
     let token = request.cookies.get('auth_token')?.value;
@@ -44,6 +65,7 @@ export async function GET(request) {
         await new Promise(resolve => setTimeout(resolve, 200));
         const endCpus = os.cpus();
 
+        const serverCpus = [];
         let totalIdle = 0, totalTick = 0;
         for (let i = 0; i < startCpus.length; i++) {
             const cpu1 = startCpus[i];
@@ -54,6 +76,12 @@ export async function GET(request) {
             for (let type in cpu1.times) {
                 tick += cpu2.times[type] - cpu1.times[type];
             }
+            const load = tick > 0 ? Math.round(((tick - idle) / tick) * 100) : 0;
+            serverCpus.push({
+                model: cpu1.model,
+                speed: cpu1.speed,
+                load
+            });
             totalIdle += idle;
             totalTick += tick;
         }
@@ -61,6 +89,7 @@ export async function GET(request) {
         const serverMemoryTotal = os.totalmem();
         const serverMemoryFree = os.freemem();
         const serverMemoryUsed = serverMemoryTotal - serverMemoryFree;
+        const serverSwap = getSwapInfo();
 
         const allConnections = config.connections || [];
         let targetConnections = [];
@@ -116,8 +145,10 @@ export async function GET(request) {
                 activeHotspot: 0,
                 system: { boardName: 'No Router', version: '-' },
                 serverCpuLoad,
+                serverCpus,
                 serverMemoryUsed,
                 serverMemoryTotal,
+                serverSwap,
                 interfaces: [],
                 routers: routerStats
             });
@@ -234,8 +265,10 @@ export async function GET(request) {
             memoryUsed: parseInt(resource['total-memory'] || 0) - parseInt(resource['free-memory'] || 0),
             memoryTotal: parseInt(resource['total-memory'] || 0),
             serverCpuLoad,
+            serverCpus,
             serverMemoryUsed,
             serverMemoryTotal,
+            serverSwap,
             temperature,
             voltage,
             interfaces: interfaceStats,

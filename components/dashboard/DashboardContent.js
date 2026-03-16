@@ -39,8 +39,12 @@ export default function DashboardContent() {
     pppoeActive: 0,
     pppoeOffline: 0,
     cpuLoad: 0,
+    serverCpus: [],
     memoryUsed: 0,
     memoryTotal: 0,
+    serverMemoryUsed: 0,
+    serverMemoryTotal: 0,
+    serverSwap: { total: 0, used: 0, free: 0 },
     temperature: 0,
     voltage: 0,
     adminCount: 0,
@@ -175,8 +179,10 @@ export default function DashboardContent() {
                 totalCustomers: data.totalCustomers,
                 systemUserCount: data.systemUserCount || 0,
                 serverCpuLoad: data.serverCpuLoad,
+                serverCpus: data.serverCpus || [],
                 serverMemoryUsed: data.serverMemoryUsed,
                 serverMemoryTotal: data.serverMemoryTotal,
+                serverSwap: data.serverSwap || { total: 0, used: 0, free: 0 },
                 routers: data.routers || []
               }));
               console.log("Dashboard Stats Routers Updated:", data.routers);
