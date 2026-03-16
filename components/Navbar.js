@@ -10,7 +10,7 @@ import NotificationPopover from './NotificationPopover';
 export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isPppoeOpen, setIsPppoeOpen] = useState(false);
     const [appSettings, setAppSettings] = useState({ appName: 'Mikrotik Manager', logoUrl: '' });
     const [userRole, setUserRole] = useState(null);

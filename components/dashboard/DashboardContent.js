@@ -66,6 +66,7 @@ export default function DashboardContent() {
   const [loginBgUrl, setLoginBgUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [avatar, setAvatar] = useState(null);
 
   // Fetch User Role and Name
   useEffect(() => {
