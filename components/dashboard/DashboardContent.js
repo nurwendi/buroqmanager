@@ -310,17 +310,20 @@ export default function DashboardContent() {
       animate="visible"
     >
       {/* Premium Header with Banner & Overlapping Avatar */}
-      <motion.div variants={itemVariants} className="relative mb-8 sm:mb-12 -mx-4 md:-mx-8 -mt-4 md:-mt-8">
-        {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
-        <div className="relative h-48 sm:h-64 w-full overflow-hidden border-0 shadow-none outline-none">
+      <motion.div variants={itemVariants} className="relative mb-8 sm:mb-12 -mx-4 md:-mx-8 -mt-4 md:-mt-8 rounded-none">
+        {/* Banner Area - Sharp Corners & Transparent Bottom */}
+        <div className="relative h-48 sm:h-64 w-full overflow-hidden border-0 shadow-none outline-none rounded-none">
           <img 
             src={bgUrl} 
             alt="Dashboard Background" 
             className="absolute inset-0 w-full h-full object-cover object-center scale-110"
-            style={{ imageRendering: "high-quality" }}
+            style={{ 
+              imageRendering: "high-quality",
+              WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
+              maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)"
+            }}
           />
           <div className="absolute inset-0 bg-blue-900/10 mix-blend-multiply"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
           
           {/* Header Action: Refresh */}
           <div className="absolute top-6 right-6 z-20">

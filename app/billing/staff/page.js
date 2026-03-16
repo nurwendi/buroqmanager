@@ -130,16 +130,19 @@ export default function StaffBillingPage() {
     return (
         <div className="space-y-8 pb-12 bg-background min-h-screen -m-6 p-6">
             {/* Premium Header with Banner & Overlapping Avatar */}
-            <div className="relative mb-12 sm:mb-14 -mx-6 -mt-6">
-                {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
-                <div className="relative h-48 sm:h-64 w-full overflow-hidden border-0 shadow-none outline-none">
+            <div className="relative mb-12 sm:mb-14 -mx-6 -mt-6 rounded-none">
+                {/* Banner Area - Sharp Corners & Transparent Bottom */}
+                <div className="relative h-48 sm:h-64 w-full overflow-hidden border-0 shadow-none outline-none rounded-none">
                     <img 
                         src="/dashboard-bg.png" 
                         alt="Banner" 
                         className="w-full h-full object-cover scale-110"
+                        style={{
+                            WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
+                            maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)"
+                        }}
                     />
                     <div className="absolute inset-0 bg-indigo-900/10 mix-blend-multiply"></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
                     
                     {/* Date Selector - Absolute Positioned on Banner */}
                     <div className="absolute top-6 right-6 z-20">
