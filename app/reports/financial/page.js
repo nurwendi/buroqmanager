@@ -249,28 +249,51 @@ export default function FinancialReportPage() {
                     }
                     * {
                         color: black !important;
+                        background-color: transparent !important;
+                        background-image: none !important;
                         text-shadow: none !important;
                         box-shadow: none !important;
+                        backdrop-filter: none !important;
+                        -webkit-backdrop-filter: none !important;
+                        border-color: #000 !important;
                     }
-                    .text-red-600, .text-red-700, .bg-red-100 {
-                        color: #b91c1c !important; /* Force dark red for visibility */
-                    }
-                    .bg-red-100 {
-                        background-color: #fee2e2 !important;
-                    }
-                    h1, h2, h3, th {
-                        font-weight: 900 !important;
+                    .text-red-400, .text-red-500, .text-red-600, .text-red-700,
+                    .text-green-400, .text-green-500, .text-green-600,
+                    .text-blue-400, .text-blue-500, .text-blue-600,
+                    .text-orange-400, .text-orange-600 {
                         color: black !important;
                     }
+                    /* Small indicators can keep subtle gray if needed, but per request "full hitam putih" */
+                    .text-white\/40, .text-white\/50, .text-white\/60, .text-gray-400, .text-gray-500 {
+                        color: #000 !important;
+                    }
+                    /* Table and Divider borders */
+                    .border, .border-b, .border-t, .divide-y > * {
+                        border-color: #000 !important;
+                        border-width: 1px !important;
+                    }
+                    .bg-white\/10, .bg-black\/20, .bg-blue-600\/20, .bg-white\/5, .bg-gray-50, .bg-red-500\/10 {
+                        background: none !important;
+                        background-color: transparent !important;
+                    }
+                    /* Ensure tables are strictly black and white */
                     table {
+                        width: 100% !important;
+                        border: 1px solid #000 !important;
                         page-break-inside: auto;
                         border-collapse: collapse !important;
+                    }
+                    th, td {
+                        border: 1px solid #000 !important;
+                        color: #000 !important;
+                        padding: 4px 8px !important;
                     }
                     tr {
                         page-break-inside: avoid;
                         page-break-after: auto;
                     }
-                    nav, .fixed, .print\\:hidden {
+                    /* Hide non-printable elements */
+                    nav, .fixed, .print\:hidden {
                         display: none !important;
                     }
                 }
