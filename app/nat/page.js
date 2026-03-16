@@ -112,16 +112,16 @@ function RouterCard({ router }) {
     const isOnline = router.status === 'online';
 
     const tabs = [
-        { id: 'nat', label: t('sidebar.tabNat'), icon: ArrowLeftRight, count: router.natRules?.length || 0 },
-        { id: 'interfaces', label: t('sidebar.tabInterfaces'), icon: Network, count: router.interfaces?.length || 0 },
-        { id: 'ip', label: t('sidebar.tabIp'), icon: Globe, count: router.ipAddresses?.length || 0 },
+        { id: 'nat', label: t('sidebar.tabNat') || 'NAT', icon: ArrowLeftRight, count: router.natRules?.length || 0 },
+        { id: 'interfaces', label: t('sidebar.tabInterfaces') || 'Interfaces', icon: Network, count: router.interfaces?.length || 0 },
+        { id: 'ip', label: t('sidebar.tabIp') || 'IP', icon: Globe, count: router.ipAddresses?.length || 0 },
     ];
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
+            className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden"
         >
             {/* Header */}
             <button
@@ -134,7 +134,7 @@ function RouterCard({ router }) {
                     </div>
                     <div className="text-left">
                         <div className="flex items-center gap-3">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">{router.identity}</h3>
+                            <h3 className="text-lg font-bold text-white">{router.identity}</h3>
                             <StatusBadge online={isOnline} />
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -179,8 +179,8 @@ function RouterCard({ router }) {
                             <div className="text-[10px] text-gray-500 uppercase">Filter</div>
                         </div>
                         <div>
-                            <div className="text-lg font-bold text-gray-800 dark:text-white">{router.firewallStats?.mangle || 0}</div>
-                            <div className="text-[10px] text-gray-500 uppercase">Mangle</div>
+                            <div className="text-lg font-bold text-white">{router.firewallStats?.mangle || 0}</div>
+                            <div className="text-[10px] text-white/50 uppercase">Mangle</div>
                         </div>
                     </div>
                     <ChevronDown size={20} className={`text-gray-400 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
@@ -388,9 +388,9 @@ export default function NatPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <ArrowLeftRight size={20} className="text-white" />
+                    <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3 drop-shadow-md">
+                        <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center shadow-lg border border-white/20">
+                        <ArrowLeftRight size={20} className="text-blue-400" />
                         </div>
                         {t('sidebar.networkTitle')}
                     </h1>
@@ -423,13 +423,13 @@ export default function NatPage() {
                             initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm"
+                            className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-2xl p-5 border border-white/20 shadow-2xl"
                         >
-                            <div className={`w-10 h-10 rounded-xl bg-${stat.color}-100 dark:bg-${stat.color}-900/30 flex items-center justify-center mb-3`}>
-                                <stat.icon size={20} className={`text-${stat.color}-600 dark:text-${stat.color}-400`} />
+                            <div className={`w-10 h-10 rounded-xl bg-${stat.color}-400/20 flex items-center justify-center mb-3 border border-${stat.color}-400/30`}>
+                                <stat.icon size={20} className={`text-${stat.color}-400`} />
                             </div>
-                            <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{stat.label}</div>
+                            <div className="text-2xl font-bold text-white drop-shadow-md">{stat.value}</div>
+                            <div className="text-xs text-white/50 mt-0.5">{stat.label}</div>
                         </motion.div>
                     ))}
                 </div>

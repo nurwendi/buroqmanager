@@ -23,8 +23,8 @@ export default function PendingRegistrationStats({ stats }) {
 
     return (
         <motion.div variants={itemVariants}>
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                <div className="p-2 bg-gradient-to-br from-orange-100 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/20 rounded-lg shadow-lg shadow-orange-500/20 text-orange-600 dark:text-orange-400">
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2 drop-shadow-md">
+                <div className="p-2 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-lg text-orange-400">
                     <UserPlus size={20} />
                 </div>
                 {t('dashboard.registration')}

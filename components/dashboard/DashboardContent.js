@@ -369,11 +369,11 @@ export default function DashboardContent() {
               !
             </h2>
             <div className="mt-2 flex items-center justify-center gap-3">
-               <span className="px-3 py-0.5 bg-white/10 backdrop-blur-md text-white rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/20">
+               <span className="px-3 py-0.5 bg-white/10 backdrop-blur-md text-white rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/20 shadow-lg">
                   {userRole}
                </span>
-               <p className="text-[10px] sm:text-xs text-white/60 font-medium flex items-center gap-1">
-                 <Activity size={12} className="text-green-400" />
+               <p className="text-[10px] sm:text-xs text-white/50 font-medium flex items-center gap-1 pb-0.5">
+                 <Activity size={12} className="text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]" />
                  {lastUpdate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                </p>
             </div>

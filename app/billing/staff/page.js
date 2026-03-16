@@ -128,23 +128,23 @@ export default function StaffBillingPage() {
     }
 
     return (
-        <div className="space-y-8 pb-12 bg-background min-h-screen -m-6 p-6">
+        <div className="space-y-8 pb-12 min-h-screen">
             {/* Premium Header - Sharp Image & No Blur */}
             <div className="relative mb-12 sm:mb-14 -mx-6 -mt-6 rounded-none">
                 {/* Banner Area - Sharp Image */}
-                <div className="relative h-48 sm:h-64 w-full bg-white border-b border-gray-100 shadow-none outline-none rounded-none overflow-hidden">
+                <div className="relative h-48 sm:h-64 w-full bg-black/20 border-b border-white/10 shadow-none outline-none rounded-none overflow-hidden">
                     <img 
                         src="/dashboard-bg.png" 
                         alt="Banner" 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover scale-105"
                         style={{ imageRendering: "high-quality" }}
                     />
-                    <div className="absolute inset-0 bg-black/10"></div>
+                    <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"></div>
                     
                     {/* Date Selector - Absolute Positioned on Banner */}
                     <div className="absolute top-6 right-6 z-20">
-                        <div className="flex items-center gap-3 bg-white border border-gray-200 text-gray-600 p-2 rounded-xl shadow-sm">
-                            <div className="p-1 px-2 text-xs font-bold uppercase tracking-widest opacity-80 border-r border-gray-200 italic">
+                        <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 text-white p-2 rounded-xl shadow-lg">
+                            <div className="p-1 px-2 text-xs font-bold uppercase tracking-widest opacity-80 border-r border-white/10 italic">
                                 {selectedYear}
                             </div>
                             <select
@@ -163,7 +163,7 @@ export default function StaffBillingPage() {
                 {/* Overlapping Profile Section */}
                 <div className="relative -mt-20 sm:-mt-24 flex flex-col items-center z-10 px-4">
                     <div className="relative group">
-                        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-[6px] border-white dark:border-gray-900 shadow-xl bg-gradient-to-br from-indigo-500 to-blue-700 flex items-center justify-center overflow-hidden transition-all duration-500">
+                        <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-[6px] border-white shadow-xl bg-gradient-to-br from-indigo-500 to-blue-700 flex items-center justify-center overflow-hidden transition-all duration-500 hover:scale-105">
                             {user.avatar ? (
                                 <img src={user.avatar} alt={user.name} className="w-full h-full object-cover rounded-full" />
                             ) : (
@@ -175,18 +175,18 @@ export default function StaffBillingPage() {
                     </div>
 
                     <div className="mt-4 text-center">
-                        <h1 className="text-[10px] sm:text-xs tracking-[0.4em] uppercase text-indigo-600 dark:text-indigo-400 font-bold mb-1 opacity-70">
+                        <h1 className="text-[10px] sm:text-xs tracking-[0.4em] uppercase text-white/50 font-bold mb-1">
                             {t('billing.staffDashboardTitle')}
                         </h1>
-                        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white tracking-tight">
+                        <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight drop-shadow-md">
                             {t('dashboard.welcome') || 'Selamat Datang'},{' '}
-                            <span className="text-indigo-600 dark:text-indigo-400 capitalize">
+                            <span className="text-blue-200 capitalize">
                                 {user.name}
                             </span>
                             !
                         </h2>
                         <div className="mt-2 flex items-center justify-center gap-2">
-                           <span className="px-3 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-[10px] font-bold uppercase tracking-widest border border-indigo-100 dark:border-indigo-800">
+                           <span className="px-3 py-0.5 bg-white/10 backdrop-blur-md text-white rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/20">
                               {user.role}
                            </span>
                         </div>
@@ -246,35 +246,35 @@ export default function StaffBillingPage() {
                     {/* Paid Customers */}
                     <motion.div
                         variants={itemVariants}
-                        className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-md border border-gray-100 group hover:border-violet-200 transition-colors"
+                        className="relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-xl p-6 shadow-2xl border border-white/20 group hover:bg-white/20 transition-all"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <div className="p-3 bg-violet-50 text-violet-600 rounded-xl group-hover:bg-violet-100 transition-colors">
+                            <div className="p-3 bg-violet-400/20 text-violet-300 rounded-xl border border-white/10">
                                 <UserCheck size={24} />
                             </div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-gray-400">{t('billing.paid')}</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-white/50">{t('billing.paid')}</span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-gray-500 text-sm font-medium">{t('billing.paid')} {t('billing.customer')}</p>
-                            <h3 className="text-3xl font-bold text-gray-900">{stats.paidCount}</h3>
+                            <p className="text-white/60 text-sm font-medium">{t('billing.paid')} {t('billing.customer')}</p>
+                            <h3 className="text-3xl font-bold text-white drop-shadow-md">{stats.paidCount}</h3>
                         </div>
                         <div className="absolute bottom-0 right-0 h-1 w-full bg-gradient-to-r from-violet-500 to-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                     </motion.div>
-
+ 
                     {/* Unpaid Customers */}
                     <motion.div
                         variants={itemVariants}
-                        className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-md border border-gray-100 group hover:border-rose-200 transition-colors"
+                        className="relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-xl p-6 shadow-2xl border border-white/20 group hover:bg-white/20 transition-all"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl group-hover:bg-rose-100 transition-colors">
+                            <div className="p-3 bg-rose-400/20 text-rose-300 rounded-xl border border-white/10">
                                 <UserX size={24} />
                             </div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-gray-400">{t('billing.unpaid')}</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-white/50">{t('billing.unpaid')}</span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-gray-500 text-sm font-medium">{t('billing.unpaid')}</p>
-                            <h3 className="text-3xl font-bold text-gray-900">{stats.unpaidCount}</h3>
+                            <p className="text-white/60 text-sm font-medium">{t('billing.unpaid')}</p>
+                            <h3 className="text-3xl font-bold text-white drop-shadow-md">{stats.unpaidCount}</h3>
                         </div>
                         <div className="absolute bottom-0 right-0 h-1 w-full bg-gradient-to-r from-rose-500 to-red-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                     </motion.div>
@@ -286,15 +286,15 @@ export default function StaffBillingPage() {
                 variants={itemVariants}
                 initial="hidden"
                 animate="visible"
-                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+                className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-white/20"
             >
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <BarChart2 size={20} className="text-blue-600" />
+                        <h2 className="text-lg font-bold text-white flex items-center gap-2 drop-shadow-md">
+                            <BarChart2 size={20} className="text-blue-400" />
                             {t('billing.performance')} {selectedYear}
                         </h2>
-                        <p className="text-sm text-gray-500">{t('billing.performanceSub')}</p>
+                        <p className="text-sm text-white/50">{t('billing.performanceSub')}</p>
                     </div>
                 </div>
 
@@ -318,9 +318,10 @@ export default function StaffBillingPage() {
                                 tick={{ fill: '#6B7280', fontSize: 12 }}
                                 tickFormatter={(value) => `Rp${(value / 1000).toFixed(0)}k`}
                             />
-                            <Tooltip
+                             <Tooltip
                                 formatter={(value) => formatCurrency(value)}
-                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                                contentStyle={{ borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', backgroundColor: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}
+                                itemStyle={{ color: '#fff' }}
                             />
                             <Legend />
                             <Bar
@@ -347,24 +348,24 @@ export default function StaffBillingPage() {
                 variants={itemVariants}
                 initial="hidden"
                 animate="visible"
-                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+                className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-white/20"
             >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
-                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <FileText size={20} className="text-blue-600" />
+                        <h2 className="text-lg font-bold text-white flex items-center gap-2 drop-shadow-md">
+                            <FileText size={20} className="text-blue-400" />
                             {t('billing.invoiceList')}
                         </h2>
-                        <p className="text-sm text-gray-500">{t('billing.invoiceListSub')}</p>
+                        <p className="text-sm text-white/50">{t('billing.invoiceListSub')}</p>
                     </div>
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40" size={18} />
                         <input
                             type="text"
                             placeholder={t('billing.searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64"
+                            className="pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 w-full md:w-64 text-white placeholder-white/30 transition-all"
                         />
                     </div>
                 </div>
@@ -372,36 +373,36 @@ export default function StaffBillingPage() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-gray-100">
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('billing.invoice')}</th>
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('billing.customer')}</th>
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('common.date')}</th>
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('common.status')}</th>
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">{t('common.amount')}</th>
+                            <tr className="border-b border-white/10 uppercase tracking-wider">
+                                <th className="p-4 text-xs font-semibold text-white/50">{t('billing.invoice')}</th>
+                                <th className="p-4 text-xs font-semibold text-white/50">{t('billing.customer')}</th>
+                                <th className="p-4 text-xs font-semibold text-white/50">{t('common.date')}</th>
+                                <th className="p-4 text-xs font-semibold text-white/50">{t('common.status')}</th>
+                                <th className="p-4 text-xs font-semibold text-white/50 text-right">{t('common.amount')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-y divide-white/5">
                             {filteredPayments.length > 0 ? (
                                 filteredPayments.map((payment) => (
-                                    <tr key={payment.id} className="hover:bg-gray-50/50 transition-colors">
+                                    <tr key={payment.id} className="hover:bg-white/5 transition-colors">
                                         <td className="p-4">
-                                            <span className="font-mono text-sm text-gray-600">{payment.invoiceNumber}</span>
+                                            <span className="font-mono text-xs text-white/40">{payment.invoiceNumber}</span>
                                         </td>
                                         <td className="p-4">
-                                            <div className="font-medium text-gray-900">{payment.username}</div>
+                                            <div className="font-medium text-white">{payment.username}</div>
                                         </td>
-                                        <td className="p-4 text-sm text-gray-500">
+                                        <td className="p-4 text-xs text-white/40">
                                             {new Date(payment.date).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                         </td>
                                         <td className="p-4">
-                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${payment.status === 'completed'
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-red-100 text-red-700'
+                                            <span className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full border ${payment.status === 'completed'
+                                                ? 'bg-green-400/10 text-green-300 border-green-400/20'
+                                                : 'bg-red-400/10 text-red-300 border-red-400/20'
                                                 }`}>
                                                 {payment.status === 'completed' ? t('billing.paid') : t('billing.unpaid')}
                                             </span>
                                         </td>
-                                        <td className="p-4 text-right font-medium text-gray-900">
+                                        <td className="p-4 text-right font-bold text-white">
                                             {formatCurrency(payment.amount)}
                                         </td>
                                     </tr>
@@ -423,25 +424,25 @@ export default function StaffBillingPage() {
                 variants={itemVariants}
                 initial="hidden"
                 animate="visible"
-                className="bg-indigo-900 rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden"
+                className="bg-black/20 backdrop-blur-xl rounded-2xl p-6 md:p-8 text-white shadow-2xl border border-white/10 relative overflow-hidden"
             >
                 <div className="absolute top-0 right-0 p-12 opacity-10 transform rotate-12">
                     <ShieldCheck size={120} />
                 </div>
                 <div className="relative z-10 max-w-2xl">
-                    <h3 className="text-xl font-bold mb-2">{t('billing.infoPartner')}</h3>
-                    <p className="text-indigo-200 mb-6">
+                    <h3 className="text-xl font-bold mb-2 drop-shadow-md">{t('billing.infoPartner')}</h3>
+                    <p className="text-white/60 mb-6 italic">
                         {t('billing.infoPartnerDesc')}
                     </p>
                     <div className="flex gap-4">
-                        <div className="px-4 py-2 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
-                            <span className="block text-xs text-indigo-300 uppercase tracking-widest">{t('billing.agentRate')}</span>
-                            <span className="text-lg font-bold">Variable</span>
+                        <div className="px-4 py-2 bg-white/5 rounded-xl backdrop-blur-md border border-white/10">
+                            <span className="block text-[10px] text-white/40 uppercase tracking-widest font-bold">{t('billing.agentRate')}</span>
+                            <span className="text-lg font-bold text-blue-300">Variable</span>
                         </div>
-                        <div className="px-4 py-2 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
-                            <span className="block text-xs text-indigo-300 uppercase tracking-widest">{t('common.status')}</span>
+                        <div className="px-4 py-2 bg-white/5 rounded-xl backdrop-blur-md border border-white/10">
+                            <span className="block text-[10px] text-white/40 uppercase tracking-widest font-bold">{t('common.status')}</span>
                             <span className="text-lg font-bold text-green-400 flex items-center gap-1">
-                                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
                                 {t('billing.active')}
                             </span>
                         </div>

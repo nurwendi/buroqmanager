@@ -53,7 +53,10 @@ export default function ClientLayout({ children }) {
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         backgroundAttachment: 'fixed'
-                    } : {}}
+                    } : (!isPublicPage ? {
+                        background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                        backgroundAttachment: 'fixed'
+                    } : {})}
                 >
                     {/* Background Overlay for authenticated pages with bg image */}
                     {!isPublicPage && loginBgUrl && (
