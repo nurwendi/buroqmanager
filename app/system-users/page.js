@@ -387,14 +387,14 @@ export default function SystemUsersPage() {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl p-6 pb-24 rounded-lg w-full max-w-md shadow-2xl border border-white/20 dark:border-white/10 max-h-[90vh] overflow-y-auto">
                         <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
                             {editMode ? t('systemUsers.editUserTitle') : t('systemUsers.addNewUserTitle')}
                         </h2>
 
                         {error && (
-                            <div className="mb-4 p-3 bg-red-50/30 dark:bg-red-900/30 backdrop-blur-xl border border-red-200/50 dark:border-red-800/50 text-red-700 dark:text-red-300 rounded text-sm flex items-center gap-2 shadow-lg">
+                            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded text-sm flex items-center gap-2 shadow-lg">
                                 <ShieldAlert size={16} />
                                 {error}
                             </div>
@@ -581,8 +581,8 @@ export default function SystemUsersPage() {
 
             {/* Delete Confirmation Modal */}
             {showDeleteModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                    <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl p-6 rounded-lg w-full max-w-sm shadow-2xl border border-white/20 dark:border-white/10">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-sm shadow-2xl border border-white/20 dark:border-white/10">
                         <div className="flex items-center gap-3 mb-4 text-red-600 dark:text-red-400">
                             <ShieldAlert size={24} />
                             <h2 className="text-xl font-bold">{t('systemUsers.deleteUser')}</h2>
