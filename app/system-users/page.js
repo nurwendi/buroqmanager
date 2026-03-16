@@ -188,9 +188,9 @@ export default function SystemUsersPage() {
                 {/* Mobile Card View */}
                 <div className="md:hidden p-4 flex flex-col gap-3">
                     {loading ? (
-                        <div className="text-center py-4 text-gray-500 dark:text-gray-400">{t('messages.loading')}</div>
+                        <div className="text-center py-4 text-white/60 font-medium">{t('messages.loading')}</div>
                     ) : users.length === 0 ? (
-                        <div className="text-center py-4 text-gray-500 dark:text-gray-400">{t('systemUsers.noUsers')}</div>
+                        <div className="text-center py-4 text-white/60 font-medium">{t('systemUsers.noUsers')}</div>
                     ) : (
                         users.map((user) => (
                             <div
@@ -204,7 +204,7 @@ export default function SystemUsersPage() {
                                         </div>
                                         <div>
                                             <div className="font-bold text-white text-[15px]">{user.username}</div>
-                                            {user.fullName && <div className="text-[11px] text-white/50 font-medium">{user.fullName}</div>}
+                                            {user.fullName && <div className="text-[11px] text-blue-100 font-bold">{user.fullName}</div>}
                                         </div>
                                     </div>
                                     <div className="flex gap-1.5">
@@ -263,13 +263,13 @@ export default function SystemUsersPage() {
                                 <div className="flex justify-between items-center pt-2.5 border-t border-white/10">
                                     {user.phone ? (
                                         <div className="flex flex-col">
-                                            <span className="text-[9px] text-white/40 uppercase tracking-wider">{t('systemUsers.phone')}</span>
-                                            <span className="text-[11px] font-medium text-white/80">{user.phone}</span>
+                                            <span className="text-[9px] text-blue-100 uppercase tracking-wider font-bold">{t('systemUsers.phone')}</span>
+                                            <span className="text-[11px] font-bold text-white">{user.phone}</span>
                                         </div>
                                     ) : <div></div>}
                                     <div className="text-right flex flex-col">
-                                        <span className="text-[9px] text-white/40 uppercase tracking-wider">{t('systemUsers.createdAt')}</span>
-                                        <span className="text-[11px] font-medium text-white/80">
+                                        <span className="text-[9px] text-blue-100 uppercase tracking-wider font-bold">{t('systemUsers.createdAt')}</span>
+                                        <span className="text-[11px] font-bold text-white">
                                             {new Date(user.createdAt).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US')}
                                         </span>
                                     </div>
@@ -284,12 +284,12 @@ export default function SystemUsersPage() {
                     <table className="min-w-full divide-y divide-white/10">
                         <thead className="bg-white/5">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-white/50 uppercase tracking-wider">{t('systemUsers.username')}</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-white/50 uppercase tracking-wider">{t('systemUsers.role')}</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-white/50 uppercase tracking-wider">{t('systemUsers.businessRoles')}</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-white/50 uppercase tracking-wider">{t('systemUsers.rates')}</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-white/50 uppercase tracking-wider">{t('systemUsers.createdAt')}</th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-white/50 uppercase tracking-wider">{t('systemUsers.actions')}</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('systemUsers.username')}</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('systemUsers.role')}</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('systemUsers.businessRoles')}</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('systemUsers.rates')}</th>
+                                <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('systemUsers.createdAt')}</th>
+                                <th className="px-6 py-3 text-right text-xs font-bold text-blue-100 uppercase tracking-wider">{t('systemUsers.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="bg-transparent divide-y divide-white/5">
@@ -306,9 +306,9 @@ export default function SystemUsersPage() {
                                                     <User size={20} className="text-white/60 group-hover:text-blue-300 transition-colors" />
                                                 </div>
                                                 <div>
-                                                    <div className="font-medium text-white">{user.username}</div>
-                                                    {user.fullName && <div className="text-xs text-white/40">{user.fullName}</div>}
-                                                    {user.phone && <div className="text-xs text-white/40">{user.phone}</div>}
+                                                    <div className="font-bold text-white">{user.username}</div>
+                                                    {user.fullName && <div className="text-xs text-blue-100 font-bold">{user.fullName}</div>}
+                                                    {user.phone && <div className="text-xs text-white/80 font-medium">{user.phone}</div>}
                                                 </div>
                                             </div>
                                         </td>
@@ -354,7 +354,7 @@ export default function SystemUsersPage() {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-white/40">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-white/80 font-medium">
                                             {new Date(user.createdAt).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US')}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -403,7 +403,7 @@ export default function SystemUsersPage() {
                         <form onSubmit={handleSubmit}>
                             <div className="space-y-4 text-white">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-white/70">{t('systemUsers.username')}</label>
+                                    <label className="block text-sm font-bold mb-1 text-white">{t('systemUsers.username')}</label>
                                     <input
                                         type="text"
                                         required
@@ -414,7 +414,7 @@ export default function SystemUsersPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-white/70">{t('systemUsers.fullName')}</label>
+                                    <label className="block text-sm font-bold mb-1 text-white">{t('systemUsers.fullName')}</label>
                                     <input
                                         type="text"
                                         value={formData.fullName ?? ''}
@@ -425,39 +425,39 @@ export default function SystemUsersPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium mb-1 text-white/70">{t('systemUsers.phone')}</label>
+                                        <label className="block text-sm font-bold mb-1 text-white">{t('systemUsers.phone')}</label>
                                         <input
                                             type="text"
                                             value={formData.phone ?? ''}
                                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            className="w-full border border-white/10 rounded p-2 bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
+                                            className="w-full border border-white/10 rounded p-2 bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 outline-none placeholder-white/60"
                                             placeholder={t('systemUsers.phonePlaceholder')}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-1 text-white/70">{t('systemUsers.agentNumber')}</label>
+                                        <label className="block text-sm font-bold mb-1 text-white">{t('systemUsers.agentNumber')}</label>
                                         <input
                                             type="text"
                                             value={formData.agentNumber ?? ''}
                                             onChange={(e) => setFormData({ ...formData, agentNumber: e.target.value })}
-                                            className="w-full border border-white/10 rounded p-2 bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
+                                            className="w-full border border-white/10 rounded p-2 bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 outline-none placeholder-white/60"
                                             placeholder={t('systemUsers.agentNumberPlaceholder')}
                                         />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-white/70">{t('systemUsers.address')}</label>
+                                    <label className="block text-sm font-bold mb-1 text-white">{t('systemUsers.address')}</label>
                                     <textarea
                                         value={formData.address ?? ''}
                                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                        className="w-full border border-white/10 rounded p-2 bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
+                                        className="w-full border border-white/10 rounded p-2 bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 outline-none placeholder-white/60"
                                         placeholder={t('systemUsers.addressPlaceholder')}
                                         rows="2"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-white/70">
-                                        {t('systemUsers.password')} {editMode && <span className="text-white/40 text-xs">({t('systemUsers.keepBlank')})</span>}
+                                    <label className="block text-sm font-bold mb-1 text-white">
+                                        {t('systemUsers.password')} {editMode && <span className="text-blue-100 text-xs font-bold">({t('systemUsers.keepBlank')})</span>}
                                     </label>
                                     <input
                                         type="password"
@@ -468,7 +468,7 @@ export default function SystemUsersPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 text-white/70">{t('systemUsers.systemRole')}</label>
+                                    <label className="block text-sm font-bold mb-1 text-white">{t('systemUsers.systemRole')}</label>
                                     <select
                                         value={formData.role ?? (currentUserRole === 'superadmin' ? 'admin' : 'staff')}
                                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -486,7 +486,7 @@ export default function SystemUsersPage() {
                                             </>
                                         )}
                                     </select>
-                                    <p className="text-xs text-white/40 mt-1">
+                                    <p className="text-xs text-blue-100 font-bold mt-1">
                                         {currentUserRole === 'superadmin'
                                             ? t('systemUsers.superadminInfo')
                                             : t('systemUsers.adminInfo')}
@@ -508,7 +508,7 @@ export default function SystemUsersPage() {
                                             />
                                         </div>
                                         <div className="flex-1">
-                                            <label htmlFor="isAgent" className="text-sm text-white/70">{t('systemUsers.isAgent')}</label>
+                                            <label htmlFor="isAgent" className="text-sm text-white font-bold">{t('systemUsers.isAgent')}</label>
                                             {formData.isAgent && (
                                                 <div className="mt-2">
                                                     <label className="block text-xs font-medium mb-1 text-white/40">{t('systemUsers.commissionRate', { type: t('systemUsers.agent') })}</label>
@@ -537,7 +537,7 @@ export default function SystemUsersPage() {
                                             />
                                         </div>
                                         <div className="flex-1">
-                                            <label htmlFor="isTechnician" className="text-sm text-white/70">{t('systemUsers.isTechnician')}</label>
+                                            <label htmlFor="isTechnician" className="text-sm text-white font-bold">{t('systemUsers.isTechnician')}</label>
                                             {formData.isTechnician && (
                                                 <div className="mt-2">
                                                     <label className="block text-xs font-medium mb-1 text-white/40">{t('systemUsers.commissionRate', { type: t('systemUsers.tech') })}</label>

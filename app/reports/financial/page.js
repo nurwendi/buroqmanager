@@ -138,19 +138,19 @@ export default function FinancialReportPage() {
                     {/* Summary Row */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:grid-cols-4 print:gap-2">
                         <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl p-3 rounded-xl shadow-lg border border-white/20 print:shadow-none print:bg-white print:border-black/10">
-                            <p className="text-[10px] font-medium text-white/60 uppercase">{t('billing.reports.revenue')}</p>
+                            <p className="text-[10px] font-bold text-blue-100 uppercase">{t('billing.reports.revenue')}</p>
                             <h3 className="text-lg font-bold text-blue-400 print:text-blue-600">{formatCurrency(data.summary.totalRevenue)}</h3>
                         </div>
                         <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl p-3 rounded-xl shadow-lg border border-white/20 print:shadow-none print:bg-white print:border-black/10">
-                            <p className="text-[10px] font-medium text-white/60 uppercase">{t('billing.reports.unpaid')}</p>
+                            <p className="text-[10px] font-bold text-blue-100 uppercase">{t('billing.reports.unpaid')}</p>
                             <h3 className="text-lg font-bold text-orange-400 print:text-orange-600">{formatCurrency(data.summary.totalUnpaid)}</h3>
                         </div>
                         <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl p-3 rounded-xl shadow-lg border border-white/20 print:shadow-none print:bg-white print:border-black/10">
-                            <p className="text-[10px] font-medium text-white/60 uppercase">{t('billing.reports.expenses')}</p>
+                            <p className="text-[10px] font-bold text-blue-100 uppercase">{t('billing.reports.expenses')}</p>
                             <h3 className="text-lg font-bold text-red-400 print:text-red-600">{formatCurrency(data.summary.totalCommissions)}</h3>
                         </div>
                         <div className="bg-blue-600/20 backdrop-blur-xl p-3 rounded-xl shadow-lg border border-blue-500/30 print:shadow-none print:bg-blue-50 print:border-black/10">
-                            <p className="text-[10px] font-medium text-blue-300 print:text-blue-600 uppercase">{t('billing.reports.netIncome')}</p>
+                            <p className="text-[10px] font-bold text-white uppercase">{t('billing.reports.netIncome')}</p>
                             <h3 className="text-lg font-bold text-white print:text-black">{formatCurrency(data.summary.netIncome)}</h3>
                         </div>
                     </div>
@@ -164,20 +164,20 @@ export default function FinancialReportPage() {
                             <table className="min-w-full text-xs">
                                 <thead className="bg-white/5 print:bg-gray-50">
                                     <tr>
-                                        <th className="px-4 py-2 text-left text-white/60 print:text-gray-500">{t('billing.reports.staff')}</th>
-                                        <th className="px-4 py-2 text-center text-white/60 print:text-gray-500">{t('billing.reports.transactionsCount')}</th>
-                                        <th className="px-4 py-2 text-right text-white/60 print:text-gray-500">{t('billing.reports.gross')}</th>
-                                        <th className="px-4 py-2 text-right text-white/60 print:text-gray-500">{t('billing.reports.commission')}</th>
-                                        <th className="px-4 py-2 text-right text-white/60 print:text-gray-500">{t('billing.reports.netProfit')}</th>
+                                        <th className="px-4 py-2 text-left font-bold text-blue-100 print:text-gray-500">{t('billing.reports.staff')}</th>
+                                        <th className="px-4 py-2 text-center font-bold text-blue-100 print:text-gray-500">{t('billing.reports.transactionsCount')}</th>
+                                        <th className="px-4 py-2 text-right font-bold text-blue-100 print:text-gray-500">{t('billing.reports.gross')}</th>
+                                        <th className="px-4 py-2 text-right font-bold text-blue-100 print:text-gray-500">{t('billing.reports.commission')}</th>
+                                        <th className="px-4 py-2 text-right font-bold text-blue-100 print:text-gray-500">{t('billing.reports.netProfit')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/10 print:divide-gray-100">
                                     {data.staffBreakdown.map((s, i) => (
                                         <tr key={i} className="hover:bg-white/5 print:hover:bg-transparent">
-                                            <td className="px-4 py-1.5 font-medium text-white print:text-black">{s.name}</td>
-                                            <td className="px-4 py-1.5 text-center text-white/80 print:text-black">{s.count}</td>
-                                            <td className="px-4 py-1.5 text-right text-white/80 print:text-black">{formatCurrency(s.revenue)}</td>
-                                            <td className="px-4 py-1.5 text-right text-red-400 print:text-red-500">-{formatCurrency(s.commission)}</td>
+                                            <td className="px-4 py-1.5 font-bold text-white print:text-black">{s.name}</td>
+                                            <td className="px-4 py-1.5 text-center text-white font-medium print:text-black">{s.count}</td>
+                                            <td className="px-4 py-1.5 text-right text-white font-medium print:text-black">{formatCurrency(s.revenue)}</td>
+                                            <td className="px-4 py-1.5 text-right font-bold text-red-400 print:text-red-500">-{formatCurrency(s.commission)}</td>
                                             <td className="px-4 py-1.5 text-right font-bold text-green-400 print:text-green-600">{formatCurrency(s.revenue - s.commission)}</td>
                                         </tr>
                                     ))}
@@ -195,22 +195,22 @@ export default function FinancialReportPage() {
                             <table className="min-w-full text-xs print:text-[10px]">
                                 <thead className="bg-white/5 print:bg-gray-50">
                                     <tr>
-                                        <th className="px-3 py-2 text-left text-white/60 print:text-gray-500">{t('billing.reports.no')}</th>
-                                        <th className="px-3 py-2 text-left text-white/60 print:text-gray-500">{t('billing.reports.customerId')}</th>
-                                        <th className="px-3 py-2 text-left text-white/60 print:text-gray-500">{t('billing.reports.customerName')}</th>
-                                        <th className="px-3 py-2 text-left text-white/60 font-bold print:text-gray-500">{t('billing.reports.agent')}</th>
-                                        <th className="px-3 py-2 text-left text-white/60 print:text-gray-500">{t('billing.reports.paymentDate')}</th>
-                                        <th className="px-3 py-2 text-right text-white/60 print:text-gray-500">{t('billing.reports.amount')}</th>
-                                        <th className="px-3 py-2 text-left text-white/60 print:text-gray-500">{t('billing.reports.description')}</th>
+                                        <th className="px-3 py-2 text-left font-bold text-blue-100 print:text-gray-500">{t('billing.reports.no')}</th>
+                                        <th className="px-3 py-2 text-left font-bold text-blue-100 print:text-gray-500">{t('billing.reports.customerId')}</th>
+                                        <th className="px-3 py-2 text-left font-bold text-blue-100 print:text-gray-500">{t('billing.reports.customerName')}</th>
+                                        <th className="px-3 py-2 text-left font-bold text-blue-100 print:text-gray-500">{t('billing.reports.agent')}</th>
+                                        <th className="px-3 py-2 text-left font-bold text-blue-100 print:text-gray-500">{t('billing.reports.paymentDate')}</th>
+                                        <th className="px-3 py-2 text-right font-bold text-blue-100 print:text-gray-500">{t('billing.reports.amount')}</th>
+                                        <th className="px-3 py-2 text-left font-bold text-blue-100 print:text-gray-500">{t('billing.reports.description')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/10 print:divide-gray-100">
                                     {data.allPayments.map((p, i) => (
                                         <tr key={i} className={`
-                                            ${p.status !== 'completed' ? 'bg-red-500/10 text-red-400 print:bg-red-50 print:text-red-700' : 'text-white/80 print:text-black hover:bg-white/5'}
+                                            ${p.status !== 'completed' ? 'bg-red-500/10 text-red-400 print:bg-red-50 print:text-red-700 font-bold' : 'text-white font-medium hover:bg-white/5'}
                                         `}>
-                                            <td className="px-3 py-1 font-mono text-white/40 print:text-black">{i + 1}</td>
-                                            <td className={`px-3 py-1 ${p.status === 'completed' ? 'text-blue-400 print:text-black font-medium' : ''}`}>{p.customerNumber}</td>
+                                            <td className="px-3 py-1 font-mono text-white/80 font-bold print:text-black">{i + 1}</td>
+                                            <td className={`px-3 py-1 ${p.status === 'completed' ? 'text-blue-200 print:text-black font-bold' : ''}`}>{p.customerNumber}</td>
                                             <td className="px-3 py-1 font-medium">{p.customerName}</td>
                                             <td className="px-3 py-1 font-medium">{p.agentName}</td>
                                             <td className="px-3 py-1">{formatDate(p.date)}</td>

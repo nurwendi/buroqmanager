@@ -38,19 +38,19 @@ export default function AgentBillingPage() {
     ];
 
     if (loading && !stats) {
-        return <div className="p-8 text-center text-gray-500">Loading stats...</div>;
+        return <div className="p-8 text-center text-white/60 font-medium">{t('messages.loading')}</div>;
     }
 
     return (
         <div className="space-y-6 p-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-gray-800">Agent Dashboard</h1>
-                <div className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border border-gray-200">
-                    <Calendar className="text-gray-500" size={20} />
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-md">Agent Dashboard</h1>
+                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md p-2 rounded-lg shadow-sm border border-white/20">
+                    <Calendar className="text-blue-100" size={20} />
                     <select
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(e.target.value)}
-                        className="bg-transparent outline-none text-gray-700 font-medium"
+                        className="bg-transparent outline-none text-white font-bold"
                     >
                         {months.map((m, i) => (
                             <option key={i} value={i}>{m}</option>
@@ -59,7 +59,7 @@ export default function AgentBillingPage() {
                     <select
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(e.target.value)}
-                        className="bg-transparent outline-none text-gray-700 font-medium ml-2"
+                        className="bg-transparent outline-none text-white font-bold ml-2"
                     >
                         {[2024, 2025, 2026].map(y => (
                             <option key={y} value={y}>{y}</option>
@@ -71,51 +71,51 @@ export default function AgentBillingPage() {
             {stats && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Total Generated (Revenue) */}
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 shadow-2xl border border-white/20">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-blue-50/30 dark:bg-blue-900/30 backdrop-blur-xl text-blue-600 dark:text-blue-400 rounded-lg border border-blue-200/50 dark:border-blue-800/50 shadow-lg">
+                            <div className="p-3 bg-blue-400/20 text-blue-300 rounded-lg border border-white/10 shadow-lg">
                                 <DollarSign size={24} />
                             </div>
-                            <span className="text-sm font-medium text-gray-400">Total Generated</span>
+                            <span className="text-sm font-bold text-blue-100">Total Generated</span>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</h3>
-                        <p className="text-sm text-gray-500 mt-1">Total pendapatan dari pelanggan Anda</p>
+                        <h3 className="text-2xl font-bold text-white">{formatCurrency(stats.totalRevenue)}</h3>
+                        <p className="text-sm text-blue-100/80 font-medium mt-1">Total pendapatan dari pelanggan Anda</p>
                     </div>
 
                     {/* Agent Commission */}
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 shadow-2xl border border-white/20">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-green-50/30 dark:bg-green-900/30 backdrop-blur-xl text-green-600 dark:text-green-400 rounded-lg border border-green-200/50 dark:border-green-800/50 shadow-lg">
+                            <div className="p-3 bg-green-400/20 text-green-300 rounded-lg border border-white/10 shadow-lg">
                                 <DollarSign size={24} />
                             </div>
-                            <span className="text-sm font-medium text-gray-400">Komisi Agen</span>
+                            <span className="text-sm font-bold text-blue-100">Komisi Agen</span>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900">{formatCurrency(stats.commission)}</h3>
-                        <p className="text-sm text-gray-500 mt-1">Penghasilan bersih Anda</p>
+                        <h3 className="text-2xl font-bold text-white">{formatCurrency(stats.commission)}</h3>
+                        <p className="text-sm text-green-300/80 font-medium mt-1">Penghasilan bersih Anda</p>
                     </div>
 
                     {/* Paid Customers */}
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 shadow-2xl border border-white/20">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-lg">
+                            <div className="p-3 bg-purple-400/20 text-purple-300 rounded-lg border border-white/10 shadow-lg">
                                 <UserCheck size={24} />
                             </div>
-                            <span className="text-sm font-medium text-gray-400">Sudah Bayar</span>
+                            <span className="text-sm font-bold text-blue-100">Sudah Bayar</span>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900">{stats.paidCount}</h3>
-                        <p className="text-sm text-gray-500 mt-1">Pelanggan lunas bulan ini</p>
+                        <h3 className="text-2xl font-bold text-white">{stats.paidCount}</h3>
+                        <p className="text-sm text-blue-100/80 font-medium mt-1">Pelanggan lunas bulan ini</p>
                     </div>
 
                     {/* Unpaid Customers */}
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 shadow-2xl border border-white/20">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-red-50/30 dark:bg-red-900/30 backdrop-blur-xl text-red-600 dark:text-red-400 rounded-lg border border-red-200/50 dark:border-red-800/50 shadow-lg">
+                            <div className="p-3 bg-red-400/20 text-red-300 rounded-lg border border-white/10 shadow-lg">
                                 <UserX size={24} />
                             </div>
-                            <span className="text-sm font-medium text-gray-400">Belum Bayar</span>
+                            <span className="text-sm font-bold text-blue-100">Belum Bayar</span>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900">{stats.unpaidCount}</h3>
-                        <p className="text-sm text-gray-500 mt-1">Pelanggan belum bayar</p>
+                        <h3 className="text-2xl font-bold text-white">{stats.unpaidCount}</h3>
+                        <p className="text-sm text-red-300/80 font-medium mt-1">Pelanggan belum bayar</p>
                     </div>
                 </div>
             )}

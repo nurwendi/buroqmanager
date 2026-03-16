@@ -54,7 +54,7 @@ export default function IsolirPage() {
                     </div>
 
                     <h1 className="text-2xl font-bold text-white mb-2 drop-shadow-md">Layanan Terisolir</h1>
-                    <p className="text-white/80 mb-6">
+                    <p className="text-white font-medium mb-6">
                         Maaf, layanan internet Anda saat ini dinonaktifkan sementara karena ada tagihan yang belum terselesaikan.
                     </p>
 
@@ -62,8 +62,8 @@ export default function IsolirPage() {
                         <div className="flex items-start gap-3">
                             <AlertTriangle className="text-red-400 shrink-0 mt-0.5" size={20} />
                             <div>
-                                <h3 className="font-semibold text-red-200 text-sm">Penting</h3>
-                                <p className="text-xs text-red-100/80 mt-1">
+                                <h3 className="font-bold text-white text-sm">Penting</h3>
+                                <p className="text-xs text-white font-medium mt-1">
                                     Mohon segera lakukan pembayaran untuk mengaktifkan kembali layanan internet Anda secara otomatis.
                                 </p>
                             </div>
@@ -81,7 +81,7 @@ export default function IsolirPage() {
                             {loading ? 'Memuat Kontak...' : `Hubungi ${contactLabel} via WhatsApp`}
                         </a>
 
-                        <p className="text-xs text-white/50 mt-4">
+                        <p className="text-xs text-blue-100 font-bold mt-4">
                             Jika Anda sudah melakukan pembayaran namun halaman ini masih muncul, silakan restart modem/router Anda.
                         </p>
                     </div>

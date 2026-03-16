@@ -1029,8 +1029,8 @@ export default function UsersPage() {
                                     <div key={reg.username} className="bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-sm">
                                         <div className="flex items-start justify-between gap-2 mb-3">
                                             <div>
-                                                <div className="font-bold text-gray-900 dark:text-white text-sm">{reg.targetUsername || reg.username}</div>
-                                                {reg.name && <div className="text-xs text-gray-500 mt-0.5">{reg.name}</div>}
+                                                <div className="font-bold text-white text-sm">{reg.targetUsername || reg.username}</div>
+                                                {reg.name && <div className="text-xs text-blue-100 font-bold mt-0.5">{reg.name}</div>}
                                             </div>
                                             <span className={`text-xs font-semibold px-2 py-1 rounded-full shrink-0 ${typeBadge.cls}`}>{typeBadge.label}</span>
                                         </div>
@@ -1070,12 +1070,12 @@ export default function UsersPage() {
                         <table className="min-w-full divide-y divide-white/10">
                             <thead className="bg-white/5">
                                 <tr>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.username')}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.type')}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.fullName')}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.agent')}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.profile')}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.status')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('users.username')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('common.type')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('users.fullName')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('users.agent')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('users.profile')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('common.status')}</th>
                                     {(userRole === 'admin' || userRole === 'editor') && (
                                         <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.actions')}</th>
                                     )}
@@ -1086,17 +1086,17 @@ export default function UsersPage() {
                                     .filter(reg => userRole === 'admin' || userRole === 'editor' || (userRole === 'staff' && reg.agentId === currentUserId))
                                     .map((reg) => (
                                         <tr key={reg.username} className="hover:bg-white/5 transition-colors">
-                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">{reg.targetUsername || reg.username}</td>
+                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm font-bold text-white">{reg.targetUsername || reg.username}</td>
                                             <td className="px-5 py-3.5 whitespace-nowrap">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${reg.type === 'delete' ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300' : reg.type === 'edit' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'}`}>
                                                     {reg.type === 'edit' ? t('common.edit') : reg.type === 'delete' ? t('common.delete') : t('pppoe.register')}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{reg.name || '-'}</td>
-                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-white font-medium">{reg.name || '-'}</td>
+                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-white font-medium">
                                                 {(() => { const a = systemUsers.find(u => u.id === reg.agentId); return a ? (a.fullName || a.username) : '-'; })()}
                                             </td>
-                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-blue-100 font-bold">
                                                 {reg.registrationData?.profile} / {reg.registrationData?.service}
                                             </td>
                                             <td className="px-5 py-3.5 whitespace-nowrap text-sm text-yellow-600 dark:text-yellow-400 font-medium">
@@ -1210,7 +1210,7 @@ export default function UsersPage() {
                             placeholder={t('pppoe.searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-blue-500/50 outline-none placeholder-white/30"
+                            className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-blue-500/50 outline-none placeholder-white/60"
                         />
                     </div>
 
@@ -1331,14 +1331,14 @@ export default function UsersPage() {
                                                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                             />
                                         </div>
-                                        <div className="sm:hidden text-gray-500 text-xs uppercase tracking-wider font-medium">
+                                        <div className="sm:hidden text-white/80 text-xs uppercase tracking-wider font-bold">
                                             {t('common.more')}
                                         </div>
                                     </th>
-                                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.actions')}</th>
+                                    <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('common.actions')}</th>
                                     <th
                                         onClick={() => sortData('username')}
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                        className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
                                             {t('users.username')} <ArrowUpDown size={14} className="text-gray-400" />
@@ -1346,7 +1346,7 @@ export default function UsersPage() {
                                     </th>
                                     <th
                                         onClick={() => sortData('id')}
-                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
                                             {t('users.customerId')} <ArrowUpDown size={14} />
@@ -1354,7 +1354,7 @@ export default function UsersPage() {
                                     </th>
                                     <th
                                         onClick={() => sortData('password')}
-                                        className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                        className="hidden xl:table-cell px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
                                             {t('users.password')} <ArrowUpDown size={14} />
@@ -1362,7 +1362,7 @@ export default function UsersPage() {
                                     </th>
                                     <th
                                         onClick={() => sortData('device_signal')}
-                                        className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                        className="hidden md:table-cell px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
                                             {t('pppoe.device')} <ArrowUpDown size={14} />
@@ -1370,7 +1370,7 @@ export default function UsersPage() {
                                     </th>
                                     <th
                                         onClick={() => sortData('profile')}
-                                        className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                        className="hidden md:table-cell px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
                                             {t('pppoe.profile')} <ArrowUpDown size={14} />
@@ -1378,20 +1378,20 @@ export default function UsersPage() {
                                     </th>
                                     <th
                                         onClick={() => sortData('staff')}
-                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
                                             {t('pppoe.partner')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th
-                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider"
                                     >
                                         {t('pppoe.session')}
                                     </th>
                                     <th
                                         onClick={() => sortData('usage')}
-                                        className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                        className="hidden sm:table-cell px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
                                             {t('pppoe.usage')} <ArrowUpDown size={14} />
@@ -1504,10 +1504,10 @@ export default function UsersPage() {
                                                     <div className="flex items-center gap-3">
                                                         <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}`} title={isOnline ? t('users.online') : t('users.offline')} />
                                                         <div className="flex flex-col min-w-0">
-                                                            <span className="text-sm font-bold text-gray-900 dark:text-white truncate" title={user.name}>
+                                                            <span className="text-sm font-bold text-white truncate" title={user.name}>
                                                                 {user.name}
                                                             </span>
-                                                            <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{getCustomerName(user.name)}</span>
+                                                            <span className="text-xs text-blue-100 font-bold truncate">{getCustomerName(user.name)}</span>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -1528,15 +1528,15 @@ export default function UsersPage() {
 
                                                 {/* Password Column */}
                                                 <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-xs text-gray-400 dark:text-gray-500 font-mono tracking-wide">{user.password || '-'}</span>
+                                                    <span className="text-xs text-white/80 font-mono font-bold tracking-wide">{user.password || '-'}</span>
                                                 </td>
 
                                                 {/* Device Column (ACS) */}
                                                 <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                                                     {acs ? (
                                                         <div className="flex flex-col">
-                                                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                                                                <Smartphone size={12} className="text-gray-400" /> {acs.ssid || '-'}
+                                                            <span className="text-xs font-bold text-white flex items-center gap-1">
+                                                                <Smartphone size={12} className="text-blue-100" /> {acs.ssid || '-'}
                                                             </span>
                                                             <div className="flex items-center gap-2 mt-0.5">
                                                                 <span className={`text-[10px] px-1 rounded ${(acs.rx_power >= -20) ? 'bg-green-100 text-green-800' :
@@ -1547,7 +1547,7 @@ export default function UsersPage() {
                                                                 </span>
                                                                 {acs.temp && <span className="text-[10px] text-gray-500">{acs.temp}°C</span>}
                                                             </div>
-                                                            <span className="text-[10px] text-gray-400 font-mono mt-0.5" title="Serial Number">SN: {acs.serial}</span>
+                                                            <span className="text-[10px] text-blue-100 font-mono font-bold mt-0.5" title="Serial Number">SN: {acs.serial}</span>
                                                         </div>
                                                     ) : (
                                                         <span className="text-xs text-gray-400">-</span>
@@ -1572,13 +1572,13 @@ export default function UsersPage() {
                                                 </td>
 
                                                 {/* Staff Column */}
-                                                <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                                <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm text-white font-medium">
                                                     <div className="flex flex-col text-xs space-y-0.5">
                                                         {(() => {
                                                             const parts = getPartnerName(user.name).split(', ');
-                                                            if (getPartnerName(user.name) === '-') return <span className="text-gray-400">-</span>;
+                                                            if (getPartnerName(user.name) === '-') return <span className="text-white/40">-</span>;
                                                             return parts.map((part, i) => (
-                                                                <span key={i} className="block">{part}</span>
+                                                                <span key={i} className="block font-bold text-blue-100">{part}</span>
                                                             ));
                                                         })()}
                                                     </div>
@@ -1588,10 +1588,10 @@ export default function UsersPage() {
                                                 <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
                                                     {isOnline ? (
                                                         <div className="flex flex-col">
-                                                            <span className="text-xs font-medium text-green-600 dark:text-green-400 flex items-center gap-1">
+                                                            <span className="text-xs font-bold text-green-400 flex items-center gap-1">
                                                                 <Clock size={12} /> {formatUptime(active.uptime)}
                                                             </span>
-                                                            <span className="text-[10px] text-gray-400 font-mono mt-0.5">{active['caller-id']}</span>
+                                                            <span className="text-[10px] text-blue-100 font-mono font-bold mt-0.5">{active['caller-id']}</span>
                                                         </div>
                                                     ) : (
                                                         <span className="text-xs text-gray-400">-</span>

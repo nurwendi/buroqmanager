@@ -666,13 +666,13 @@ Terima Kasih
                                 <table className="min-w-full divide-y divide-white/10">
                                     <thead className="bg-white/5">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.partner')}</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.rate')}</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.paid')}</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.unpaid')}</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.totalGross')}</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.partnerCommission')}</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.netRevenue')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('users.partner')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('billing.rate')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('billing.paid')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('billing.unpaid')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('billing.totalGross')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('billing.partnerCommission')}</th>
+                                            <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('billing.netRevenue')}</th>
                                         </tr>
                                     </thead>
 
@@ -690,12 +690,12 @@ Terima Kasih
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <div className="flex items-center">
                                                                 <div>
-                                                                    <div className="text-sm font-medium text-gray-900">{agent.name}</div>
-                                                                    <div className="text-xs text-gray-500">{agent.role}</div>
+                                                                    <div className="text-sm font-semibold text-white">{agent.name}</div>
+                                                                    <div className="text-xs text-blue-100 font-medium">{agent.role}</div>
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-100 font-medium">
                                                             {agent.rate}%
                                                         </td>
                                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -721,16 +721,16 @@ Terima Kasih
                                                 ))}
                                                 {/* Total Row */}
                                                 <tr className="bg-white/5 backdrop-blur-md font-semibold font-bold">
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white" colSpan="4">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white font-bold" colSpan="4">
                                                         {t('common.total')}
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white font-bold">
                                                         {formatCurrency(agentStats.grandTotal?.revenue || 0)}
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-400">
                                                         {formatCurrency(agentStats.grandTotal?.commission || 0)}
                                                     </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-400">
                                                         {formatCurrency(agentStats.grandTotal?.netRevenue || 0)}
                                                     </td>
                                                 </tr>
@@ -772,13 +772,13 @@ Terima Kasih
                         <h2 className="text-lg font-semibold text-white">{t('billing.paymentHistory')}</h2>
 
                         <div className="relative">
-                            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" />
+                            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/80" />
                             <input
                                 type="text"
                                 placeholder={t('billing.searchPlaceholder')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 border border-white/10 rounded-lg bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder-white/30"
+                                className="pl-10 pr-4 py-2 border border-white/10 rounded-lg bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder-white/60"
                             />
 
                         </div>
@@ -798,22 +798,22 @@ Terima Kasih
                                             />
                                         </th>
                                     )}
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.actions')}</th>
+                                     <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('common.actions')}</th>
                                     <th
                                         onClick={() => sortData('customer')}
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                        className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider cursor-pointer hover:bg-white/10 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
                                             {t('billing.customer')}
                                             <ArrowUpDown size={14} />
                                         </div>
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">
                                         {t('billing.invoice')}
                                     </th>
-                                    <th
+                                     <th
                                         onClick={() => sortData('amount')}
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                        className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider cursor-pointer hover:bg-white/10 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
                                             {t('billing.amount')}
@@ -823,25 +823,25 @@ Terima Kasih
 
                                     <th
                                         onClick={() => sortData('status')}
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                        className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider cursor-pointer hover:bg-white/10 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
                                             {t('common.status')}
                                             <ArrowUpDown size={14} />
                                         </div>
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.agent')}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.technician')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('billing.agent')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('billing.technician')}</th>
                                     <th
                                         onClick={() => sortData('date')}
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                                        className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider cursor-pointer hover:bg-white/10 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
                                             {t('common.date')}
                                             <ArrowUpDown size={14} />
                                         </div>
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.delete')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-bold text-blue-100 uppercase tracking-wider">{t('billing.delete')}</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
@@ -893,38 +893,38 @@ Terima Kasih
                                                 </td>
 
 
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-white">
                                                     <div>
-                                                        <div className="font-semibold">{getCustomerName(payment.username)}</div>
+                                                        <div className="font-bold text-white">{getCustomerName(payment.username)}</div>
                                                         {customersData[payment.username]?.name && (
-                                                            <div className="text-xs text-gray-500 dark:text-gray-400">ID: {payment.username}</div>
+                                                            <div className="text-xs text-blue-100 font-bold">ID: {payment.username}</div>
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-white font-medium">
                                                     {payment.invoiceNumber ? payment.invoiceNumber.split('/').pop() : '-'}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-white">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-white uppercase">
                                                     {formatCurrency(payment.amount)}
                                                 </td>
 
 
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${payment.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${payment.status === 'completed' ? 'bg-green-100 text-green-800' :
                                                         payment.status === 'postponed' ? 'bg-orange-100 text-orange-800' :
-                                                            payment.status === 'merged' ? 'bg-gray-100 text-gray-500' :
+                                                            payment.status === 'merged' ? 'bg-gray-100 text-blue-100 font-bold' :
                                                                 'bg-yellow-100 text-yellow-800'
                                                         }`}>
                                                         {payment.status}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-100 font-medium">
                                                     {getAgentName(payment.username)}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-100 font-medium">
                                                     {getTechnicianName(payment.username)}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-100 font-medium">
                                                     {formatDate(payment.date)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-right">
@@ -948,16 +948,16 @@ Terima Kasih
                     {/* Pagination Controls */}
                     <div className="flex items-center justify-between px-6 py-4 bg-white/5 border-t border-white/10">
                         <div className="flex items-center gap-4">
-                            <div className="text-sm text-gray-700 dark:text-gray-300">
-                                {t('billing.showing')} <span className="font-medium mx-1">
+                            <div className="text-sm text-white font-medium">
+                                {t('billing.showing')} <span className="font-bold text-accent mx-1">
                                     {getSortedPayments().length === 0 ? 0 : (currentPage - 1) * (rowsPerPage === 'All' ? getSortedPayments().length : rowsPerPage) + 1}
                                 </span>
                                 {t('billing.to')}
-                                <span className="font-medium mx-1">
+                                <span className="font-bold text-accent mx-1">
                                     {rowsPerPage === 'All' ? getSortedPayments().length : Math.min(currentPage * rowsPerPage, getSortedPayments().length)}
                                 </span>
                                 {t('billing.of')}
-                                <span className="font-medium mx-1">{getSortedPayments().length}</span> {t('billing.results')}
+                                <span className="font-bold text-accent mx-1">{getSortedPayments().length}</span> {t('billing.results')}
                             </div>
 
                             <select
@@ -967,7 +967,7 @@ Terima Kasih
                                     setRowsPerPage(val);
                                     setCurrentPage(1);
                                 }}
-                                className="text-sm border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+                                className="text-sm border-white/20 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500/20 bg-white/10 text-white"
                             >
                                 <option value={10}>10</option>
                                 <option value={25}>25</option>
@@ -981,7 +981,7 @@ Terima Kasih
                             <button
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                 disabled={currentPage === 1}
-                                className="px-3 py-1 rounded bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-1 rounded bg-white/10 border border-white/20 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                             >
                                 {t('billing.previous')}
                             </button>
@@ -991,7 +991,7 @@ Terima Kasih
                                     return Math.min(prev + 1, maxPage);
                                 })}
                                 disabled={rowsPerPage === 'All' || currentPage >= Math.ceil(getSortedPayments().length / rowsPerPage)}
-                                className="px-3 py-1 rounded bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-3 py-1 rounded bg-white/10 border border-white/20 text-white hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                             >
                                 {t('billing.next')}
                             </button>
@@ -1021,8 +1021,8 @@ Terima Kasih
                                         </div>
                                     </div>
                                     <div>
-                                        <p className="text-lg font-semibold text-gray-800">{t('billing.successMessage')}</p>
-                                        <p className="text-gray-500 mt-1">
+                                        <p className="text-lg font-bold text-white">{t('billing.successMessage')}</p>
+                                        <p className="text-blue-100 font-medium mt-1">
                                             {formatCurrency(lastRecordedPayment.amount)} - {lastRecordedPayment.username}
                                         </p>
                                     </div>
@@ -1069,7 +1069,7 @@ Terima Kasih
                                         </div>
                                     )}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('billing.user')}</label>
+                                        <label className="block text-sm font-bold text-white/80 mb-1">{t('billing.user')}</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
@@ -1087,17 +1087,17 @@ Terima Kasih
                                                     }
                                                 }}
                                                 placeholder={t('billing.searchUser')}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none placeholder-white/60"
                                             />
                                             {showUserDropdown && (
-                                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                                                <div className="absolute z-10 w-full mt-1 bg-black/80 backdrop-blur-xl border border-white/20 rounded-md shadow-2xl max-h-60 overflow-auto">
                                                     {users.filter(u => (u.name || '').toLowerCase().includes(userSearchTerm.toLowerCase())).length === 0 ? (
-                                                        <div className="px-4 py-2 text-gray-500 text-sm">{t('billing.noUsersFound')}</div>
+                                                        <div className="px-4 py-2 text-white/50 text-sm">{t('billing.noUsersFound')}</div>
                                                     ) : (
                                                         users.filter(u => (u.name || '').toLowerCase().includes(userSearchTerm.toLowerCase())).map(user => (
                                                             <div
-                                                                key={user['.id']}
-                                                                className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-900"
+                                                              key={user['.id']}
+                                                                className="px-4 py-2 hover:bg-white/10 cursor-pointer text-white"
                                                                 onClick={() => {
                                                                     // Selection Logic
                                                                     const selectedUser = user;
@@ -1126,8 +1126,8 @@ Terima Kasih
                                                                     setShowUserDropdown(false);
                                                                 }}
                                                             >
-                                                                <div className="font-medium">{user.name}</div>
-                                                                {user.profile && <div className="text-xs text-gray-500">{user.profile}</div>}
+                                                                <div className="font-bold">{user.name}</div>
+                                                                {user.profile && <div className="text-xs text-blue-100 font-medium">{user.profile}</div>}
                                                             </div>
                                                         ))
                                                     )}
@@ -1147,7 +1147,7 @@ Terima Kasih
 
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('billing.amountIdr')}</label>
+                                        <label className="block text-sm font-bold text-white/80 mb-1">{t('billing.amountIdr')}</label>
                                         <input
                                             type="number"
                                             value={formData.amount}
@@ -1156,17 +1156,17 @@ Terima Kasih
                                                 // If user manually changes amount, we might want to uncheck the box or handle it differently
                                                 // For now, let's just let them edit it
                                             }}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                            className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 placeholder-white/60"
                                             placeholder="150000"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('billing.notes')}</label>
+                                        <label className="block text-sm font-bold text-white/80 mb-1">{t('billing.notes')}</label>
                                         <textarea
                                             value={formData.notes}
                                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                            className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 placeholder-white/60"
                                             rows="3"
                                             placeholder={t('billing.optionalNotes')}
                                         />

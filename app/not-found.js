@@ -8,13 +8,13 @@ export default function NotFound() {
     const { t } = useLanguage();
     return (
         <div className="flex min-h-[80vh] flex-col items-center justify-center p-4 text-center">
-            <div className="mb-6 rounded-full bg-gray-100 p-6 dark:bg-gray-800">
-                <FileQuestion className="h-12 w-12 text-gray-500 dark:text-gray-400" />
+            <div className="mb-6 rounded-full bg-white/10 p-6 backdrop-blur-md border border-white/20">
+                <FileQuestion className="h-12 w-12 text-blue-100" />
             </div>
-            <h2 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+            <h2 className="mb-2 text-2xl font-bold tracking-tight text-white drop-shadow-md">
                 {t('notFound.title')}
             </h2>
-            <p className="mb-8 max-w-sm text-gray-500 dark:text-gray-400">
+            <p className="mb-8 max-w-sm text-blue-100 font-bold">
                 {t('notFound.desc')}
             </p>
             <Link
