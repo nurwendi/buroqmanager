@@ -273,7 +273,7 @@ export default function DashboardContent() {
   if (loading || userRole === null) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600">
+        <div className="text-white font-medium">
           {t("common.loading")}
         </div>
       </div>
@@ -358,7 +358,7 @@ export default function DashboardContent() {
           </div>
 
           <div className="mt-4 text-center">
-            <h1 className="text-[10px] sm:text-xs tracking-[0.4em] uppercase text-white/50 font-bold mb-1">
+            <h1 className="text-[10px] sm:text-xs tracking-[0.4em] uppercase text-blue-100 font-bold mb-1">
               {t("dashboard.title")}
             </h1>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight drop-shadow-md">
@@ -369,10 +369,10 @@ export default function DashboardContent() {
               !
             </h2>
             <div className="mt-2 flex items-center justify-center gap-3">
-               <span className="px-3 py-0.5 bg-white/10 backdrop-blur-md text-white rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/20 shadow-lg">
+               <span className="px-3 py-0.5 bg-white/20 backdrop-blur-md text-white rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/30 shadow-lg">
                   {userRole}
                </span>
-               <p className="text-[10px] sm:text-xs text-white/50 font-medium flex items-center gap-1 pb-0.5">
+               <p className="text-[10px] sm:text-xs text-blue-100 font-medium flex items-center gap-1 pb-0.5">
                  <Activity size={12} className="text-green-400 drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]" />
                  {lastUpdate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                </p>
@@ -420,7 +420,7 @@ export default function DashboardContent() {
                 <Link href="/system-users" className="block">
                   <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl hover:bg-white/20 transition-all h-full cursor-pointer">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-white/50 text-sm font-semibold uppercase">
+                      <h3 className="text-blue-100 text-sm font-semibold uppercase">
                         {t("sidebar.systemUsers") || "System Users"}
                       </h3>
                       <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400">
@@ -430,7 +430,7 @@ export default function DashboardContent() {
                     <p className="text-3xl font-bold text-white">
                       {stats.systemUserCount}
                     </p>
-                    <p className="text-xs text-white/40 mt-2">
+                    <p className="text-xs text-white/80 mt-2">
                       {t("dashboard.registeredAdmins") || "Registered Users"}
                     </p>
                   </div>

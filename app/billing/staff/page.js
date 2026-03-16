@@ -175,7 +175,7 @@ export default function StaffBillingPage() {
                     </div>
 
                     <div className="mt-4 text-center">
-                        <h1 className="text-[10px] sm:text-xs tracking-[0.4em] uppercase text-white/50 font-bold mb-1">
+                        <h1 className="text-[10px] sm:text-xs tracking-[0.4em] uppercase text-blue-100 font-bold mb-1">
                             {t('billing.staffDashboardTitle')}
                         </h1>
                         <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight drop-shadow-md">
@@ -252,10 +252,10 @@ export default function StaffBillingPage() {
                             <div className="p-3 bg-violet-400/20 text-violet-300 rounded-xl border border-white/10">
                                 <UserCheck size={24} />
                             </div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-white/50">{t('billing.paid')}</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-blue-100">{t('billing.paid')}</span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-white/60 text-sm font-medium">{t('billing.paid')} {t('billing.customer')}</p>
+                            <p className="text-white/80 text-sm font-medium">{t('billing.paid')} {t('billing.customer')}</p>
                             <h3 className="text-3xl font-bold text-white drop-shadow-md">{stats.paidCount}</h3>
                         </div>
                         <div className="absolute bottom-0 right-0 h-1 w-full bg-gradient-to-r from-violet-500 to-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
@@ -270,10 +270,10 @@ export default function StaffBillingPage() {
                             <div className="p-3 bg-rose-400/20 text-rose-300 rounded-xl border border-white/10">
                                 <UserX size={24} />
                             </div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-white/50">{t('billing.unpaid')}</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-blue-100">{t('billing.unpaid')}</span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-white/60 text-sm font-medium">{t('billing.unpaid')}</p>
+                            <p className="text-white/80 text-sm font-medium">{t('billing.unpaid')}</p>
                             <h3 className="text-3xl font-bold text-white drop-shadow-md">{stats.unpaidCount}</h3>
                         </div>
                         <div className="absolute bottom-0 right-0 h-1 w-full bg-gradient-to-r from-rose-500 to-red-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
@@ -294,7 +294,7 @@ export default function StaffBillingPage() {
                             <BarChart2 size={20} className="text-blue-400" />
                             {t('billing.performance')} {selectedYear}
                         </h2>
-                        <p className="text-sm text-white/50">{t('billing.performanceSub')}</p>
+                        <p className="text-sm text-blue-100">{t('billing.performanceSub')}</p>
                     </div>
                 </div>
 
@@ -309,13 +309,13 @@ export default function StaffBillingPage() {
                                 dataKey="name"
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: '#6B7280', fontSize: 12 }}
+                                tick={{ fill: '#E5E7EB', fontSize: 12 }}
                                 dy={10}
                             />
                             <YAxis
                                 axisLine={false}
                                 tickLine={false}
-                                tick={{ fill: '#6B7280', fontSize: 12 }}
+                                tick={{ fill: '#E5E7EB', fontSize: 12 }}
                                 tickFormatter={(value) => `Rp${(value / 1000).toFixed(0)}k`}
                             />
                              <Tooltip
@@ -356,7 +356,7 @@ export default function StaffBillingPage() {
                             <FileText size={20} className="text-blue-400" />
                             {t('billing.invoiceList')}
                         </h2>
-                        <p className="text-sm text-white/50">{t('billing.invoiceListSub')}</p>
+                        <p className="text-sm text-blue-100">{t('billing.invoiceListSub')}</p>
                     </div>
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40" size={18} />
@@ -374,11 +374,11 @@ export default function StaffBillingPage() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-white/10 uppercase tracking-wider">
-                                <th className="p-4 text-xs font-semibold text-white/50">{t('billing.invoice')}</th>
-                                <th className="p-4 text-xs font-semibold text-white/50">{t('billing.customer')}</th>
-                                <th className="p-4 text-xs font-semibold text-white/50">{t('common.date')}</th>
-                                <th className="p-4 text-xs font-semibold text-white/50">{t('common.status')}</th>
-                                <th className="p-4 text-xs font-semibold text-white/50 text-right">{t('common.amount')}</th>
+                                <th className="p-4 text-xs font-semibold text-blue-100">{t('billing.invoice')}</th>
+                                <th className="p-4 text-xs font-semibold text-blue-100">{t('billing.customer')}</th>
+                                <th className="p-4 text-xs font-semibold text-blue-100">{t('common.date')}</th>
+                                <th className="p-4 text-xs font-semibold text-blue-100">{t('common.status')}</th>
+                                <th className="p-4 text-xs font-semibold text-blue-100 text-right">{t('common.amount')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -386,12 +386,12 @@ export default function StaffBillingPage() {
                                 filteredPayments.map((payment) => (
                                     <tr key={payment.id} className="hover:bg-white/5 transition-colors">
                                         <td className="p-4">
-                                            <span className="font-mono text-xs text-white/40">{payment.invoiceNumber}</span>
+                                            <span className="font-mono text-xs text-white/80">{payment.invoiceNumber}</span>
                                         </td>
                                         <td className="p-4">
                                             <div className="font-medium text-white">{payment.username}</div>
                                         </td>
-                                        <td className="p-4 text-xs text-white/40">
+                                        <td className="p-4 text-xs text-white/80">
                                             {new Date(payment.date).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                         </td>
                                         <td className="p-4">
@@ -430,17 +430,17 @@ export default function StaffBillingPage() {
                     <ShieldCheck size={120} />
                 </div>
                 <div className="relative z-10 max-w-2xl">
-                    <h3 className="text-xl font-bold mb-2 drop-shadow-md">{t('billing.infoPartner')}</h3>
-                    <p className="text-white/60 mb-6 italic">
+                    <h3 className="text-xl font-bold mb-2 drop-shadow-md text-white">{t('billing.infoPartner')}</h3>
+                    <p className="text-blue-100 mb-6 italic">
                         {t('billing.infoPartnerDesc')}
                     </p>
                     <div className="flex gap-4">
                         <div className="px-4 py-2 bg-white/5 rounded-xl backdrop-blur-md border border-white/10">
-                            <span className="block text-[10px] text-white/40 uppercase tracking-widest font-bold">{t('billing.agentRate')}</span>
+                            <span className="block text-[10px] text-blue-100 uppercase tracking-widest font-bold">{t('billing.agentRate')}</span>
                             <span className="text-lg font-bold text-blue-300">Variable</span>
                         </div>
                         <div className="px-4 py-2 bg-white/5 rounded-xl backdrop-blur-md border border-white/10">
-                            <span className="block text-[10px] text-white/40 uppercase tracking-widest font-bold">{t('common.status')}</span>
+                            <span className="block text-[10px] text-blue-100 uppercase tracking-widest font-bold">{t('common.status')}</span>
                             <span className="text-lg font-bold text-green-400 flex items-center gap-1">
                                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
                                 {t('billing.active')}

@@ -13,7 +13,7 @@ export default function RecentTransactions({ transactions = [] }) {
                     <h3 className="text-white font-bold text-lg drop-shadow-md">
                         {t('dashboard.recentInvoices') || "Recent Invoices"}
                     </h3>
-                    <p className="text-white/50 text-sm">
+                    <p className="text-blue-100 text-sm">
                         {t('dashboard.latestPaid') || "Latest paid transactions"}
                     </p>
                 </div>
@@ -24,7 +24,7 @@ export default function RecentTransactions({ transactions = [] }) {
 
             <div className="flex-1 overflow-y-auto custom-scrollbar -mr-2 pr-2">
                 {(!transactions || transactions.length === 0) ? (
-                    <div className="h-full flex flex-col items-center justify-center text-white/30">
+                    <div className="h-full flex flex-col items-center justify-center text-blue-100/50">
                         <DollarSign size={32} className="mb-2 opacity-50" />
                         <p className="text-sm">{t('dashboard.noRecentTransactions') || "No recent transactions"}</p>
                     </div>
@@ -44,7 +44,7 @@ export default function RecentTransactions({ transactions = [] }) {
                                         </p>
                                         <div className="flex items-center gap-1.5 mt-0.5">
                                             <CheckCircle2 size={12} className="text-green-400" />
-                                            <p className="text-xs text-white/40 uppercase">
+                                            <p className="text-xs text-white/80 uppercase font-medium">
                                                 {tx.method || 'CASH'}
                                             </p>
                                         </div>
@@ -54,7 +54,7 @@ export default function RecentTransactions({ transactions = [] }) {
                                     <p className="text-sm font-bold text-white">
                                         Rp {tx.amount.toLocaleString('id-ID')}
                                     </p>
-                                    <p className="text-xs text-white/30 mt-0.5">
+                                    <p className="text-xs text-blue-100 mt-0.5 font-medium">
                                         {new Date(tx.date).toLocaleDateString('id-ID', {
                                             day: 'numeric',
                                             month: 'short'

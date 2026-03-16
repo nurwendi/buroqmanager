@@ -56,7 +56,7 @@ export default function PppoePieChart({ active = 0, offline = 0, total = 0 }) {
       <div className="absolute inset-0 bg-white/5 group-hover:bg-white/10 transition-colors duration-300 pointer-events-none" />
 
       <div className="flex items-center justify-between mb-4 relative z-10 w-full">
-        <h3 className="text-white/50 text-sm font-semibold uppercase">
+        <h3 className="text-blue-100 text-sm font-semibold uppercase">
           {t("dashboard.customerStatus") || "Customers / Routers"}
         </h3>
         <div className="p-2 bg-white/10 border border-white/10 rounded-lg text-blue-300 group-hover:scale-110 transition-transform">
@@ -111,7 +111,7 @@ export default function PppoePieChart({ active = 0, offline = 0, total = 0 }) {
           <span className="text-4xl font-bold text-white leading-none mb-1 drop-shadow-md">
             {activeNum + offlineNum > 0 ? activeNum + offlineNum : totalNum}
           </span>
-          <span className="text-xs text-white/50 uppercase font-bold tracking-wider">
+          <span className="text-xs text-blue-100 uppercase font-bold tracking-wider">
             {t("dashboard.total") || "Total"}
           </span>
         </div>

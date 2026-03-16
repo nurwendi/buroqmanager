@@ -38,7 +38,7 @@ export default function RouterStatusCard({ router }) {
                                 </span>
                             )}
                         </h4>
-                        <p className="text-[11px] text-white/40 font-mono">{router.host}</p>
+                        <p className="text-[11px] text-blue-100 font-mono font-medium">{router.host}</p>
                     </div>
                 </div>
                 <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isOnline ? 'bg-green-400/20 text-green-300' : 'bg-red-400/20 text-red-300'}`}>
@@ -50,7 +50,7 @@ export default function RouterStatusCard({ router }) {
                 <div className="space-y-4 relative z-10">
                     <div>
                         <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight mb-1.5">
-                            <span className="text-white/50 flex items-center gap-1"><Cpu size={12} /> CPU Load</span>
+                            <span className="text-blue-100 flex items-center gap-1"><Cpu size={12} /> CPU Load</span>
                             <span className={cpuLoad > 80 ? 'text-red-400' : 'text-blue-300'}>{cpuLoad}%</span>
                         </div>
                         <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden border border-white/5">
@@ -64,7 +64,7 @@ export default function RouterStatusCard({ router }) {
 
                     <div>
                         <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight mb-1.5">
-                            <span className="text-white/50 flex items-center gap-1"><HardDrive size={12} /> RAM ({formatBytes(router.memoryUsed)})</span>
+                            <span className="text-blue-100 flex items-center gap-1"><HardDrive size={12} /> RAM ({formatBytes(router.memoryUsed)})</span>
                             <span className="text-indigo-300">{memoryPercentage}%</span>
                         </div>
                         <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden border border-white/5">
@@ -77,8 +77,8 @@ export default function RouterStatusCard({ router }) {
                     </div>
                 </div>
             ) : (
-                <div className="h-20 flex items-center justify-center opacity-40">
-                    <p className="text-xs italic text-white/50">Router information unavailable</p>
+                <div className="h-20 flex items-center justify-center opacity-70">
+                    <p className="text-xs italic text-blue-100">Router information unavailable</p>
                 </div>
             )}
 

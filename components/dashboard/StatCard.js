@@ -61,7 +61,7 @@ const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue', alert = 
 
 
                 {/* Title */}
-                <h3 className="text-white/50 text-sm font-semibold mb-2 tracking-wide uppercase">
+                <h3 className="text-blue-100 text-sm font-semibold mb-2 tracking-wide uppercase">
                     {title}
                 </h3>
 
@@ -75,7 +75,7 @@ const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue', alert = 
 
                 {/* Subtitle */}
                 {subtitle && (
-                    <p className="text-xs text-white/40 font-medium mt-2">
+                    <p className="text-xs text-white/80 font-medium mt-2">
                         {subtitle}
                     </p>
                 )}

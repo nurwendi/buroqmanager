@@ -96,27 +96,27 @@ export default function SuperadminStats({ stats }) {
                             <div className="space-y-4 text-white">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                                        <p className="text-xs text-white/50 mb-1">{t('dashboard.os')}</p>
+                                        <p className="text-xs text-blue-100 mb-1">{t('dashboard.os')}</p>
                                         <div className="font-semibold text-sm truncate flex items-center gap-2 text-white">
                                             {systemInfo.type === 'Windows_NT' ? 'Windows' : 'Linux'}
-                                            <span className="opacity-50 text-[10px]">({systemInfo.platform})</span>
+                                            <span className="opacity-70 text-[10px]">({systemInfo.platform})</span>
                                         </div>
-                                        <p className="text-xs text-white/40 mt-1 truncate">{systemInfo.release}</p>
+                                        <p className="text-xs text-white/80 mt-1 truncate">{systemInfo.release}</p>
                                     </div>
                                     <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                                        <p className="text-xs text-white/50 mb-1">{t('dashboard.totalMemory')}</p>
+                                        <p className="text-xs text-blue-100 mb-1">{t('dashboard.totalMemory')}</p>
                                         <div className="font-semibold text-sm flex items-center gap-2 text-white">
                                             {formatBytes(systemInfo.memory?.total)}
                                             <HardDrive size={12} className="text-orange-400" />
                                         </div>
-                                        <p className="text-xs text-white/40 mt-1">{t('dashboard.free')}: {formatBytes(systemInfo.memory?.free)}</p>
+                                        <p className="text-xs text-white/80 mt-1">{t('dashboard.free')}: {formatBytes(systemInfo.memory?.free)}</p>
                                     </div>
                                 </div>
 
                                 <div className="bg-white/5 p-3 rounded-lg border border-white/10">
-                                    <p className="text-xs text-white/50 mb-1">{t('dashboard.processor')}</p>
+                                    <p className="text-xs text-blue-100 mb-1">{t('dashboard.processor')}</p>
                                     <div className="font-semibold text-sm text-white">{systemInfo.cpu?.model}</div>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-white/50">
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-blue-100/80">
                                         <div className="flex items-center gap-1">
                                             <Cpu size={12} className="text-green-400" />
                                             {systemInfo.cpu?.cores} {t('dashboard.cores')}
@@ -148,7 +148,7 @@ export default function SuperadminStats({ stats }) {
                         {/* CPU Aggregate */}
                         <div>
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm font-medium text-white/70 flex items-center gap-2">
+                                <span className="text-sm font-medium text-white flex items-center gap-2">
                                     <Cpu size={16} /> {t('dashboard.cpuLoad')} (Total)
                                 </span>
                                 <span className={`text-sm font-bold ${cpuLoad > 80 ? 'text-red-400' : 'text-green-400'}`}>
@@ -253,7 +253,7 @@ export default function SuperadminStats({ stats }) {
                             <Users size={64} className="text-blue-400" />
                         </div>
                         <div>
-                            <p className="text-white/50 font-medium text-sm uppercase tracking-wider">{t('sidebar.systemUsers') || "System Users"}</p>
+                            <p className="text-blue-100 font-medium text-sm uppercase tracking-wider">{t('sidebar.systemUsers') || "System Users"}</p>
                             <h3 className="text-3xl font-bold text-white mt-2 drop-shadow-md">{systemUserCount}</h3>
                         </div>
                         <div className="mt-4 flex items-center gap-2 text-sm text-blue-300 font-medium">
@@ -274,7 +274,7 @@ export default function SuperadminStats({ stats }) {
                         <Database size={64} className="text-purple-400" />
                     </div>
                     <div>
-                        <p className="text-white/50 font-medium text-sm uppercase tracking-wider">{t('dashboard.totalEndUsers')}</p>
+                        <p className="text-blue-100 font-medium text-sm uppercase tracking-wider">{t('dashboard.totalEndUsers')}</p>
                         <h3 className="text-3xl font-bold text-white mt-2 drop-shadow-md">{totalCustomers}</h3>
                     </div>
                     <div className="mt-4 flex items-center gap-2 text-sm text-purple-300 font-medium">
@@ -312,10 +312,10 @@ export default function SuperadminStats({ stats }) {
                         <table className="min-w-full divide-y divide-white/10">
                             <thead className="bg-white/5">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-white/50 uppercase tracking-wider">{t('dashboard.owner')}</th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-white/50 uppercase tracking-wider">{t('dashboard.userActive')}</th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-white/50 uppercase tracking-wider">{t('dashboard.offline')}</th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-white/50 uppercase tracking-wider">{t('dashboard.totalUser')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-blue-100 uppercase tracking-wider">{t('dashboard.owner')}</th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-100 uppercase tracking-wider">{t('dashboard.userActive')}</th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-100 uppercase tracking-wider">{t('dashboard.offline')}</th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-blue-100 uppercase tracking-wider">{t('dashboard.totalUser')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/10 bg-transparent">
@@ -329,13 +329,13 @@ export default function SuperadminStats({ stats }) {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex flex-col text-white">
                                                     <span className="font-semibold">{stat.owner}</span>
-                                                    <span className="text-xs text-white/40">{stat.fullName}</span>
+                                                    <span className="text-xs text-white/80">{stat.fullName}</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-center text-green-400 font-bold bg-green-400/10 rounded-lg">
                                                 {stat.active}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center text-white/40">
+                                            <td className="px-6 py-4 whitespace-nowrap text-center text-white/80 font-medium">
                                                 {stat.offline}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-center text-blue-400 font-bold bg-blue-400/10 rounded-lg">

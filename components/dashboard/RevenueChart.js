@@ -64,7 +64,7 @@ export default function RevenueChart({ data = [] }) {
                     <h3 className="text-white font-bold text-lg drop-shadow-md">
                         {t('dashboard.revenueTrend') || "Revenue Trend"}
                     </h3>
-                    <p className="text-white/50 text-sm">
+                    <p className="text-blue-100 text-sm">
                         {t('dashboard.lastSixMonths') || "Last 6 months performance"}
                     </p>
                 </div>
@@ -95,13 +95,13 @@ export default function RevenueChart({ data = [] }) {
                             dataKey="name" 
                             axisLine={false} 
                             tickLine={false} 
-                            tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
+                            tick={{ fill: '#E5E7EB', fontSize: 12 }}
                             dy={10}
                         />
                         <YAxis 
                             axisLine={false} 
                             tickLine={false} 
-                            tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} 
+                            tick={{ fill: '#E5E7EB', fontSize: 12 }} 
                             tickFormatter={formatYAxis}
                             width={80}
                         />

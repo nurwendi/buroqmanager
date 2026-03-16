@@ -25,7 +25,7 @@ export default function UnifiedFinancialStats({
           <div className="inline-flex items-center justify-center p-3 bg-white/10 rounded-2xl mb-3 border border-white/10">
             <Wallet size={28} className="text-blue-300" />
           </div>
-          <p className="text-white/50 font-medium text-sm lg:text-base mb-1 tracking-wide uppercase">
+          <p className="text-blue-100 font-medium text-sm lg:text-base mb-1 tracking-wide uppercase">
             {t("dashboard.netRevenue") || "Net Revenue"}
           </p>
           <h3 className="text-4xl md:text-5xl font-extrabold tracking-tight text-blue-300 drop-shadow-md">
