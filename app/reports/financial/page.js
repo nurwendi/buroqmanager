@@ -240,12 +240,20 @@ export default function FinancialReportPage() {
                     /* Reset all possible parent containers that might cause blank pages */
                     html, body, 
                     div.relative.min-h-screen, 
-                    div.min-h-screen {
+                    div.min-h-screen,
+                    div.overflow-x-auto,
+                    div.space-y-6,
+                    div.space-y-4 {
                         height: auto !important;
                         min-height: 0 !important;
                         margin: 0 !important;
                         padding: 0 !important;
                         overflow: visible !important;
+                        display: block !important;
+                        width: 100% !important;
+                        max-width: none !important;
+                        filter: none !important;
+                        transform: none !important;
                     }
                     body {
                         background: white !important;
@@ -293,10 +301,19 @@ export default function FinancialReportPage() {
                         border: 1px solid #000 !important;
                         color: #000 !important;
                         padding: 4px 8px !important;
+                        word-break: break-word !important;
+                        max-width: none !important;
+                        white-space: normal !important;
+                    }
+                    .truncate {
+                        overflow: visible !important;
+                        white-space: normal !important;
+                        text-overflow: clip !important;
+                        max-width: none !important;
                     }
                     tr {
-                        page-break-inside: avoid;
-                        page-break-after: auto;
+                        page-break-inside: avoid !important;
+                        page-break-after: auto !important;
                     }
                     /* Hide non-printable elements */
                     nav, .fixed, .print\:hidden {
