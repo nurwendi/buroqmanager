@@ -62,7 +62,7 @@ export default function BottomDock() {
         { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/notifications', icon: Bell, hoverIcon: Bell, label: t('sidebar.notification'), roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/logs', icon: ClipboardList, hoverIcon: MessageSquare, label: t('sidebar.logs'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'customer', 'staff', 'editor', 'agent', 'technician'] },
     ].filter(item => {
         return !item.roles || (userRole && item.roles.includes(userRole));
     });
@@ -107,22 +107,12 @@ export default function BottomDock() {
 
     return (
         <>
-            {/* Gradient Definition - Available for both Mobile and Desktop */}
-            <svg width="0" height="0" className="absolute block w-0 h-0 overflow-hidden">
-                <defs>
-                    <linearGradient id="icon-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#3b82f6" />
-                        <stop offset="100%" stopColor="#ec4899" />
-                    </linearGradient>
-                </defs>
-            </svg>
-
+            {/* Icon Gradient Definition removed as we are moving to solid high-contrast colors */}
             {/* Desktop Dock - Hidden on Mobile or Mobile App */}
             {!isMobile && (
                 <div className="hidden lg:flex fixed bottom-0 left-0 right-0 z-50 justify-center pb-4 print:hidden pointer-events-none">
                     {/* macOS-style Dock Container */}
-                    <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-white/10 px-4 py-3 pointer-events-auto">
-                        <div className="flex items-center gap-14">
+                    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-3 pointer-events-auto">                        <div className="flex items-center gap-14">
                             {/* Menu / Launcher Button */}
                             <button
                                 onClick={() => setIsLauncherOpen(!isLauncherOpen)}
@@ -146,7 +136,7 @@ export default function BottomDock() {
                                     ) : (
                                         <LayoutGrid
                                             size={20}
-                                            className="text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)] transition-colors duration-300"
+                                            className="text-gray-600 group-hover:text-accent transition-colors duration-300"
                                         />
                                     )}
                                 </div>
@@ -184,7 +174,7 @@ export default function BottomDock() {
                                                     transition-all duration-300
                                                     ${isActive
                                                         ? 'text-white'
-                                                        : 'text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)]'
+                                                        : 'text-gray-600 group-hover:text-accent'
                                                     }
                                                 `}
                                             />
@@ -241,8 +231,7 @@ export default function BottomDock() {
             <div className={`${!isMobile ? 'lg:hidden' : ''} fixed bottom-0 left-0 right-0 z-[102] print:hidden`}>
                 <div className="relative">
                     {/* Bottom Bar */}
-                    <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl border-t border-white/20 dark:border-white/10 shadow-2xl">
-                        <div className="flex items-center justify-between px-2 py-2">
+                    <div className="bg-white border-t border-gray-100 shadow-2xl">                        <div className="flex items-center justify-between px-2 py-2">
                             {/* Left Items */}
                             {mobileNavItems.slice(0, 2).map((item) => {
                                 const isActive = pathname === item.href;

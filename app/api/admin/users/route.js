@@ -2,15 +2,11 @@ import { NextResponse } from 'next/server';
 import { getUsers, createUser } from '@/lib/auth';
 import { verifyToken } from '@/lib/security';
 
-async function getCurrentUser(request) {
-    const token = request.cookies.get('auth_token')?.value;
-    if (!token) return null;
-    return await verifyToken(token);
-}
+import { getUserFromRequest } from '@/lib/api-auth';
 
 export async function GET(request) {
     try {
-        const currentUser = await getCurrentUser(request);
+        const currentUser = await getUserFromRequest(request);
         if (!currentUser) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -39,7 +35,7 @@ export async function GET(request) {
 
 export async function POST(request) {
     try {
-        const currentUser = await getCurrentUser(request);
+        const currentUser = await getUserFromRequest(request);
         if (!currentUser) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

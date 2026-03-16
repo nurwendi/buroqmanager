@@ -11,18 +11,27 @@ import { DashboardProvider } from '@/contexts/DashboardContext';
 
 export default function ClientLayout({ children }) {
     const pathname = usePathname();
+    const [loginBgUrl, setLoginBgUrl] = useState('');
+    const [logoUrl, setLogoUrl] = useState('/logo.png');
+    
     const isLoginPage = pathname === '/login';
     const isInvoicePage = pathname.startsWith('/invoice') && !pathname.startsWith('/invoice-settings');
     const isIsolirPage = pathname.startsWith('/isolir');
     const isPublicPage = isLoginPage || isInvoicePage || isIsolirPage;
 
     useEffect(() => {
-        // Sync Title from Settings
+        // Sync Title and Theme from Settings
         fetch('/api/app-settings')
             .then(res => res.json())
             .then(data => {
                 if (data.appName) {
                     document.title = data.appName;
+                }
+                if (data.loginBgUrl) {
+                    setLoginBgUrl(data.loginBgUrl);
+                }
+                if (data.logoUrl) {
+                    setLogoUrl(data.logoUrl);
                 }
             })
             .catch(err => console.error('Failed to load app settings', err));
@@ -37,7 +46,20 @@ export default function ClientLayout({ children }) {
     return (
         <LanguageProvider>
             <DashboardProvider>
-                <div className="relative min-h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+                <div 
+                    className="relative min-h-screen overflow-hidden bg-gray-50 transition-all duration-700"
+                    style={(!isPublicPage && loginBgUrl) ? {
+                        backgroundImage: `url(${loginBgUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundAttachment: 'fixed'
+                    } : {}}
+                >
+                    {/* Background Overlay for authenticated pages with bg image */}
+                    {!isPublicPage && loginBgUrl && (
+                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] pointer-events-none" />
+                    )}
+                    
                     <SessionTimeoutHandler />
 
                     {!isPublicPage && (

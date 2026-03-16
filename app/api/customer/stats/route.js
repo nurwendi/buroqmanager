@@ -178,6 +178,8 @@ export async function GET(request) {
         }
 
         return NextResponse.json({
+            username,
+            customerId: asCustomer?.customerId || searchId || username,
             name,
             avatar,
             usage,

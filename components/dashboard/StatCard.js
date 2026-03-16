@@ -17,6 +17,16 @@ const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue', alert = 
     const iconColor = solidColors[color] || solidColors.blue;
 
 
+    const textColors = {
+        blue: 'text-blue-600',
+        green: 'text-emerald-600',
+        purple: 'text-purple-600',
+        orange: 'text-orange-600',
+        red: 'text-red-600',
+    };
+
+    const textColor = textColors[color] || textColors.blue;
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -26,9 +36,9 @@ const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue', alert = 
             onClick={onClick}
             className={`
                 relative group
-                bg-white dark:bg-gray-800 rounded-2xl 
+                bg-white rounded-2xl 
                 p-6 
-                border border-gray-100 dark:border-gray-700
+                border border-gray-100 shadow-sm
                 transition-all duration-300 
                 cursor-pointer overflow-hidden
                 ${alert ? 'ring-2 ring-red-500 ring-offset-2' : ''}
@@ -40,7 +50,7 @@ const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue', alert = 
                 <motion.div
                     className={`
                         inline-flex p-4 rounded-xl mb-4
-                        ${scheme.iconBg}
+                        ${scheme.iconBg.replace('dark:bg-blue-900/40', '').replace('dark:bg-emerald-900/40', '').replace('dark:bg-purple-900/40', '').replace('dark:bg-orange-900/40', '').replace('dark:bg-red-900/40', '')}
                         transition-all duration-300
                         group-hover:scale-110
                     `}
@@ -51,21 +61,21 @@ const StatCard = ({ icon: Icon, title, value, subtitle, color = 'blue', alert = 
 
 
                 {/* Title */}
-                <h3 className="text-gray-600 dark:text-gray-400 text-sm font-semibold mb-2 tracking-wide uppercase">
+                <h3 className="text-gray-500 text-sm font-semibold mb-2 tracking-wide uppercase">
                     {title}
                 </h3>
 
                 {/* Value */}
                 <p className={`
                     text-3xl font-bold mb-1 truncate
-                    ${scheme.textGradient}
+                    ${textColor}
                 `} title={value}>
                     {value}
                 </p>
 
                 {/* Subtitle */}
                 {subtitle && (
-                    <p className="text-xs text-gray-500 dark:text-gray-500 font-medium mt-2">
+                    <p className="text-xs text-gray-400 font-medium mt-2">
                         {subtitle}
                     </p>
                 )}

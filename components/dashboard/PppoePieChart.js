@@ -39,10 +39,10 @@ export default function PppoePieChart({ active = 0, offline = 0, total = 0 }) {
 
   if (!mounted) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm h-full flex flex-col justify-center items-center">
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm h-full flex flex-col justify-center items-center">
         <div className="animate-pulse flex flex-col items-center">
-           <div className="h-40 w-40 rounded-full border-4 border-gray-100 dark:border-gray-700"></div>
-           <div className="mt-4 h-4 w-24 bg-gray-100 dark:bg-gray-700 rounded"></div>
+           <div className="h-40 w-40 rounded-full border-4 border-gray-100"></div>
+           <div className="mt-4 h-4 w-24 bg-gray-100 rounded"></div>
         </div>
       </div>
     );
@@ -51,15 +51,15 @@ export default function PppoePieChart({ active = 0, offline = 0, total = 0 }) {
   return (
     <div
       onClick={handleClick}
-      className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all cursor-pointer h-full flex flex-col relative group overflow-hidden"
+      className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer h-full flex flex-col relative group overflow-hidden"
     >
-      <div className="absolute inset-0 bg-blue-50/0 group-hover:bg-blue-50/50 dark:group-hover:bg-blue-900/10 transition-colors duration-300 pointer-events-none" />
+      <div className="absolute inset-0 bg-blue-50/0 group-hover:bg-blue-50/5 transition-colors duration-300 pointer-events-none" />
 
       <div className="flex items-center justify-between mb-4 relative z-10 w-full">
-        <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">
+        <h3 className="text-gray-500 text-sm font-semibold uppercase">
           {t("dashboard.customerStatus") || "Customers / Routers"}
         </h3>
-        <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
+        <div className="p-2 bg-blue-50 rounded-lg text-blue-600 group-hover:scale-110 transition-transform">
           <Users size={20} />
         </div>
       </div>
@@ -106,7 +106,7 @@ export default function PppoePieChart({ active = 0, offline = 0, total = 0 }) {
 
         {/* Center text for Total */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20">
-          <span className="text-4xl font-bold text-gray-800 dark:text-white leading-none mb-1">
+          <span className="text-4xl font-bold text-gray-800 leading-none mb-1">
             {activeNum + offlineNum > 0 ? activeNum + offlineNum : totalNum}
           </span>
           <span className="text-xs text-gray-500 uppercase font-bold tracking-wider">
@@ -116,21 +116,21 @@ export default function PppoePieChart({ active = 0, offline = 0, total = 0 }) {
       </div>
 
       <div className="grid grid-cols-2 gap-3 mt-4 relative z-10 w-full">
-        <div className="flex flex-col items-center p-3 rounded-xl bg-green-50/50 dark:bg-green-900/10 transition-colors">
-          <div className="flex items-center gap-1.5 text-green-600 dark:text-green-400 text-xs font-semibold uppercase mb-1">
+        <div className="flex flex-col items-center p-3 rounded-xl bg-green-50/50 transition-colors">
+          <div className="flex items-center gap-1.5 text-green-600 text-xs font-semibold uppercase mb-1">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             {t("dashboard.pppoeActive") || "Online"}
           </div>
-          <span className="text-xl font-bold text-gray-800 dark:text-white">
+          <span className="text-xl font-bold text-gray-800">
             {activeNum}
           </span>
         </div>
-        <div className="flex flex-col items-center p-3 rounded-xl bg-red-50/50 dark:bg-red-900/10 transition-colors">
-          <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400 text-xs font-semibold uppercase mb-1">
+        <div className="flex flex-col items-center p-3 rounded-xl bg-red-50/50 transition-colors">
+          <div className="flex items-center gap-1.5 text-red-600 text-xs font-semibold uppercase mb-1">
             <span className="w-2 h-2 rounded-full bg-red-500"></span>
             {t("dashboard.pppoeOffline") || "Offline"}
           </div>
-          <span className="text-xl font-bold text-gray-800 dark:text-white">
+          <span className="text-xl font-bold text-gray-800">
             {offlineNum}
           </span>
         </div>

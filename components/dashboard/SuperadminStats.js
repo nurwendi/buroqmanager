@@ -75,7 +75,7 @@ export default function SuperadminStats({ stats }) {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                 <Shield className="text-blue-600" size={24} />
                 {t('dashboard.systemOverview')}
             </h2>
@@ -83,26 +83,26 @@ export default function SuperadminStats({ stats }) {
             {/* Server Specification & Usage - Consolidated */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Specs */}
-                <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+                <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-lg border border-gray-100 relative overflow-hidden">
                     <div className="relative z-10">
-                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
-                            <Server size={20} className="text-blue-600 dark:text-blue-400" />
+                        <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800">
+                            <Server size={20} className="text-blue-600" />
                             {t('dashboard.serverSpec')}
                         </h3>
                         {systemInfo ? (
                             <div className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('dashboard.os')}</p>
-                                        <div className="font-semibold text-sm truncate flex items-center gap-2 text-gray-900 dark:text-white">
+                                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                        <p className="text-xs text-gray-500 mb-1">{t('dashboard.os')}</p>
+                                        <div className="font-semibold text-sm truncate flex items-center gap-2 text-gray-900">
                                             {systemInfo.type === 'Windows_NT' ? 'Windows' : 'Linux'}
                                             <span className="opacity-50 text-[10px]">({systemInfo.platform})</span>
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1 truncate">{systemInfo.release}</p>
                                     </div>
-                                    <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('dashboard.totalMemory')}</p>
-                                        <div className="font-semibold text-sm flex items-center gap-2 text-gray-900 dark:text-white">
+                                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                        <p className="text-xs text-gray-500 mb-1">{t('dashboard.totalMemory')}</p>
+                                        <div className="font-semibold text-sm flex items-center gap-2 text-gray-900">
                                             {formatBytes(systemInfo.memory?.total)}
                                             <HardDrive size={12} className="text-orange-500" />
                                         </div>
@@ -110,16 +110,16 @@ export default function SuperadminStats({ stats }) {
                                     </div>
                                 </div>
 
-                                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('dashboard.processor')}</p>
-                                    <div className="font-semibold text-sm text-gray-900 dark:text-white">{systemInfo.cpu?.model}</div>
+                                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                    <p className="text-xs text-gray-500 mb-1">{t('dashboard.processor')}</p>
+                                    <div className="font-semibold text-sm text-gray-900">{systemInfo.cpu?.model}</div>
                                     <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                                         <div className="flex items-center gap-1">
-                                            <Cpu size={12} className="text-green-600 dark:text-green-400" />
+                                            <Cpu size={12} className="text-green-600" />
                                             {systemInfo.cpu?.cores} {t('dashboard.cores')}
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <Activity size={12} className="text-blue-600 dark:text-blue-400" />
+                                            <Activity size={12} className="text-blue-600" />
                                             {systemInfo.cpu?.speed} MHz
                                         </div>
                                     </div>
@@ -127,17 +127,17 @@ export default function SuperadminStats({ stats }) {
                             </div>
                         ) : (
                             <div className="animate-pulse space-y-4">
-                                <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-                                <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+                                <div className="h-20 bg-gray-200 rounded-lg"></div>
+                                <div className="h-16 bg-gray-200 rounded-lg"></div>
                             </div>
                         )}
                     </div>
                 </div>
 
                 {/* Real-time Usage */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden">
-                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
-                        <Activity size={20} className="text-green-600 dark:text-green-400" />
+                <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 relative overflow-hidden">
+                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800">
+                        <Activity size={20} className="text-green-600" />
                         {t('dashboard.realtimeUsage')}
                     </h3>
 
@@ -145,14 +145,14 @@ export default function SuperadminStats({ stats }) {
                         {/* CPU */}
                         <div>
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                                     <Cpu size={16} /> {t('dashboard.cpuLoad')}
                                 </span>
-                                <span className={`text-sm font-bold ${cpuLoad > 80 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
+                                <span className={`text-sm font-bold ${cpuLoad > 80 ? 'text-red-500' : 'text-green-600'}`}>
                                     {cpuLoad}%
                                 </span>
                             </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                            <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                                 <div
                                     className={`h-full rounded-full transition-all duration-1000 ${cpuLoad > 80 ? 'bg-red-500' : 'bg-green-500'}`}
                                     style={{ width: `${cpuLoad}%` }}
@@ -163,14 +163,14 @@ export default function SuperadminStats({ stats }) {
                         {/* RAM */}
                         <div>
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                                     <HardDrive size={16} /> {t('dashboard.memoryUsage')}
                                 </span>
-                                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
+                                <span className="text-sm font-bold text-orange-600">
                                     {memoryPercent}%
                                 </span>
                             </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                            <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-orange-500 rounded-full transition-all duration-1000"
                                     style={{ width: `${memoryPercent}%` }}
@@ -192,14 +192,14 @@ export default function SuperadminStats({ stats }) {
                 <Link href="/system-users" className="block">
                     <motion.div
                         variants={itemVariants}
-                        className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden group h-full cursor-pointer hover:shadow-xl transition-shadow"
+                        className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 relative overflow-hidden group h-full cursor-pointer hover:shadow-xl transition-shadow"
                     >
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                             <Users size={64} className="text-blue-500" />
                         </div>
                         <div>
-                            <p className="text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wider">{t('sidebar.systemUsers') || "System Users"}</p>
-                            <h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-2">{systemUserCount}</h3>
+                            <p className="text-gray-500 font-medium text-sm uppercase tracking-wider">{t('sidebar.systemUsers') || "System Users"}</p>
+                            <h3 className="text-3xl font-bold text-gray-800 mt-2">{systemUserCount}</h3>
                         </div>
                         <div className="mt-4 flex items-center gap-2 text-sm text-blue-500 font-medium">
                             <Shield size={16} />
@@ -213,14 +213,14 @@ export default function SuperadminStats({ stats }) {
                 {/* Total Customers (Global) */}
                 <motion.div
                     variants={itemVariants}
-                    className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden group"
+                    className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 relative overflow-hidden group"
                 >
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Database size={64} className="text-purple-500" />
                     </div>
                     <div>
-                        <p className="text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wider">{t('dashboard.totalEndUsers')}</p>
-                        <h3 className="text-3xl font-bold text-gray-800 dark:text-white mt-2">{totalCustomers}</h3>
+                        <p className="text-gray-500 font-medium text-sm uppercase tracking-wider">{t('dashboard.totalEndUsers')}</p>
+                        <h3 className="text-3xl font-bold text-gray-800 mt-2">{totalCustomers}</h3>
                     </div>
                     <div className="mt-4 flex items-center gap-2 text-sm text-purple-500 font-medium">
                         <Users size={16} />
@@ -237,7 +237,7 @@ export default function SuperadminStats({ stats }) {
                     animate="visible"
                     className="mt-8"
                 >
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                         <Server className="text-blue-600" size={24} />
                         {t('routers.mikrotikConnections') || "Router Connections"}
                     </h3>
@@ -251,39 +251,39 @@ export default function SuperadminStats({ stats }) {
 
             {/* Owner Statistics Table */}
             <div className="mt-8">
-                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4">{t('dashboard.liveOwnerStats')}</h3>
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">{t('dashboard.liveOwnerStats')}</h3>
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead className="bg-gray-50 dark:bg-gray-700/50">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('dashboard.owner')}</th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('dashboard.userActive')}</th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('dashboard.offline')}</th>
-                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('dashboard.totalUser')}</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard.owner')}</th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard.userActive')}</th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard.offline')}</th>
+                                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('dashboard.totalUser')}</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-transparent">
+                            <tbody className="divide-y divide-gray-200 bg-transparent">
                                 {statsLoading ? (
                                     <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">{t('dashboard.loadingStats')}</td></tr>
                                 ) : ownerStats.length === 0 ? (
                                     <tr><td colSpan="4" className="px-6 py-8 text-center text-gray-500">{t('dashboard.noStats')}</td></tr>
                                 ) : (
                                     ownerStats.map((stat) => (
-                                        <tr key={stat.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                        <tr key={stat.id} className="hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex flex-col">
-                                                    <span className="font-semibold text-gray-900 dark:text-white">{stat.owner}</span>
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">{stat.fullName}</span>
+                                                    <span className="font-semibold text-gray-900">{stat.owner}</span>
+                                                    <span className="text-xs text-gray-500">{stat.fullName}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-900/10 rounded-lg">
+                                            <td className="px-6 py-4 whitespace-nowrap text-center text-green-600 font-bold bg-green-50 rounded-lg">
                                                 {stat.active}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center text-gray-500 dark:text-gray-400">
+                                            <td className="px-6 py-4 whitespace-nowrap text-center text-gray-500">
                                                 {stat.offline}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center text-blue-600 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-900/10 rounded-lg">
+                                            <td className="px-6 py-4 whitespace-nowrap text-center text-blue-600 font-bold bg-blue-50 rounded-lg">
                                                 {stat.total}
                                             </td>
                                         </tr>

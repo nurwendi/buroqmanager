@@ -62,8 +62,8 @@ export default function DashboardContent() {
   });
   const [userRole, setUserRole] = useState(null);
   const [username, setUsername] = useState("");
-  const [avatar, setAvatar] = useState(null);
-  const [bgUrl, setBgUrl] = useState("/dashboard-bg.png"); // Default
+  const [bgUrl, setBgUrl] = useState("/dashboard-bg.png");
+  const [loginBgUrl, setLoginBgUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
@@ -82,6 +82,13 @@ export default function DashboardContent() {
     fetch("/api/app-settings")
       .then((res) => res.json())
       .then((data) => {
+        if (data.loginBgUrl) {
+          setLoginBgUrl(data.loginBgUrl);
+          // If no specific dashboard background, use the login one for the banner too
+          if (!data.dashboardBgUrl) {
+            setBgUrl(data.loginBgUrl);
+          }
+        }
         if (data.dashboardBgUrl) {
           setBgUrl(data.dashboardBgUrl);
         }
@@ -257,7 +264,7 @@ export default function DashboardContent() {
   if (loading || userRole === null) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600 dark:text-gray-300">
+        <div className="text-gray-600">
           {t("common.loading")}
         </div>
       </div>
@@ -330,7 +337,7 @@ export default function DashboardContent() {
         {/* Overlapping Profile Section */}
         <div className="relative -mt-20 sm:-mt-24 flex flex-col items-center z-10 px-4">
           <div className="relative group">
-            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-[6px] border-white dark:border-gray-900 shadow-xl bg-gradient-to-br from-blue-600 to-indigo-800 flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:scale-105">
+            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-[6px] border-white shadow-xl bg-gradient-to-br from-blue-600 to-indigo-800 flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:scale-105">
               {avatar ? (
                 <img
                   src={avatar}
@@ -346,18 +353,18 @@ export default function DashboardContent() {
           </div>
 
           <div className="mt-4 text-center">
-            <h1 className="text-[10px] sm:text-xs tracking-[0.4em] uppercase text-indigo-600 dark:text-indigo-400 font-bold mb-1 opacity-70">
+            <h1 className="text-[10px] sm:text-xs tracking-[0.4em] uppercase text-indigo-600 font-bold mb-1 opacity-70">
               {t("dashboard.title")}
             </h1>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight">
               {t("dashboard.welcome")},{" "}
-              <span className="text-indigo-600 dark:text-indigo-400 capitalize">
+              <span className="text-indigo-600 capitalize">
                 {username}
               </span>
               !
             </h2>
             <div className="mt-2 flex items-center justify-center gap-3">
-               <span className="px-3 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 rounded-full text-[10px] font-bold uppercase tracking-widest border border-indigo-100 dark:border-indigo-800">
+               <span className="px-3 py-0.5 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-indigo-100">
                   {userRole}
                </span>
                <p className="text-[10px] sm:text-xs text-gray-400 font-medium flex items-center gap-1">
@@ -389,10 +396,10 @@ export default function DashboardContent() {
 
             {/* New Unified Top Cards */}
             <motion.div variants={itemVariants}>
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <Activity
                   size={20}
-                  className="text-indigo-600 dark:text-indigo-400"
+                  className="text-indigo-600"
                 />
                 {t("dashboard.systemOverview") || "General Overview"}
               </h2>
@@ -406,16 +413,16 @@ export default function DashboardContent() {
 
                 {/* System Users */}
                 <Link href="/system-users" className="block">
-                  <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow h-full cursor-pointer">
+                  <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow h-full cursor-pointer">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">
+                      <h3 className="text-gray-500 text-sm font-semibold uppercase">
                         {t("sidebar.systemUsers") || "System Users"}
                       </h3>
-                      <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+                      <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
                         <Users size={20} />
                       </div>
                     </div>
-                    <p className="text-3xl font-bold text-gray-800 dark:text-white">
+                    <p className="text-3xl font-bold text-gray-800">
                       {stats.systemUserCount}
                     </p>
                     <p className="text-xs text-gray-500 mt-2">
@@ -434,10 +441,10 @@ export default function DashboardContent() {
                 animate="visible"
                 className="mt-8"
               >
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
                   <Server
                     size={20}
-                    className="text-blue-600 dark:text-blue-400"
+                    className="text-blue-600"
                   />
                   {t("routers.title") || "Status Router / NAS"}
                 </h2>

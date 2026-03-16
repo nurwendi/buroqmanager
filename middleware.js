@@ -6,7 +6,7 @@ export async function middleware(request) {
     const { pathname } = request.nextUrl;
 
     // Allow access to login page, invoice page, and static assets
-    if (pathname.startsWith('/login') || pathname.startsWith('/invoice') || pathname.startsWith('/isolir') || pathname.startsWith('/_next') || pathname.startsWith('/api/auth')) {
+    if (pathname.startsWith('/login') || pathname.startsWith('/invoice') || pathname.startsWith('/isolir') || pathname.startsWith('/_next') || pathname.startsWith('/api/auth') || pathname.startsWith('/uploads')) {
         return NextResponse.next();
     }
 
@@ -27,7 +27,7 @@ export async function middleware(request) {
     if (!token) {
         // For API routes, return 401 instead of redirect
         if (pathname.startsWith('/api/')) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
         }
         return NextResponse.redirect(new URL('/login', request.url));
     }
@@ -36,6 +36,9 @@ export async function middleware(request) {
 
     if (!user) {
         // Invalid token
+        if (pathname.startsWith('/api/')) {
+            return NextResponse.json({ error: 'Unauthorized', code: 'INVALID_TOKEN' }, { status: 401 });
+        }
         return NextResponse.redirect(new URL('/login', request.url));
     }
 

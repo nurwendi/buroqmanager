@@ -100,7 +100,7 @@ export default function NotificationPopover({ isBadgeOnly = false, position = 'b
     if (isBadgeOnly) {
         if (unreadCount === 0) return null;
         return (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white dark:border-gray-800 shadow-sm animate-pulse">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white shadow-sm animate-pulse">
                 {unreadCount > 9 ? '9+' : unreadCount}
             </span>
         );
@@ -114,21 +114,21 @@ export default function NotificationPopover({ isBadgeOnly = false, position = 'b
         <div className="relative" ref={popoverRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+                className="relative p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
                 title={t('sidebar.notification')}
             >
                 <Bell size={20} />
                 {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white dark:border-gray-800">
+                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white border-2 border-white">
                         {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                 )}
             </button>
 
             {isOpen && (
-                <div className={`absolute right-0 w-80 md:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[100] ${popoverPositionClass} duration-200`}>
-                    <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
-                        <h3 className="font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                <div className={`absolute right-0 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[100] ${popoverPositionClass} duration-200`}>
+                    <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
+                        <h3 className="font-semibold text-gray-800 flex items-center gap-2">
                             Pemberitahuan
                             {unreadCount > 0 && <span className="text-[10px] px-2 py-0.5 bg-accent/20 text-accent rounded-full">{unreadCount} baru</span>}
                         </h3>
@@ -145,15 +145,15 @@ export default function NotificationPopover({ isBadgeOnly = false, position = 'b
                     <div className="max-h-[70vh] overflow-y-auto">
                         {notifications.length === 0 ? (
                             <div className="p-8 text-center">
-                                <Bell className="mx-auto text-gray-300 dark:text-gray-600 mb-2" size={32} />
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Belum ada notifikasi.</p>
+                                <Bell className="mx-auto text-gray-300 mb-2" size={32} />
+                                <p className="text-sm text-gray-500">Belum ada notifikasi.</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-gray-100 dark:divide-gray-700">
                                 {notifications.map((n) => (
                                     <div
                                         key={n.id}
-                                        className={`p-4 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer ${!n.isRead ? 'bg-accent/5 dark:bg-accent/5' : ''}`}
+                                        className={`p-4 transition-colors hover:bg-gray-50 cursor-pointer ${!n.isRead ? 'bg-accent/5' : ''}`}
                                         onClick={() => !n.isRead && markRead(n.id)}
                                     >
                                         <div className="flex gap-3">
@@ -162,7 +162,7 @@ export default function NotificationPopover({ isBadgeOnly = false, position = 'b
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start mb-1">
-                                                    <p className={`text-sm font-medium truncate ${!n.isRead ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300'}`}>
+                                                    <p className={`text-sm font-medium truncate ${!n.isRead ? 'text-gray-900' : 'text-gray-600'}`}>
                                                         {n.notification.title}
                                                     </p>
                                                     <span className="text-[10px] text-gray-400 flex items-center gap-1 whitespace-nowrap">
@@ -192,7 +192,7 @@ export default function NotificationPopover({ isBadgeOnly = false, position = 'b
                     <Link
                         href="/notifications"
                         onClick={() => setIsOpen(false)}
-                        className="block p-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-accent dark:hover:text-accent border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50"
+                        className="block p-3 text-center text-xs font-medium text-gray-500 hover:text-accent border-t border-gray-100 bg-gray-50/50"
                     >
                         Lihat Semua Notifikasi
                     </Link>

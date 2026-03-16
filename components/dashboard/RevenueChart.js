@@ -46,9 +46,9 @@ export default function RevenueChart({ data = [] }) {
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700">
-                    <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">{label}</p>
-                    <p className="text-gray-900 dark:text-white font-bold">
+                <div className="bg-white p-3 rounded-lg shadow-xl border border-gray-100">
+                    <p className="text-gray-500 text-sm font-medium mb-1">{label}</p>
+                    <p className="text-gray-900 font-bold">
                         Rp {payload[0].value.toLocaleString('id-ID')}
                     </p>
                 </div>
@@ -58,13 +58,13 @@ export default function RevenueChart({ data = [] }) {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm col-span-1 lg:col-span-2 relative overflow-hidden flex flex-col h-full">
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm col-span-1 lg:col-span-2 relative overflow-hidden flex flex-col h-full">
             <div className="flex justify-between items-start mb-6 z-10">
                 <div>
-                    <h3 className="text-gray-800 dark:text-white font-bold text-lg">
+                    <h3 className="text-gray-800 font-bold text-lg">
                         {t('dashboard.revenueTrend') || "Revenue Trend"}
                     </h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">
+                    <p className="text-gray-500 text-sm">
                         {t('dashboard.lastSixMonths') || "Last 6 months performance"}
                     </p>
                 </div>
@@ -72,8 +72,8 @@ export default function RevenueChart({ data = [] }) {
                 {trendInfo && trendInfo.percentage > 0 && (
                     <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
                         trendInfo.isUp 
-                            ? 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400' 
-                            : 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                            ? 'bg-green-50 text-green-600' 
+                            : 'bg-red-50 text-red-600'
                     }`}>
                         {trendInfo.isUp ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
                         <span>{trendInfo.percentage}%</span>
