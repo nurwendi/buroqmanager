@@ -332,9 +332,6 @@ export default function DashboardContent() {
               <RefreshCw size={18} className="group-active:rotate-180 transition-transform duration-500" />
             </button>
           </div>
-
-          {/* Upward Curve Effect - More Pronounced & Perfectly Seamless */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[200%] h-32 bg-background border-none rounded-[100%] translate-y-20 shadow-none"></div>
         </div>
 
         {/* Overlapping Profile Section */}

@@ -158,9 +158,6 @@ export default function StaffBillingPage() {
                             </select>
                         </div>
                     </div>
-
-                    {/* Upward Curve Effect - Perfectly Seamless */}
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[200%] h-32 bg-background border-none rounded-[100%] translate-y-20 shadow-none"></div>
                 </div>
 
                 {/* Overlapping Profile Section */}
