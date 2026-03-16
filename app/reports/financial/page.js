@@ -237,9 +237,15 @@ export default function FinancialReportPage() {
 
             <style jsx global>{`
                 @media print {
-                    @page {
-                        margin: 1cm;
-                        size: portrait;
+                    /* Reset all possible parent containers that might cause blank pages */
+                    html, body, 
+                    div.relative.min-h-screen, 
+                    div.min-h-screen {
+                        height: auto !important;
+                        min-height: 0 !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: visible !important;
                     }
                     body {
                         background: white !important;
