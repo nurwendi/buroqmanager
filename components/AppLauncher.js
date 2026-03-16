@@ -18,7 +18,7 @@ export default function AppLauncher({ isOpen, onClose, navItems, currentPath }) 
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="fixed inset-0 bg-black/70 z-[40]"
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[40]"
                         onClick={onClose}
                     />
 
@@ -28,11 +28,11 @@ export default function AppLauncher({ isOpen, onClose, navItems, currentPath }) 
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.3, ease: 'easeOut' }}
-                        className="fixed inset-0 z-[45] bg-white overflow-y-auto"
+                        className="fixed inset-0 z-[45] bg-white/5 dark:bg-black/40 backdrop-blur-3xl overflow-y-auto"
                     >
                         {/* App Grid */}
                         <div className="container mx-auto px-6 py-20 pb-32">
-                            <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">
+                            <h2 className="text-3xl font-bold text-white mb-8 text-center drop-shadow-lg">
                                 {t('sidebar.applications') || 'Applications'}
                             </h2>
 
@@ -56,8 +56,8 @@ export default function AppLauncher({ isOpen, onClose, navItems, currentPath }) 
                                                     w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center mb-2
                                                     transition-all duration-300
                                                     ${isActive
-                                                        ? 'bg-accent text-white shadow-xl shadow-accent/50'
-                                                        : 'bg-gray-50 shadow-lg hover:shadow-xl'
+                                                        ? 'bg-white/30 text-white shadow-2xl border border-white/40 backdrop-blur-md'
+                                                        : 'bg-white/10 backdrop-blur-md shadow-lg hover:bg-white/20 border border-white/10'
                                                     }
                                                 `}
                                             >
@@ -66,7 +66,7 @@ export default function AppLauncher({ isOpen, onClose, navItems, currentPath }) 
                                                     className={`
                                                         ${isActive
                                                             ? 'text-white'
-                                                            : 'text-gray-700'
+                                                            : 'text-white/80'
                                                         }
                                                     `}
                                                 />
@@ -76,8 +76,8 @@ export default function AppLauncher({ isOpen, onClose, navItems, currentPath }) 
                                             <span className={`
                                                 text-xs sm:text-sm font-medium text-center leading-tight
                                                 ${isActive
-                                                    ? 'text-accent'
-                                                    : 'text-gray-700'
+                                                    ? 'text-white font-bold'
+                                                    : 'text-white/60'
                                                 }
                                             `}>
                                                 {item.label}

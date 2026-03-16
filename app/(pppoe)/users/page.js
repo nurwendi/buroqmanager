@@ -984,7 +984,7 @@ export default function UsersPage() {
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('users.title')}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-md">{t('users.title')}</h1>
                 <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
                     {selectedUsers.size > 0 && !['staff', 'editor', 'agent', 'technician'].includes(userRole) && (
                         <button
@@ -1006,7 +1006,7 @@ export default function UsersPage() {
 
             {/* Pending Registrations (Admin & Staff) */}
             {((userRole === 'admin' || userRole === 'editor' || userRole === 'staff') && pendingRegistrations.length > 0) && (
-                <div className="bg-yellow-50/30 dark:bg-yellow-900/30 backdrop-blur-xl border border-yellow-200/50 dark:border-yellow-800/50 rounded-xl p-4 md:p-6 shadow-lg">
+                <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl border border-white/20 rounded-xl p-4 md:p-6 shadow-xl">
                     <h2 className="text-lg md:text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-4 flex items-center gap-2">
                         <Clock className="text-yellow-600 dark:text-yellow-400" size={20} /> {t('pppoe.pendingRegistrations')}
                         <span className="ml-1 px-2 py-0.5 bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 rounded-full text-sm font-semibold">
@@ -1026,7 +1026,7 @@ export default function UsersPage() {
                                     ? { label: t('common.delete'), cls: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' }
                                     : { label: t('pppoe.register'), cls: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' };
                                 return (
-                                    <div key={reg.username} className="bg-white dark:bg-gray-800 rounded-xl border border-yellow-200/60 dark:border-yellow-800/40 p-4 shadow-sm">
+                                    <div key={reg.username} className="bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-sm">
                                         <div className="flex items-start justify-between gap-2 mb-3">
                                             <div>
                                                 <div className="font-bold text-gray-900 dark:text-white text-sm">{reg.targetUsername || reg.username}</div>
@@ -1066,9 +1066,9 @@ export default function UsersPage() {
                     </div>
 
                     {/* Desktop Table */}
-                    <div className="hidden md:block overflow-x-auto bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead className="bg-gray-50 dark:bg-gray-700/50">
+                    <div className="hidden md:block overflow-x-auto bg-white/10 dark:bg-black/20 backdrop-blur-md rounded-xl border border-white/20 shadow-sm">
+                        <table className="min-w-full divide-y divide-white/10">
+                            <thead className="bg-white/5">
                                 <tr>
                                     <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.username')}</th>
                                     <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.type')}</th>
@@ -1081,11 +1081,11 @@ export default function UsersPage() {
                                     )}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody className="divide-y divide-white/10">
                                 {pendingRegistrations
                                     .filter(reg => userRole === 'admin' || userRole === 'editor' || (userRole === 'staff' && reg.agentId === currentUserId))
                                     .map((reg) => (
-                                        <tr key={reg.username} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                        <tr key={reg.username} className="hover:bg-white/5 transition-colors">
                                             <td className="px-5 py-3.5 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">{reg.targetUsername || reg.username}</td>
                                             <td className="px-5 py-3.5 whitespace-nowrap">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${reg.type === 'delete' ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300' : reg.type === 'edit' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'}`}>
@@ -1125,8 +1125,8 @@ export default function UsersPage() {
 
                 {/* Stats Cards */}
                 {/* Stats Widget (Unified) */}
-                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl border border-white/20 dark:border-white/5 overflow-hidden">
-                    <div className="grid grid-cols-3 divide-x divide-gray-200/50 dark:divide-gray-700/50">
+                <div className="bg-white/10 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl border border-white/20 overflow-hidden">
+                    <div className="grid grid-cols-3 divide-x divide-white/10">
                         {/* Total */}
                         <button
                             onClick={() => setFilterStatus('all')}
@@ -1202,22 +1202,22 @@ export default function UsersPage() {
                 </div>
 
                 {/* Search Bar & Filters */}
-                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-4 border border-white/20 dark:border-white/5 flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-lg shadow-xl p-4 border border-white/20 flex flex-col md:flex-row gap-4 items-center justify-between">
                     <div className="relative w-full md:flex-1">
-                        <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+                        <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" />
                         <input
                             type="text"
                             placeholder={t('pppoe.searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:placeholder-gray-400"
+                            className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg focus:ring-2 focus:ring-blue-500/50 outline-none placeholder-white/30"
                         />
                     </div>
 
                 </div>
 
                 {/* Unified Table */}
-                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
+                <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20">
                     {/* Mobile Card View */}
                     <div className="md:hidden p-4 flex flex-col gap-3">
                         {loading ? (
@@ -1234,7 +1234,7 @@ export default function UsersPage() {
                                     <div
                                         key={user['.id']}
                                         onClick={() => setDetailsModal({ ...user, acs, active })}
-                                        className={`rounded-xl p-3 border transition-shadow cursor-pointer ${isOnline ? 'bg-green-50/40 border-green-100 dark:bg-green-900/10 dark:border-green-800/30' : 'bg-white/50 border-gray-100 dark:bg-gray-800/50 dark:border-gray-700/50'}`}
+                                        className={`rounded-xl p-3 border transition-shadow cursor-pointer ${isOnline ? 'bg-green-500/10 border-green-500/30' : 'bg-white/5 border-white/10'}`}
                                     >
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex gap-2 items-center">
@@ -1273,7 +1273,7 @@ export default function UsersPage() {
                                         </div>
 
                                         {isOnline && (
-                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-gray-600 dark:text-gray-300 mb-2 bg-white/40 dark:bg-black/20 px-2 py-1.5 rounded-lg">
+                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] text-white/70 mb-2 bg-white/5 dark:bg-black/20 px-2 py-1.5 rounded-lg">
                                                 <div className="flex items-center gap-1 font-medium text-green-600 dark:text-green-400 w-full sm:w-auto">
                                                     <Clock size={12} />
                                                     <span>{formatUptime(active.uptime)}</span>
@@ -1319,8 +1319,8 @@ export default function UsersPage() {
                     </div>
 
                     <div className="hidden md:block overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead className="bg-black/5 dark:bg-white/5">
+                        <table className="min-w-full divide-y divide-white/10">
+                            <thead className="bg-white/5">
                                 <tr>
                                     <th className="px-6 py-3 text-left w-10 relative">
                                         <div className="hidden sm:block">
@@ -1399,14 +1399,14 @@ export default function UsersPage() {
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
+                            <tbody className="bg-transparent divide-y divide-white/10">
                                 {loading ? (
                                     <tr>
-                                        <td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('common.loading')}</td>
+                                        <td colSpan="9" className="px-6 py-4 text-center text-white/50">{t('common.loading')}</td>
                                     </tr>
                                 ) : sortedUsers.length === 0 ? (
                                     <tr>
-                                        <td colSpan="9" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('pppoe.noOfflineUsers')}</td>
+                                        <td colSpan="9" className="px-6 py-4 text-center text-white/50">{t('pppoe.noOfflineUsers')}</td>
                                     </tr>
                                 ) : (
                                     paginatedUsers.map((user) => {
@@ -1415,7 +1415,7 @@ export default function UsersPage() {
                                         const isOnline = !!active;
 
                                         return (
-                                            <tr key={user['.id']} className={`transition-colors ${isOnline ? 'bg-green-50/50 dark:bg-green-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
+                                            <tr key={user['.id']} className={`transition-colors ${isOnline ? 'bg-green-500/10' : 'hover:bg-white/5'}`}>
                                                 <td className="px-6 py-4 whitespace-nowrap relative">
                                                     {/* Desktop: Checkbox */}
                                                     <div className="hidden sm:block">
@@ -1623,7 +1623,7 @@ export default function UsersPage() {
                     </div>
 
                     {/* Pagination Controls */}
-                    <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 gap-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 bg-white/5 border-t border-white/10 gap-4">
                         <div className="flex items-center gap-4 text-sm text-gray-700 dark:text-gray-300">
                             <div>
                                 {t('billing.showing')} <span className="font-medium mx-1">
@@ -1696,12 +1696,12 @@ export default function UsersPage() {
             {/* Note: Modals are effectively outside the Tabs.Root logical restriction now, but we kept structure consistent */}
             <AnimatePresence>
                 {showModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-md p-4">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-lg shadow-2xl p-6 pb-24 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/20 dark:border-white/10"
+                            className="bg-white/10 dark:bg-black/40 backdrop-blur-xl rounded-2xl shadow-2xl p-6 pb-24 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/20"
                         >
                             <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
                                 {editMode ? t('pppoe.editUserTitle') : t('pppoe.addUser')}
@@ -1754,7 +1754,7 @@ export default function UsersPage() {
                                                             initial={{ opacity: 0, y: -10 }}
                                                             animate={{ opacity: 1, y: 0 }}
                                                             exit={{ opacity: 0, y: -10 }}
-                                                            className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-xl max-h-60 overflow-y-auto"
+                                                            className="absolute z-50 w-full mt-1 bg-gray-900/90 backdrop-blur-xl border border-white/20 rounded-lg shadow-xl max-h-60 overflow-y-auto"
                                                         >
                                                             {profiles.map(profile => {
                                                                 const price = profile.comment?.toLowerCase().includes('price:') 
@@ -1810,7 +1810,7 @@ export default function UsersPage() {
                                             <p className="text-sm text-gray-500 mb-2">{t('users.selectRoutersDesc')}</p>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                                 {connections.map(conn => (
-                                                    <label key={conn.id} className="flex items-center space-x-2 p-2 border dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                                                    <label key={conn.id} className="flex items-center space-x-2 p-2 border border-white/10 rounded-lg hover:bg-white/5 cursor-pointer">
                                                         <input
                                                             type="checkbox"
                                                             checked={selectedRouterIds.includes(conn.id)}
@@ -1978,12 +1978,12 @@ export default function UsersPage() {
             {/* Review Modal */}
             <AnimatePresence>
                 {showReviewModal && selectedRegistration && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-md p-4">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-lg shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/20 dark:border-white/10"
+                            className="bg-white/10 dark:bg-black/40 backdrop-blur-xl rounded-2xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/20"
                         >
                             <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white flex items-center gap-2">
                                 <Shield size={24} className="text-blue-600" />
@@ -2029,7 +2029,7 @@ export default function UsersPage() {
                             ) : (
                                 <div className="space-y-6">
                                     {/* PPPoE Details */}
-                                    <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                                    <div className="bg-white/5 dark:bg-black/20 p-4 rounded-xl border border-white/10">
                                         <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('pppoe.pppoeAccount')}</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
@@ -2110,7 +2110,7 @@ export default function UsersPage() {
                                                 <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">{t('users.targetRouters')}</label>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                                                     {connections.map(conn => (
-                                                        <label key={conn.id} className="flex items-center space-x-2 p-2 border dark:border-gray-600 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                                                        <label key={conn.id} className="flex items-center space-x-2 p-2 border border-white/10 rounded-lg cursor-pointer hover:bg-white/5">
                                                             <input
                                                                 type="checkbox"
                                                                 checked={(reviewFormData.routerIds || []).includes(conn.id)}
@@ -2135,7 +2135,7 @@ export default function UsersPage() {
                                     </div>
 
                                     {/* Customer Details */}
-                                    <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                                    <div className="bg-white/5 dark:bg-black/20 p-4 rounded-xl border border-white/10">
                                         <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('pppoe.customerInfo')}</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div>
@@ -2169,7 +2169,7 @@ export default function UsersPage() {
                                     </div>
 
                                     {/* Agent Info */}
-                                    <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                                    <div className="bg-white/5 dark:bg-black/20 p-4 rounded-xl border border-white/10">
                                         <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('pppoe.registrationInfo')}</h3>
                                         <div className="flex items-center justify-between">
                                             <div className="flex-1 mr-4">
@@ -2221,14 +2221,14 @@ export default function UsersPage() {
             {/* Bulk Edit Modal */}
             <AnimatePresence>
                 {showBulkEditModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}
-                            className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden"
+                            className="bg-white/10 dark:bg-black/40 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-white/20"
                         >
-                            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+                            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                                 <h3 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                                     <UsersIcon className="text-purple-500" />
                                     {t('pppoe.bulkEditStaff')}
@@ -2239,7 +2239,7 @@ export default function UsersPage() {
                             </div>
 
                             <form onSubmit={handleBulkEditSubmit} className="p-6 space-y-4">
-                                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm text-blue-800 dark:text-blue-200 mb-4">
+                                <div className="p-4 bg-purple-500/10 backdrop-blur-md rounded-lg text-sm text-purple-200 mb-4 border border-purple-500/20">
                                     {t('pppoe.bulkUpdateInfo', { count: selectedUsers.size })}
                                 </div>
 
@@ -2371,7 +2371,7 @@ export default function UsersPage() {
                             </div>
 
                             <div className="space-y-4">
-                                <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg space-y-3">
+                                <div className="p-4 bg-white/5 dark:bg-black/20 rounded-xl space-y-3 border border-white/10">
                                     <div>
                                         <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">{t('device.model')}</p>
                                         <p className="text-sm font-medium text-gray-900 dark:text-white">{selectedDevice.manufacturer} - {selectedDevice.model}</p>
@@ -2432,9 +2432,9 @@ export default function UsersPage() {
             <AnimatePresence>
                 {detailsModal && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="bg-white/10 dark:bg-black/40 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[90vh] border border-white/20">
                             {/* Header */}
-                            <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
+                            <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
                                 <div>
                                     <h3 className="font-bold text-lg text-gray-900 dark:text-white">{detailsModal.name}</h3>
                                     <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">

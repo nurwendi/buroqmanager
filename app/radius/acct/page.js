@@ -24,45 +24,45 @@ export default function AccountingPage() {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <Activity /> Online Users (Accounting)
+                <h1 className="text-2xl font-bold flex items-center gap-2 text-white drop-shadow-md">
+                    <Activity className="text-blue-400" /> Online Users (Accounting)
                 </h1>
                 <button
                     onClick={fetchSessions}
-                    className="p-2 bg-gray-100 rounded hover:bg-gray-200 text-gray-600"
+                    className="p-2 bg-white/10 dark:bg-black/20 backdrop-blur-md rounded-lg hover:bg-white/20 text-white transition-colors border border-white/10 shadow-lg"
                     title="Refresh"
                 >
                     <RefreshCcw size={20} className={loading ? 'animate-spin' : ''} />
                 </button>
             </div>
 
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-xl shadow-xl overflow-hidden border border-white/20">
                 <table className="w-full text-left text-sm">
-                    <thead className="bg-gray-50 border-b">
+                    <thead className="bg-white/5 border-b border-white/10">
                         <tr>
-                            <th className="p-3 font-semibold text-gray-700">Username</th>
-                            <th className="p-3 font-semibold text-gray-700">IP Address</th>
-                            <th className="p-3 font-semibold text-gray-700">Start Time</th>
-                            <th className="p-3 font-semibold text-gray-700">NAS IP</th>
-                            <th className="p-3 font-semibold text-gray-700">Usage (Up/Down)</th>
+                            <th className="p-3 font-semibold text-white/70">Username</th>
+                            <th className="p-3 font-semibold text-white/70">IP Address</th>
+                            <th className="p-3 font-semibold text-white/70">Start Time</th>
+                            <th className="p-3 font-semibold text-white/70">NAS IP</th>
+                            <th className="p-3 font-semibold text-white/70">Usage (Up/Down)</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading ? (
-                            <tr><td colSpan="5" className="p-4 text-center">Loading Data...</td></tr>
+                            <tr><td colSpan="5" className="p-4 text-center text-white/50">Loading Data...</td></tr>
                         ) : sessions.length === 0 ? (
-                            <tr><td colSpan="5" className="p-4 text-center text-gray-500">No online users found.</td></tr>
+                            <tr><td colSpan="5" className="p-4 text-center text-white/50">No online users found.</td></tr>
                         ) : (
                             sessions.map((s) => (
-                                <tr key={s.radacctid} className="border-b hover:bg-gray-50">
-                                    <td className="p-3 font-semibold text-blue-600">{s.username}</td>
-                                    <td className="p-3 font-mono text-gray-600">{s.framedipaddress}</td>
-                                    <td className="p-3">{new Date(s.acctstarttime).toLocaleString()}</td>
-                                    <td className="p-3 text-gray-500">{s.nasipaddress}</td>
+                                <tr key={s.radacctid} className="border-b border-white/10 hover:bg-white/5 transition-colors">
+                                    <td className="p-3 font-semibold text-blue-400">{s.username}</td>
+                                    <td className="p-3 font-mono text-white/60">{s.framedipaddress}</td>
+                                    <td className="p-3 text-white/80">{new Date(s.acctstarttime).toLocaleString()}</td>
+                                    <td className="p-3 text-white/40">{s.nasipaddress}</td>
                                     <td className="p-3">
-                                        <span className="text-green-600">↑ {formatBytes(s.acctinputoctets)}</span>
-                                        <span className="mx-2 text-gray-300">|</span>
-                                        <span className="text-blue-600">↓ {formatBytes(s.acctoutputoctets)}</span>
+                                        <span className="text-green-400">↑ {formatBytes(s.acctinputoctets)}</span>
+                                        <span className="mx-2 text-white/10">|</span>
+                                        <span className="text-blue-400">↓ {formatBytes(s.acctoutputoctets)}</span>
                                     </td>
                                 </tr>
                             ))

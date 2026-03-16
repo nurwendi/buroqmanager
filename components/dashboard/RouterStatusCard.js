@@ -22,26 +22,26 @@ export default function RouterStatusCard({ router }) {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all group overflow-hidden relative"
+            className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20 shadow-2xl hover:bg-white/20 transition-all group overflow-hidden relative"
         >
             <div className="flex justify-between items-start mb-4 relative z-10">
                 <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl ${isOnline ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}`}>
+                    <div className={`p-2.5 rounded-xl ${isOnline ? 'bg-blue-400/20 text-blue-300' : 'bg-red-400/20 text-red-300'}`}>
                         <Server size={22} />
                     </div>
                     <div>
-                        <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                        <h4 className="font-bold text-white flex items-center gap-2 drop-shadow-md">
                             {router.name || 'Unnamed Router'}
                             {isOnline && router.identity && (
-                                <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-mono font-bold">
+                                <span className="text-[10px] bg-white/10 text-blue-200 px-1.5 py-0.5 rounded font-mono font-bold border border-white/10">
                                     {router.identity}
                                 </span>
                             )}
                         </h4>
-                        <p className="text-[11px] text-gray-500 font-mono">{router.host}</p>
+                        <p className="text-[11px] text-white/40 font-mono">{router.host}</p>
                     </div>
                 </div>
-                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isOnline ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isOnline ? 'bg-green-400/20 text-green-300' : 'bg-red-400/20 text-red-300'}`}>
                     {isOnline ? <><Wifi size={10} /> Online</> : <><WifiOff size={10} /> Offline</>}
                 </div>
             </div>
@@ -50,41 +50,41 @@ export default function RouterStatusCard({ router }) {
                 <div className="space-y-4 relative z-10">
                     <div>
                         <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight mb-1.5">
-                            <span className="text-gray-500 flex items-center gap-1"><Cpu size={12} /> CPU Load</span>
-                            <span className={cpuLoad > 80 ? 'text-red-500' : 'text-blue-600'}>{cpuLoad}%</span>
+                            <span className="text-white/50 flex items-center gap-1"><Cpu size={12} /> CPU Load</span>
+                            <span className={cpuLoad > 80 ? 'text-red-400' : 'text-blue-300'}>{cpuLoad}%</span>
                         </div>
-                        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden border border-white/5">
                             <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${cpuLoad}%` }}
-                                className={`h-full rounded-full ${cpuLoad > 80 ? 'bg-red-500' : 'bg-blue-500'}`}
+                                className={`h-full rounded-full ${cpuLoad > 80 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.5)]'}`}
                             />
                         </div>
                     </div>
 
                     <div>
                         <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight mb-1.5">
-                            <span className="text-gray-500 flex items-center gap-1"><HardDrive size={12} /> RAM ({formatBytes(router.memoryUsed)})</span>
-                            <span className="text-indigo-600">{memoryPercentage}%</span>
+                            <span className="text-white/50 flex items-center gap-1"><HardDrive size={12} /> RAM ({formatBytes(router.memoryUsed)})</span>
+                            <span className="text-indigo-300">{memoryPercentage}%</span>
                         </div>
-                        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden border border-white/5">
                             <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${memoryPercentage}%` }}
-                                className="h-full bg-indigo-500 rounded-full"
+                                className="h-full bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(129,140,248,0.5)]"
                             />
                         </div>
                     </div>
                 </div>
             ) : (
                 <div className="h-20 flex items-center justify-center opacity-40">
-                    <p className="text-xs italic text-gray-500">Router information unavailable</p>
+                    <p className="text-xs italic text-white/50">Router information unavailable</p>
                 </div>
             )}
 
             {/* Subtle background decoration */}
             <div className="absolute -bottom-6 -right-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Server size={120} className="text-gray-400" />
+                <Server size={120} className="text-white" />
             </div>
             {isOnline && (
                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-500/5 to-transparent rounded-bl-full pointer-events-none"></div>

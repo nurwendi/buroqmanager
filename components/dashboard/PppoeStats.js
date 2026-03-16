@@ -19,7 +19,7 @@ export default function PppoeStats({ stats }) {
 
     return (
         <motion.div variants={itemVariants}>
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                 <div className="p-2 bg-gradient-to-br from-blue-100 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/20 rounded-lg shadow-lg shadow-blue-500/20 text-blue-600 dark:text-blue-400">
                     <Users size={20} />
                 </div>

@@ -46,9 +46,9 @@ export default function RevenueChart({ data = [] }) {
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-white p-3 rounded-lg shadow-xl border border-gray-100">
-                    <p className="text-gray-500 text-sm font-medium mb-1">{label}</p>
-                    <p className="text-gray-900 font-bold">
+                <div className="bg-black/80 backdrop-blur-md p-3 rounded-lg shadow-2xl border border-white/20">
+                    <p className="text-white/60 text-sm font-medium mb-1">{label}</p>
+                    <p className="text-white font-bold">
                         Rp {payload[0].value.toLocaleString('id-ID')}
                     </p>
                 </div>
@@ -58,13 +58,13 @@ export default function RevenueChart({ data = [] }) {
     };
 
     return (
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm col-span-1 lg:col-span-2 relative overflow-hidden flex flex-col h-full">
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-2xl col-span-1 lg:col-span-2 relative overflow-hidden flex flex-col h-full">
             <div className="flex justify-between items-start mb-6 z-10">
                 <div>
-                    <h3 className="text-gray-800 font-bold text-lg">
+                    <h3 className="text-white font-bold text-lg drop-shadow-md">
                         {t('dashboard.revenueTrend') || "Revenue Trend"}
                     </h3>
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-white/50 text-sm">
                         {t('dashboard.lastSixMonths') || "Last 6 months performance"}
                     </p>
                 </div>
@@ -72,8 +72,8 @@ export default function RevenueChart({ data = [] }) {
                 {trendInfo && trendInfo.percentage > 0 && (
                     <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
                         trendInfo.isUp 
-                            ? 'bg-green-50 text-green-600' 
-                            : 'bg-red-50 text-red-600'
+                            ? 'bg-green-400/20 text-green-300' 
+                            : 'bg-red-400/20 text-red-300'
                     }`}>
                         {trendInfo.isUp ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
                         <span>{trendInfo.percentage}%</span>
@@ -90,30 +90,30 @@ export default function RevenueChart({ data = [] }) {
                                 <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" strokeOpacity={0.5} className="dark:stroke-gray-700" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff" strokeOpacity={0.1} />
                         <XAxis 
                             dataKey="name" 
                             axisLine={false} 
                             tickLine={false} 
-                            tick={{ fill: '#9ca3af', fontSize: 12 }}
+                            tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }}
                             dy={10}
                         />
                         <YAxis 
                             axisLine={false} 
                             tickLine={false} 
-                            tick={{ fill: '#9ca3af', fontSize: 12 }} 
+                            tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} 
                             tickFormatter={formatYAxis}
                             width={80}
                         />
-                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                        <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.2)', strokeWidth: 1, strokeDasharray: '4 4' }} />
                         <Area 
                             type="monotone" 
                             dataKey="revenue" 
-                            stroke="#6366f1" 
+                            stroke="#818cf8" 
                             strokeWidth={3}
                             fillOpacity={1} 
                             fill="url(#colorRevenue)" 
-                            activeDot={{ r: 6, strokeWidth: 0, fill: '#6366f1' }}
+                            activeDot={{ r: 6, strokeWidth: 0, fill: '#818cf8' }}
                             animationDuration={1500}
                         />
                     </AreaChart>

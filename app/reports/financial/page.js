@@ -85,7 +85,7 @@ export default function FinancialReportPage() {
                         <ArrowLeft size={24} className="text-gray-600 dark:text-gray-300" />
                     </Link>
                     <div>
-                        <h1 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">{t('billing.reports.title')}</h1>
+                        <h1 className="text-xl md:text-2xl font-bold text-white drop-shadow-md">{t('billing.reports.title')}</h1>
                     </div>
                 </div>
 
@@ -93,7 +93,7 @@ export default function FinancialReportPage() {
                     <select
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                        className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm"
+                        className="px-3 py-1.5 border border-white/20 rounded-lg bg-white/5 backdrop-blur-md text-white text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"
                     >
                         {months.map((m, i) => (
                             <option key={i} value={i}>{m}</option>
@@ -102,7 +102,7 @@ export default function FinancialReportPage() {
                     <select
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                        className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm"
+                        className="px-3 py-1.5 border border-white/20 rounded-lg bg-white/5 backdrop-blur-md text-white text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"
                     >
                         {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(y => (
                             <option key={y} value={y}>{y}</option>
@@ -137,48 +137,48 @@ export default function FinancialReportPage() {
                 <div className="space-y-6 print:space-y-4">
                     {/* Summary Row */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:grid-cols-4 print:gap-2">
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:border-black/10">
-                            <p className="text-[10px] font-medium text-gray-500 uppercase">{t('billing.reports.revenue')}</p>
-                            <h3 className="text-lg font-bold text-blue-600">{formatCurrency(data.summary.totalRevenue)}</h3>
+                        <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl p-3 rounded-xl shadow-lg border border-white/20 print:shadow-none print:bg-white print:border-black/10">
+                            <p className="text-[10px] font-medium text-white/60 uppercase">{t('billing.reports.revenue')}</p>
+                            <h3 className="text-lg font-bold text-blue-400 print:text-blue-600">{formatCurrency(data.summary.totalRevenue)}</h3>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:border-black/10">
-                            <p className="text-[10px] font-medium text-gray-500 uppercase">{t('billing.reports.unpaid')}</p>
-                            <h3 className="text-lg font-bold text-orange-600">{formatCurrency(data.summary.totalUnpaid)}</h3>
+                        <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl p-3 rounded-xl shadow-lg border border-white/20 print:shadow-none print:bg-white print:border-black/10">
+                            <p className="text-[10px] font-medium text-white/60 uppercase">{t('billing.reports.unpaid')}</p>
+                            <h3 className="text-lg font-bold text-orange-400 print:text-orange-600">{formatCurrency(data.summary.totalUnpaid)}</h3>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:border-black/10">
-                            <p className="text-[10px] font-medium text-gray-500 uppercase">{t('billing.reports.expenses')}</p>
-                            <h3 className="text-lg font-bold text-red-600">{formatCurrency(data.summary.totalCommissions)}</h3>
+                        <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl p-3 rounded-xl shadow-lg border border-white/20 print:shadow-none print:bg-white print:border-black/10">
+                            <p className="text-[10px] font-medium text-white/60 uppercase">{t('billing.reports.expenses')}</p>
+                            <h3 className="text-lg font-bold text-red-400 print:text-red-600">{formatCurrency(data.summary.totalCommissions)}</h3>
                         </div>
-                        <div className="bg-accent/10 dark:bg-accent/20 p-3 rounded-lg shadow border border-accent/20 print:shadow-none print:border-black/10">
-                            <p className="text-[10px] font-medium text-accent uppercase">{t('billing.reports.netIncome')}</p>
-                            <h3 className="text-lg text-accent dark:text-accent " style={{ fontWeight: '400' }}>{formatCurrency(data.summary.netIncome)}</h3>
+                        <div className="bg-blue-600/20 backdrop-blur-xl p-3 rounded-xl shadow-lg border border-blue-500/30 print:shadow-none print:bg-blue-50 print:border-black/10">
+                            <p className="text-[10px] font-medium text-blue-300 print:text-blue-600 uppercase">{t('billing.reports.netIncome')}</p>
+                            <h3 className="text-lg font-bold text-white print:text-black">{formatCurrency(data.summary.netIncome)}</h3>
                         </div>
                     </div>
 
                     {/* Staff Performance Table (Compact) */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black/10">
-                        <div className="bg-gray-50 dark:bg-gray-900/50 px-4 py-2 border-b border-gray-100">
-                            <h3 className="text-xs font-bold uppercase tracking-wider">{t('billing.reports.staffPerformance')}</h3>
+                    <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-xl shadow-xl border border-white/20 overflow-hidden print:shadow-none print:bg-white print:border-black/10">
+                        <div className="bg-white/5 px-4 py-2 border-b border-white/10 print:bg-gray-50 print:border-gray-100">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-white print:text-black">{t('billing.reports.staffPerformance')}</h3>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-xs">
-                                <thead className="bg-gray-50 dark:bg-gray-900/50">
+                                <thead className="bg-white/5 print:bg-gray-50">
                                     <tr>
-                                        <th className="px-4 py-2 text-left text-gray-500">{t('billing.reports.staff')}</th>
-                                        <th className="px-4 py-2 text-center text-gray-500">{t('billing.reports.transactionsCount')}</th>
-                                        <th className="px-4 py-2 text-right text-gray-500">{t('billing.reports.gross')}</th>
-                                        <th className="px-4 py-2 text-right text-gray-500">{t('billing.reports.commission')}</th>
-                                        <th className="px-4 py-2 text-right text-gray-500">{t('billing.reports.netProfit')}</th>
+                                        <th className="px-4 py-2 text-left text-white/60 print:text-gray-500">{t('billing.reports.staff')}</th>
+                                        <th className="px-4 py-2 text-center text-white/60 print:text-gray-500">{t('billing.reports.transactionsCount')}</th>
+                                        <th className="px-4 py-2 text-right text-white/60 print:text-gray-500">{t('billing.reports.gross')}</th>
+                                        <th className="px-4 py-2 text-right text-white/60 print:text-gray-500">{t('billing.reports.commission')}</th>
+                                        <th className="px-4 py-2 text-right text-white/60 print:text-gray-500">{t('billing.reports.netProfit')}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                <tbody className="divide-y divide-white/10 print:divide-gray-100">
                                     {data.staffBreakdown.map((s, i) => (
-                                        <tr key={i}>
-                                            <td className="px-4 py-1.5 font-medium">{s.name}</td>
-                                            <td className="px-4 py-1.5 text-center">{s.count}</td>
-                                            <td className="px-4 py-1.5 text-right">{formatCurrency(s.revenue)}</td>
-                                            <td className="px-4 py-1.5 text-right text-red-500">-{formatCurrency(s.commission)}</td>
-                                            <td className="px-4 py-1.5 text-right font-bold text-green-600">{formatCurrency(s.revenue - s.commission)}</td>
+                                        <tr key={i} className="hover:bg-white/5 print:hover:bg-transparent">
+                                            <td className="px-4 py-1.5 font-medium text-white print:text-black">{s.name}</td>
+                                            <td className="px-4 py-1.5 text-center text-white/80 print:text-black">{s.count}</td>
+                                            <td className="px-4 py-1.5 text-right text-white/80 print:text-black">{formatCurrency(s.revenue)}</td>
+                                            <td className="px-4 py-1.5 text-right text-red-400 print:text-red-500">-{formatCurrency(s.commission)}</td>
+                                            <td className="px-4 py-1.5 text-right font-bold text-green-400 print:text-green-600">{formatCurrency(s.revenue - s.commission)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -187,30 +187,30 @@ export default function FinancialReportPage() {
                     </div>
 
                     {/* All Payments Table (Detail) */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black/10">
-                        <div className="bg-gray-50 dark:bg-gray-900/50 px-4 py-2 border-b border-gray-100">
-                            <h3 className="text-xs font-bold uppercase tracking-wider">{t('billing.reports.allPayments')}</h3>
+                    <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-xl shadow-xl border border-white/20 overflow-hidden print:shadow-none print:bg-white print:border-black/10">
+                        <div className="bg-white/5 px-4 py-2 border-b border-white/10 print:bg-gray-50 print:border-gray-100">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-white print:text-black">{t('billing.reports.allPayments')}</h3>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-xs print:text-[10px]">
-                                <thead className="bg-gray-50 dark:bg-gray-900/50">
+                                <thead className="bg-white/5 print:bg-gray-50">
                                     <tr>
-                                        <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.no')}</th>
-                                        <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.customerId')}</th>
-                                        <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.customerName')}</th>
-                                        <th className="px-3 py-2 text-left text-gray-500 font-bold">{t('billing.reports.agent')}</th>
-                                        <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.paymentDate')}</th>
-                                        <th className="px-3 py-2 text-right text-gray-500">{t('billing.reports.amount')}</th>
-                                        <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.description')}</th>
+                                        <th className="px-3 py-2 text-left text-white/60 print:text-gray-500">{t('billing.reports.no')}</th>
+                                        <th className="px-3 py-2 text-left text-white/60 print:text-gray-500">{t('billing.reports.customerId')}</th>
+                                        <th className="px-3 py-2 text-left text-white/60 print:text-gray-500">{t('billing.reports.customerName')}</th>
+                                        <th className="px-3 py-2 text-left text-white/60 font-bold print:text-gray-500">{t('billing.reports.agent')}</th>
+                                        <th className="px-3 py-2 text-left text-white/60 print:text-gray-500">{t('billing.reports.paymentDate')}</th>
+                                        <th className="px-3 py-2 text-right text-white/60 print:text-gray-500">{t('billing.reports.amount')}</th>
+                                        <th className="px-3 py-2 text-left text-white/60 print:text-gray-500">{t('billing.reports.description')}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                <tbody className="divide-y divide-white/10 print:divide-gray-100">
                                     {data.allPayments.map((p, i) => (
                                         <tr key={i} className={`
-                                            ${p.status !== 'completed' ? 'bg-red-50 dark:bg-red-900/30 text-red-600 print:bg-red-100 print:text-red-700' : ''}
+                                            ${p.status !== 'completed' ? 'bg-red-500/10 text-red-400 print:bg-red-50 print:text-red-700' : 'text-white/80 print:text-black hover:bg-white/5'}
                                         `}>
-                                            <td className="px-3 py-1 font-mono text-gray-400 print:text-black">{i + 1}</td>
-                                            <td className={`px-3 py-1 ${p.status === 'completed' ? 'text-accent print:text-black' : ''}`} style={{ fontWeight: '400' }}>{p.customerNumber}</td>
+                                            <td className="px-3 py-1 font-mono text-white/40 print:text-black">{i + 1}</td>
+                                            <td className={`px-3 py-1 ${p.status === 'completed' ? 'text-blue-400 print:text-black font-medium' : ''}`}>{p.customerNumber}</td>
                                             <td className="px-3 py-1 font-medium">{p.customerName}</td>
                                             <td className="px-3 py-1 font-medium">{p.agentName}</td>
                                             <td className="px-3 py-1">{formatDate(p.date)}</td>

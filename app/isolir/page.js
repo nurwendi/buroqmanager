@@ -38,8 +38,8 @@ export default function IsolirPage() {
     const contactLabel = contact?.name ? contact.name : 'Admin';
 
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden border-t-4 border-red-600">
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="bg-white/10 dark:bg-black/40 backdrop-blur-xl rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-white/20">
                 <div className="p-8 text-center">
                     <div className="flex justify-center mb-6">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -53,17 +53,17 @@ export default function IsolirPage() {
                         <WifiOff size={48} className="text-red-600" />
                     </div>
 
-                    <h1 className="text-2xl font-bold text-gray-800 mb-2">Layanan Terisolir</h1>
-                    <p className="text-gray-600 mb-6">
+                    <h1 className="text-2xl font-bold text-white mb-2 drop-shadow-md">Layanan Terisolir</h1>
+                    <p className="text-white/80 mb-6">
                         Maaf, layanan internet Anda saat ini dinonaktifkan sementara karena ada tagihan yang belum terselesaikan.
                     </p>
 
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 text-left">
+                    <div className="bg-red-500/20 backdrop-blur-md border border-red-500/30 rounded-xl p-4 mb-6 text-left">
                         <div className="flex items-start gap-3">
-                            <AlertTriangle className="text-orange-500 shrink-0 mt-0.5" size={20} />
+                            <AlertTriangle className="text-red-400 shrink-0 mt-0.5" size={20} />
                             <div>
-                                <h3 className="font-semibold text-orange-800 text-sm">Penting</h3>
-                                <p className="text-xs text-orange-700 mt-1">
+                                <h3 className="font-semibold text-red-200 text-sm">Penting</h3>
+                                <p className="text-xs text-red-100/80 mt-1">
                                     Mohon segera lakukan pembayaran untuk mengaktifkan kembali layanan internet Anda secara otomatis.
                                 </p>
                             </div>
@@ -81,7 +81,7 @@ export default function IsolirPage() {
                             {loading ? 'Memuat Kontak...' : `Hubungi ${contactLabel} via WhatsApp`}
                         </a>
 
-                        <p className="text-xs text-gray-500 mt-4">
+                        <p className="text-xs text-white/50 mt-4">
                             Jika Anda sudah melakukan pembayaran namun halaman ini masih muncul, silakan restart modem/router Anda.
                         </p>
                     </div>

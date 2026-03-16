@@ -317,21 +317,21 @@ export default function DashboardContent() {
     >
       {/* Premium Header with Banner & Overlapping Avatar */}
       <motion.div variants={itemVariants} className="relative mb-8 sm:mb-12 -mx-4 md:-mx-8 -mt-4 md:-mt-8 rounded-none">
-        {/* Banner Area - Sharp Image & No Blur */}
-        <div className="relative h-48 sm:h-64 w-full bg-white border-b border-gray-100 shadow-none outline-none rounded-none overflow-hidden">
+        {/* Banner Area - Sharp Image & Glassy Feel */}
+        <div className="relative h-48 sm:h-64 w-full bg-black/20 border-b border-white/10 shadow-none outline-none rounded-none overflow-hidden">
           <img 
             src={bgUrl} 
             alt="Dashboard Background" 
-            className="absolute inset-0 w-full h-full object-cover object-center"
+            className="absolute inset-0 w-full h-full object-cover object-center scale-105"
             style={{ imageRendering: "high-quality" }}
           />
-          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"></div>
           
           {/* Header Action: Refresh */}
           <div className="absolute top-6 right-6 z-20">
             <button
               onClick={fetchStats}
-              className="p-2.5 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all shadow-sm group"
+              className="p-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all shadow-lg group"
               title={t("common.refresh")}
             >
               <RefreshCw size={18} className="group-active:rotate-180 transition-transform duration-500" />
@@ -358,22 +358,22 @@ export default function DashboardContent() {
           </div>
 
           <div className="mt-4 text-center">
-            <h1 className="text-[10px] sm:text-xs tracking-[0.4em] uppercase text-indigo-600 font-bold mb-1 opacity-70">
+            <h1 className="text-[10px] sm:text-xs tracking-[0.4em] uppercase text-white/50 font-bold mb-1">
               {t("dashboard.title")}
             </h1>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight drop-shadow-md">
               {t("dashboard.welcome")},{" "}
-              <span className="text-indigo-600 capitalize">
+              <span className="text-blue-200 capitalize">
                 {username}
               </span>
               !
             </h2>
             <div className="mt-2 flex items-center justify-center gap-3">
-               <span className="px-3 py-0.5 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-indigo-100">
+               <span className="px-3 py-0.5 bg-white/10 backdrop-blur-md text-white rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/20">
                   {userRole}
                </span>
-               <p className="text-[10px] sm:text-xs text-gray-400 font-medium flex items-center gap-1">
-                 <Activity size={12} className="text-green-500" />
+               <p className="text-[10px] sm:text-xs text-white/60 font-medium flex items-center gap-1">
+                 <Activity size={12} className="text-green-400" />
                  {lastUpdate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                </p>
             </div>
@@ -401,10 +401,10 @@ export default function DashboardContent() {
 
             {/* New Unified Top Cards */}
             <motion.div variants={itemVariants}>
-              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                 <Activity
                   size={20}
-                  className="text-indigo-600"
+                  className="text-blue-400"
                 />
                 {t("dashboard.systemOverview") || "General Overview"}
               </h2>
@@ -418,19 +418,19 @@ export default function DashboardContent() {
 
                 {/* System Users */}
                 <Link href="/system-users" className="block">
-                  <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow h-full cursor-pointer">
+                  <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl hover:bg-white/20 transition-all h-full cursor-pointer">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-gray-500 text-sm font-semibold uppercase">
+                      <h3 className="text-white/50 text-sm font-semibold uppercase">
                         {t("sidebar.systemUsers") || "System Users"}
                       </h3>
-                      <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                      <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400">
                         <Users size={20} />
                       </div>
                     </div>
-                    <p className="text-3xl font-bold text-gray-800">
+                    <p className="text-3xl font-bold text-white">
                       {stats.systemUserCount}
                     </p>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-white/40 mt-2">
                       {t("dashboard.registeredAdmins") || "Registered Users"}
                     </p>
                   </div>
@@ -446,10 +446,10 @@ export default function DashboardContent() {
                 animate="visible"
                 className="mt-8"
               >
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
                   <Server
                     size={20}
-                    className="text-blue-600"
+                    className="text-blue-400"
                   />
                   {t("routers.title") || "Status Router / NAS"}
                 </h2>

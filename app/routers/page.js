@@ -346,18 +346,18 @@ export default function SettingsPage() {
     return (
         <div className="w-full space-y-8">
             <div className="flex items-center gap-3 mb-8">
-                <Server className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('routers.title')}</h1>
+                <Server className="w-8 h-8 text-blue-400 drop-shadow-md" />
+                <h1 className="text-2xl font-bold text-white drop-shadow-md">{t('routers.title')}</h1>
             </div>
 
             {/* Connections Management */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <div className="bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl p-6 border border-white/20">
                 {/* ... existing connections content ... */}
-                <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
-                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('routers.mikrotikConnections')}</h2>
+                <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6 border-b border-white/10 pb-4">
+                    <h2 className="text-xl font-semibold text-white">{t('routers.mikrotikConnections')}</h2>
                     <button
                         onClick={() => openEditModal()}
-                        className="w-full md:w-auto flex items-center justify-center gap-2 bg-accent text-white px-4 py-2 rounded-md hover:opacity-90 transition-all shadow-lg shadow-accent/30"
+                        className="w-full md:w-auto flex items-center justify-center gap-2 bg-accent text-white px-4 py-2 rounded-md hover:opacity-90 transition-all shadow-lg shadow-accent/20"
                     >
                         <Plus size={18} /> {t('routers.addConnection')}
                     </button>
@@ -365,59 +365,59 @@ export default function SettingsPage() {
 
                 <div className="space-y-4">
                     {settings.connections.length === 0 ? (
-                        <p className="text-gray-500 text-center py-4">{t('routers.noConnections')}</p>
+                        <p className="text-white/40 text-center py-4">{t('routers.noConnections')}</p>
                     ) : (
                         <div className="grid gap-4">
                             {settings.connections.map(conn => (
-                                <div key={conn.id} className={`border rounded-lg p-4 flex items-center justify-between ${settings.activeConnectionId === conn.id ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 'border-gray-200 dark:border-gray-700'}`}>
+                                <div key={conn.id} className={`border rounded-lg p-4 flex items-center justify-between ${settings.activeConnectionId === conn.id ? 'border-green-500/50 bg-green-400/10' : 'border-white/10 bg-white/5'}`}>
                                     <div className="flex items-center gap-4">
-                                        <div className={`p-2 rounded-full ${settings.activeConnectionId === conn.id ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500'}`}>
+                                        <div className={`p-2 rounded-full border ${settings.activeConnectionId === conn.id ? 'bg-green-400/20 text-green-300 border-green-400/20' : 'bg-white/5 text-white/30 border-white/5'}`}>
                                             <Power size={20} />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                                            <h3 className="font-semibold text-white flex items-center gap-2">
                                                 {conn.name || t('routers.unnamedConnection')}
                                                 {identities[conn.id] && identities[conn.id] !== 'OFFLINE' && (
-                                                    <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded font-mono font-bold">
+                                                    <span className="text-[10px] bg-blue-400/20 text-blue-300 px-1.5 py-0.5 rounded font-mono font-bold border border-white/10">
                                                         {identities[conn.id]}
                                                     </span>
                                                 )}
                                                 {identities[conn.id] === 'OFFLINE' && (
-                                                    <span className="text-[10px] bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 px-1.5 py-0.5 rounded font-mono font-bold uppercase">
+                                                    <span className="text-[10px] bg-red-400/20 text-red-300 px-1.5 py-0.5 rounded font-mono font-bold uppercase border border-white/10">
                                                         Offline
                                                     </span>
                                                 )}
                                                 {checkingStatus[conn.id] && (
-                                                    <Loader2 size={12} className="animate-spin text-gray-400" />
+                                                    <Loader2 size={12} className="animate-spin text-white/40" />
                                                 )}
                                             </h3>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">{conn.host}:{conn.port} ({conn.user})</p>
+                                            <p className="text-sm text-white/50">{conn.host}:{conn.port} ({conn.user})</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         {settings.activeConnectionId !== conn.id && (
                                             <button
                                                 onClick={() => handleConnect(conn.id)}
-                                                className="px-3 py-1 text-sm bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 text-green-700 dark:text-green-300 rounded-md transition-colors"
+                                                className="px-3 py-1 text-sm bg-white/10 hover:bg-white/20 text-white rounded-md transition-colors border border-white/10"
                                             >
                                                 {t('routers.connect')}
                                             </button>
                                         )}
                                         {settings.activeConnectionId === conn.id && (
-                                            <span className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md flex items-center gap-1">
+                                            <span className="px-3 py-1 text-sm bg-green-400/20 text-green-300 rounded-md flex items-center gap-1 border border-white/10">
                                                 <CheckCircle size={14} /> {t('routers.active')}
                                             </span>
                                         )}
                                         <button
                                             onClick={() => openEditModal(conn)}
-                                            className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md"
+                                            className="p-2 text-blue-300 hover:bg-white/10 rounded-md border border-white/10 transition-colors"
                                             title={t('common.edit')}
                                         >
                                             <Edit2 size={18} />
                                         </button>
                                         <button
                                             onClick={() => handleDeleteConnection(conn.id)}
-                                            className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+                                            className="p-2 text-red-300 hover:bg-white/10 rounded-md border border-white/10 transition-colors"
                                             title={t('common.delete')}
                                         >
                                             <Trash2 size={18} />
@@ -431,15 +431,15 @@ export default function SettingsPage() {
             </div>
 
             {/* Radius Client (NAS) Management */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+            <div className="bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl p-6 border border-white/20">
+                <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6 border-b border-white/10 pb-4">
                     <div>
-                        <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('routers.radiusClients')}</h2>
-                        <p className="text-sm text-gray-500">{t('routers.radiusClientsDesc')}</p>
+                        <h2 className="text-xl font-semibold text-white">{t('routers.radiusClients')}</h2>
+                        <p className="text-sm text-white/50">{t('routers.radiusClientsDesc')}</p>
                     </div>
                     <button
                         onClick={() => setShowNasModal(true)}
-                        className="w-full md:w-auto flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30"
+                        className="w-full md:w-auto flex items-center justify-center gap-2 bg-purple-500 text-white px-4 py-2 rounded-md hover:opacity-90 transition-all shadow-lg shadow-purple-500/20"
                     >
                         <Plus size={18} /> {t('routers.addRadiusClient')}
                     </button>
@@ -447,24 +447,24 @@ export default function SettingsPage() {
 
                 <div className="space-y-4">
                     {nasList.length === 0 ? (
-                        <p className="text-gray-500 text-center py-4">{t('routers.noRadiusClients')}</p>
+                        <p className="text-white/40 text-center py-4">{t('routers.noRadiusClients')}</p>
                     ) : (
                         <div className="grid gap-4">
                             {nasList.map(nas => (
-                                <div key={nas.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <div key={nas.id} className="border border-white/10 rounded-lg p-4 flex items-center justify-between bg-white/5 hover:bg-white/10 transition-colors">
                                     <div className="flex items-center gap-4">
-                                        <div className="p-2 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                                        <div className="p-2 rounded-full bg-purple-400/20 text-purple-300 border border-white/10">
                                             <Shield size={20} />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-800 dark:text-white">{nas.nasname}</h3>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400">{t('routers.radiusSecret')}: <span className="font-mono bg-gray-100 dark:bg-gray-900 px-1 rounded">{nas.secret}</span></p>
-                                            {nas.description && <p className="text-xs text-gray-400 italic">{nas.description}</p>}
+                                            <h3 className="font-semibold text-white">{nas.nasname}</h3>
+                                            <p className="text-sm text-white/50">{t('routers.radiusSecret')}: <span className="font-mono bg-black/40 px-1 rounded">{nas.secret}</span></p>
+                                            {nas.description && <p className="text-xs text-white/30 italic">{nas.description}</p>}
                                         </div>
                                     </div>
                                     <button
                                         onClick={() => handleDeleteNas(nas.id)}
-                                        className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+                                        className="p-2 text-red-300 hover:bg-white/10 rounded-md border border-white/10 transition-colors"
                                         title={t('common.delete')}
                                     >
                                         <Trash2 size={18} />
@@ -479,38 +479,38 @@ export default function SettingsPage() {
 
 
             {/* Isolir Settings */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <div className="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
-                    <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('routers.isolirConfig')}</h2>
+            <div className="bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl p-6 border border-white/20">
+                <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                    <h2 className="text-xl font-semibold text-white">{t('routers.isolirConfig')}</h2>
                     <div className="flex gap-2">
                         <button
                             onClick={runAutoDrop}
                             disabled={savingConfig}
-                            className="flex items-center gap-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 px-4 py-2 rounded-md hover:bg-red-200 dark:hover:bg-red-900/50 transition-all font-medium text-sm"
+                            className="flex items-center gap-2 bg-red-400/20 text-red-300 px-4 py-2 rounded-md hover:bg-red-400/30 transition-all font-medium text-sm border border-white/10"
                         >
                             {savingConfig ? <Loader2 className="animate-spin" size={18} /> : <AlertTriangle size={18} />}
                             {t('routers.runAutoIsolir')}
                         </button>
                         <button
                             onClick={() => setShowConfigModal(true)}
-                            className="flex items-center gap-2 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-4 py-2 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all font-medium text-sm"
+                            className="flex items-center gap-2 bg-white/10 text-blue-300 px-4 py-2 rounded-md hover:bg-white/20 transition-all font-medium text-sm border border-white/10"
                         >
                             <Settings size={18} /> {t('routers.configureGenerate')}
                         </button>
                     </div>
                 </div>
                 <div className="space-y-4">
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-white/60">
                         {t('routers.isolirDesc')}
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
-                            <span className="text-gray-500 dark:text-gray-400 block mb-1">{t('routers.ipPoolName')}</span>
-                            <span className="font-mono font-medium text-gray-800 dark:text-gray-200">{config.poolName} ({config.poolRange})</span>
+                        <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                            <span className="text-white/40 block mb-1">{t('routers.ipPoolName')}</span>
+                            <span className="font-mono font-medium text-white">{config.poolName} ({config.poolRange})</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
-                            <span className="text-gray-500 dark:text-gray-400 block mb-1">{t('routers.targetNetwork')}</span>
-                            <span className="font-mono font-medium text-gray-800 dark:text-gray-200">{config.networkCidr}</span>
+                        <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                            <span className="text-white/40 block mb-1">{t('routers.targetNetwork')}</span>
+                            <span className="font-mono font-medium text-white">{config.networkCidr}</span>
                         </div>
                     </div>
                 </div>
@@ -518,7 +518,7 @@ export default function SettingsPage() {
 
             {
                 message && (
-                    <div className={`fixed bottom-4 right-4 p-4 rounded-md shadow-lg z-50 ${message.type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+                    <div className={`fixed bottom-4 right-4 p-4 rounded-md shadow-2xl z-50 backdrop-blur-md border border-white/20 ${message.type === 'success' ? 'bg-green-400/20 text-green-300' : 'bg-red-400/20 text-red-300'}`}>
                         {message.text}
                     </div>
                 )
@@ -527,65 +527,65 @@ export default function SettingsPage() {
             {/* Edit/Add Modal */}
             {
                 isEditing && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md border border-gray-200 dark:border-gray-700">
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                        <div className="bg-black/80 backdrop-blur-3xl rounded-lg shadow-2xl p-6 w-full max-w-md border border-white/20">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{currentConnection ? t('routers.editConnection') : t('routers.addConnection')}</h3>
-                                <button onClick={() => setIsEditing(false)} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                                <h3 className="text-lg font-semibold text-white">{currentConnection ? t('routers.editConnection') : t('routers.addConnection')}</h3>
+                                <button onClick={() => setIsEditing(false)} className="text-white/50 hover:text-white transition-colors">
                                     <X size={20} />
                                 </button>
                             </div>
                             <form onSubmit={handleSaveConnection}>
-                                <div className="space-y-4">
+                                <div className="space-y-4 text-white">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.connectionName')}</label>
+                                        <label className="block text-sm font-medium text-white/70 mb-1">{t('routers.connectionName')}</label>
                                         <input
                                             type="text"
                                             placeholder={t('routers.connectionNamePlaceholder')}
-                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                                            className="w-full border border-white/10 rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500/50 bg-white/5 text-white placeholder-white/20"
                                             value={connForm.name}
                                             onChange={(e) => setConnForm({ ...connForm, name: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.ipAddress')}</label>
+                                        <label className="block text-sm font-medium text-white/70 mb-1">{t('routers.ipAddress')}</label>
                                         <input
                                             type="text"
                                             required
                                             placeholder={t('routers.ipAddressPlaceholder')}
-                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                                            className="w-full border border-white/10 rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500/50 bg-white/5 text-white placeholder-white/20"
                                             value={connForm.host}
                                             onChange={(e) => setConnForm({ ...connForm, host: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.apiPort')}</label>
+                                        <label className="block text-sm font-medium text-white/70 mb-1">{t('routers.apiPort')}</label>
                                         <input
                                             type="number"
                                             required
                                             placeholder={t('routers.portPlaceholder')}
-                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                                            className="w-full border border-white/10 rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500/50 bg-white/5 text-white placeholder-white/20"
                                             value={connForm.port}
                                             onChange={(e) => setConnForm({ ...connForm, port: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.username')}</label>
+                                        <label className="block text-sm font-medium text-white/70 mb-1">{t('routers.username')}</label>
                                         <input
                                             type="text"
                                             required
                                             placeholder={t('routers.usernamePlaceholder')}
-                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                                            className="w-full border border-white/10 rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500/50 bg-white/5 text-white placeholder-white/20"
                                             value={connForm.user}
                                             onChange={(e) => setConnForm({ ...connForm, user: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.password')}</label>
+                                        <label className="block text-sm font-medium text-white/70 mb-1">{t('routers.password')}</label>
                                         <input
                                             type="password"
                                             placeholder={currentConnection ? t('routers.keepBlank') : ""}
-                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                                            className="w-full border border-white/10 rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500/50 bg-white/5 text-white placeholder-white/20"
                                             value={connForm.password}
                                             onChange={(e) => setConnForm({ ...connForm, password: e.target.value })}
                                         />
@@ -595,7 +595,7 @@ export default function SettingsPage() {
                                     <button
                                         type="button"
                                         onClick={() => setIsEditing(false)}
-                                        className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-md"
+                                        className="px-4 py-2 text-white/50 hover:bg-white/10 rounded-md transition-colors"
                                     >
                                         {t('common.cancel')}
                                     </button>
@@ -616,85 +616,85 @@ export default function SettingsPage() {
             {/* Isolir Config Modal */}
             {
                 showConfigModal && (
-                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-                        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700 flex flex-col">
-                            <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                        <div className="bg-black/80 backdrop-blur-3xl rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-white/20 flex flex-col">
+                            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                                 <div>
-                                    <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                                        <Settings className="text-blue-500" />
+                                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                        <Settings className="text-blue-400" />
                                         {t('routers.isolirConfig')}
                                     </h2>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                    <p className="text-sm text-white/40 mt-1">
                                         {t('routers.configureGenerate')}
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setShowConfigModal(false)}
-                                    className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                                    className="text-white/50 hover:text-white transition-colors"
                                 >
                                     <X size={24} />
                                 </button>
                             </div>
 
-                            <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8 text-white">
                                 {/* Configuration Form */}
                                 <div className="space-y-4">
-                                    <h3 className="font-semibold text-gray-700 dark:text-gray-200 border-b pb-2 mb-4">{t('routers.parameters')}</h3>
+                                    <h3 className="font-semibold text-white/70 border-b border-white/10 pb-2 mb-4">{t('routers.parameters')}</h3>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.ipPoolName')}</label>
+                                            <label className="block text-sm font-medium text-white/60 mb-1">{t('routers.ipPoolName')}</label>
                                             <input
                                                 type="text"
                                                 value={config.poolName}
                                                 onChange={(e) => setConfig({ ...config, poolName: e.target.value })}
-                                                className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                                                className="w-full px-3 py-2 border border-white/10 rounded bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.gatewayIp')}</label>
+                                            <label className="block text-sm font-medium text-white/60 mb-1">{t('routers.gatewayIp')}</label>
                                             <input
                                                 type="text"
                                                 value={config.gatewayIp}
                                                 onChange={(e) => setConfig({ ...config, gatewayIp: e.target.value })}
-                                                className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                                                className="w-full px-3 py-2 border border-white/10 rounded bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
                                             />
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.ipPoolRange')}</label>
+                                            <label className="block text-sm font-medium text-white/60 mb-1">{t('routers.ipPoolRange')}</label>
                                             <input
                                                 type="text"
                                                 value={config.poolRange}
                                                 onChange={(e) => setConfig({ ...config, poolRange: e.target.value })}
-                                                className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                                                className="w-full px-3 py-2 border border-white/10 rounded bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
                                             />
                                         </div>
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.targetNetwork')}</label>
+                                            <label className="block text-sm font-medium text-white/60 mb-1">{t('routers.targetNetwork')}</label>
                                             <input
                                                 type="text"
                                                 value={config.networkCidr}
                                                 onChange={(e) => setConfig({ ...config, networkCidr: e.target.value })}
-                                                className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                                                className="w-full px-3 py-2 border border-white/10 rounded bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
                                                 placeholder="e.g. 10.100.1.0/24"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.billingServerIp')}</label>
+                                            <label className="block text-sm font-medium text-white/60 mb-1">{t('routers.billingServerIp')}</label>
                                             <input
                                                 type="text"
                                                 value={config.billingIp}
                                                 onChange={(e) => setConfig({ ...config, billingIp: e.target.value })}
-                                                className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                                                className="w-full px-3 py-2 border border-white/10 rounded bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.webAppPort')}</label>
+                                            <label className="block text-sm font-medium text-white/60 mb-1">{t('routers.webAppPort')}</label>
                                             <input
                                                 type="text"
                                                 value={config.appPort}
                                                 onChange={(e) => setConfig({ ...config, appPort: e.target.value })}
-                                                className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+                                                className="w-full px-3 py-2 border border-white/10 rounded bg-white/5 text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
                                             />
                                         </div>
                                     </div>
@@ -702,36 +702,36 @@ export default function SettingsPage() {
 
                                 {/* Script Preview */}
                                 <div className="flex flex-col h-full">
-                                    <h3 className="font-semibold text-gray-700 dark:text-gray-200 border-b pb-2 mb-4 flex justify-between items-center">
+                                    <h3 className="font-semibold text-white/70 border-b border-white/10 pb-2 mb-4 flex justify-between items-center">
                                         {t('routers.generatedScript')}
                                         <button
                                             onClick={copyScript}
-                                            className="text-xs flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                                            className="text-xs flex items-center gap-1 px-2 py-1 bg-blue-400/20 text-blue-300 rounded hover:bg-blue-400/30 transition-colors border border-white/10"
                                         >
                                             {copied ? <Check size={12} /> : <Copy size={12} />}
                                             {copied ? t('routers.copied') : t('routers.copyToClipboard')}
                                         </button>
                                     </h3>
-                                    <div className="bg-gray-900 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto grow whitespace-pre shadow-inner">
+                                    <div className="bg-black/60 rounded-lg p-4 font-mono text-xs text-green-400 overflow-x-auto grow whitespace-pre shadow-inner border border-white/10">
                                         {generateScript()}
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-2 italic">
+                                    <p className="text-xs text-white/30 mt-2 italic">
                                         {t('routers.scriptNote')}
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex justify-end gap-3">
+                            <div className="p-6 border-t border-white/10 bg-white/5 flex justify-end gap-3">
                                 <button
                                     onClick={() => setShowConfigModal(false)}
-                                    className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                                    className="px-4 py-2 text-white/50 hover:bg-white/10 rounded-md transition-colors"
                                 >
                                     {t('common.close')}
                                 </button>
                                 <button
                                     onClick={handleSaveConfig}
                                     disabled={savingConfig}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
+                                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:opacity-90 flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-blue-500/20"
                                 >
                                     <Save size={18} />
                                     {savingConfig ? t('routers.saving') : t('routers.saveConfiguration')}
@@ -745,44 +745,44 @@ export default function SettingsPage() {
             {/* Add NAS Modal */}
             {
                 showNasModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md border border-gray-200 dark:border-gray-700">
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                        <div className="bg-black/80 backdrop-blur-3xl rounded-lg shadow-2xl p-6 w-full max-w-md border border-white/20">
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{t('routers.addRadiusClient')}</h3>
-                                <button onClick={() => setShowNasModal(false)} className="text-gray-500 hover:text-gray-700">
+                                <h3 className="text-lg font-semibold text-white">{t('routers.addRadiusClient')}</h3>
+                                <button onClick={() => setShowNasModal(false)} className="text-white/50 hover:text-white transition-colors">
                                     <X size={20} />
                                 </button>
                             </div>
                             <form onSubmit={handleSaveNas}>
-                                <div className="space-y-4">
+                                <div className="space-y-4 text-white">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.routerIpAddress')}</label>
+                                        <label className="block text-sm font-medium text-white/70 mb-1">{t('routers.routerIpAddress')}</label>
                                         <input
                                             type="text"
                                             required
                                             placeholder={t('routers.ipAddressPlaceholder')}
-                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            className="w-full border border-white/10 rounded-md px-3 py-2 bg-white/5 text-white placeholder-white/20 outline-none focus:ring-2 focus:ring-blue-500/50"
                                             value={nasForm.nasname}
                                             onChange={(e) => setNasForm({ ...nasForm, nasname: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.radiusSecret')}</label>
+                                        <label className="block text-sm font-medium text-white/70 mb-1">{t('routers.radiusSecret')}</label>
                                         <input
                                             type="text"
                                             required
                                             placeholder={t('routers.radiusSecretPlaceholder')}
-                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            className="w-full border border-white/10 rounded-md px-3 py-2 bg-white/5 text-white placeholder-white/20 outline-none focus:ring-2 focus:ring-blue-500/50"
                                             value={nasForm.secret}
                                             onChange={(e) => setNasForm({ ...nasForm, secret: e.target.value })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('routers.description')}</label>
+                                        <label className="block text-sm font-medium text-white/70 mb-1">{t('routers.description')}</label>
                                         <input
                                             type="text"
                                             placeholder={t('routers.descriptionPlaceholder')}
-                                            className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                            className="w-full border border-white/10 rounded-md px-3 py-2 bg-white/5 text-white placeholder-white/20 outline-none focus:ring-2 focus:ring-blue-500/50"
                                             value={nasForm.description}
                                             onChange={(e) => setNasForm({ ...nasForm, description: e.target.value })}
                                         />
@@ -792,15 +792,15 @@ export default function SettingsPage() {
                                     <button
                                         type="button"
                                         onClick={() => setShowNasModal(false)}
-                                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
+                                        className="px-4 py-2 text-white/50 hover:bg-white/10 rounded-md transition-colors"
                                     >
                                         {t('common.cancel')}
                                     </button>
                                     <button
                                         type="submit"
-                                        className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                                        className="px-4 py-2 bg-purple-500 text-white rounded-md hover:opacity-90 shadow-lg shadow-purple-500/20"
                                     >
-                                        {t('routers.saveClient')}
+                                        {t('common.save')}
                                     </button>
                                 </div>
                             </form>

@@ -111,8 +111,9 @@ export default function BottomDock() {
             {/* Desktop Dock - Hidden on Mobile or Mobile App */}
             {!isMobile && (
                 <div className="hidden lg:flex fixed bottom-0 left-0 right-0 z-50 justify-center pb-4 print:hidden pointer-events-none">
-                    {/* macOS-style Dock Container */}
-                    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 px-4 py-3 pointer-events-auto">                        <div className="flex items-center gap-14">
+                    {/* macOS-style Dock Container - Glassy */}
+                    <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 px-4 py-3 pointer-events-auto">
+                        <div className="flex items-center gap-14">
                             {/* Menu / Launcher Button */}
                             <button
                                 onClick={() => setIsLauncherOpen(!isLauncherOpen)}
@@ -122,8 +123,8 @@ export default function BottomDock() {
                                     relative flex flex-col items-center justify-center
                                     w-10 h-10 rounded-xl
                                     transition-all duration-300
-                                    bg-gray-100 dark:bg-gray-800
-                                    ${isLauncherOpen ? 'bg-accent !text-white' : ''}
+                                    bg-white/10 backdrop-blur-md border border-white/20
+                                    ${isLauncherOpen ? 'bg-white/30 border-white/40 !text-white' : ''}
                                 `}>
                                     {isLauncherOpen ? (
                                         <X
@@ -136,11 +137,11 @@ export default function BottomDock() {
                                     ) : (
                                         <LayoutGrid
                                             size={20}
-                                            className="text-gray-600 group-hover:text-accent transition-colors duration-300"
+                                            className="text-white group-hover:text-blue-300 transition-colors duration-300"
                                         />
                                     )}
                                 </div>
-                                <span className="text-[10px] font-medium mt-2 whitespace-nowrap px-2 rounded-md transition-all duration-300 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200">
+                                <span className="text-[10px] font-medium mt-2 whitespace-nowrap px-2 rounded-md transition-all duration-300 text-white/50 group-hover:text-white">
                                     {isLauncherOpen ? t('sidebar.close') : t('sidebar.app')}
                                 </span>
                                 {/* Hover glow effect */}
@@ -164,8 +165,8 @@ export default function BottomDock() {
                                             w-10 h-10 rounded-xl
                                             transition-all duration-300
                                             ${isActive
-                                                ? 'bg-accent shadow-lg shadow-accent/50'
-                                                : 'bg-gray-100 dark:bg-gray-800'
+                                                ? 'bg-white/30 shadow-xl border border-white/40 backdrop-blur-md'
+                                                : 'bg-white/5 border border-white/10 hover:bg-white/10'
                                             }
                                         `}>
                                             <Icon
@@ -174,7 +175,7 @@ export default function BottomDock() {
                                                     transition-all duration-300
                                                     ${isActive
                                                         ? 'text-white'
-                                                        : 'text-gray-600 group-hover:text-accent'
+                                                        : 'text-white/60 group-hover:text-white'
                                                     }
                                                 `}
                                             />
@@ -189,8 +190,8 @@ export default function BottomDock() {
                                             text-[10px] font-medium mt-2 whitespace-nowrap px-2 rounded-md
                                             transition-all duration-300
                                             ${isActive
-                                                ? 'text-accent dark:text-blue-400'
-                                                : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200'
+                                                ? 'text-white font-bold'
+                                                : 'text-white/50 group-hover:text-white'
                                             }
                                         `}>
                                             {item.label}
@@ -209,13 +210,13 @@ export default function BottomDock() {
                                 title={t('sidebar.logout')}
                                 className="group relative flex flex-col items-center justify-center transition-all duration-300 hover:scale-125 hover:-translate-y-2 w-10"
                             >
-                                <div className="relative flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 group-hover:bg-white dark:group-hover:bg-gray-800 group-hover:text-red-500 group-hover:shadow-lg group-hover:shadow-red-400/20 transition-all duration-300">
+                                <div className="relative flex flex-col items-center justify-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-red-500/20 hover:border-red-500/30 group-hover:text-red-400 group-hover:shadow-lg group-hover:shadow-red-400/20 transition-all duration-300">
                                     <LogOut
                                         size={20}
-                                        className="text-gray-600 dark:text-gray-300 group-hover:stroke-[url(#icon-gradient)] transition-colors duration-300"
+                                        className="text-white/60 transition-colors duration-300"
                                     />
                                 </div>
-                                <span className="text-[10px] font-medium mt-2 whitespace-nowrap px-2 rounded-md transition-all duration-300 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200">
+                                <span className="text-[10px] font-medium mt-2 whitespace-nowrap px-2 rounded-md transition-all duration-300 text-white/50 group-hover:text-red-400">
                                     {t('sidebar.logout')}
                                 </span>
                                 {/* Hover glow effect */}
@@ -230,8 +231,9 @@ export default function BottomDock() {
             {/* Mobile Bottom Navigation - Visible on Mobile Only OR Mobile App Mode */}
             <div className={`${!isMobile ? 'lg:hidden' : ''} fixed bottom-0 left-0 right-0 z-[102] print:hidden`}>
                 <div className="relative">
-                    {/* Bottom Bar */}
-                    <div className="bg-white border-t border-gray-100 shadow-2xl">                        <div className="flex items-center justify-between px-2 py-2">
+                    {/* Mobile Bottom Bar - Glassy */}
+                    <div className="bg-white/10 dark:bg-black/40 backdrop-blur-xl border-t border-white/10 shadow-2xl">
+                        <div className="flex items-center justify-between px-2 py-2">
                             {/* Left Items */}
                             {mobileNavItems.slice(0, 2).map((item) => {
                                 const isActive = pathname === item.href;
@@ -246,7 +248,7 @@ export default function BottomDock() {
                                         <div className={`
                                             p-1 rounded-xl transition-all duration-300
                                             ${isActive
-                                                ? 'bg-blue-50 dark:bg-gray-800/50'
+                                                ? 'bg-white/20 border border-white/20'
                                                 : 'bg-transparent'
                                             }
                                         `}>
@@ -254,8 +256,8 @@ export default function BottomDock() {
                                                 size={24}
                                                 className={`
                                                     ${isActive
-                                                        ? 'stroke-[url(#icon-gradient)]'
-                                                        : 'text-gray-600 dark:text-gray-400'
+                                                        ? 'text-white'
+                                                        : 'text-white/40'
                                                     }
                                                 `}
                                             />
@@ -263,8 +265,8 @@ export default function BottomDock() {
                                         <span className={`
                                             text-[10px] font-medium mt-1
                                             ${isActive
-                                                ? 'text-accent'
-                                                : 'text-gray-600 dark:text-gray-400'
+                                                ? 'text-white font-bold'
+                                                : 'text-white/40'
                                             }
                                         `}>
                                             {item.label}
@@ -281,8 +283,8 @@ export default function BottomDock() {
                                 <div className={`
                                     p-1 rounded-xl transition-all duration-300
                                     ${isLauncherOpen
-                                        ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
-                                        : 'bg-accent text-white shadow-lg shadow-accent/30'
+                                        ? 'bg-red-500/80 text-white shadow-lg shadow-red-500/30'
+                                        : 'bg-white/20 text-white shadow-lg border border-white/20'
                                     }
                                 `}>
                                     {isLauncherOpen ? (
@@ -294,8 +296,8 @@ export default function BottomDock() {
                                 <span className={`
                                     text-[10px] font-medium mt-1
                                     ${isLauncherOpen
-                                        ? 'text-red-500'
-                                        : 'text-accent'
+                                        ? 'text-red-400'
+                                        : 'text-blue-200'
                                     }
                                 `}>
                                     {isLauncherOpen ? t('sidebar.close') : t('sidebar.app')}
@@ -316,7 +318,7 @@ export default function BottomDock() {
                                         <div className={`
                                             p-1 rounded-xl transition-all duration-300 relative
                                             ${isActive
-                                                ? 'bg-blue-50 dark:bg-gray-800/50'
+                                                ? 'bg-white/20 border border-white/20'
                                                 : 'bg-transparent'
                                             }
                                         `}>
@@ -324,8 +326,8 @@ export default function BottomDock() {
                                                 size={24}
                                                 className={`
                                                     ${isActive
-                                                        ? 'stroke-[url(#icon-gradient)]'
-                                                        : 'text-gray-600 dark:text-gray-400'
+                                                        ? 'text-white'
+                                                        : 'text-white/40'
                                                     }
                                                 `}
                                             />
@@ -338,8 +340,8 @@ export default function BottomDock() {
                                         <span className={`
                                             text-[10px] font-medium mt-1
                                             ${isActive
-                                                ? 'text-accent'
-                                                : 'text-gray-600 dark:text-gray-400'
+                                                ? 'text-white font-bold'
+                                                : 'text-white/40'
                                             }
                                         `}>
                                             {item.label}

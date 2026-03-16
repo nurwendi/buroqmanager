@@ -590,7 +590,7 @@ Terima Kasih
         <div>
             <div className="space-y-6 print:hidden">
                 <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('billing.title')}</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-md">{t('billing.title')}</h1>
                     <select
                         value={`${selectedYear}-${selectedMonth}`}
                         onChange={(e) => {
@@ -598,7 +598,7 @@ Terima Kasih
                             setSelectedYear(parseInt(year));
                             setSelectedMonth(parseInt(month));
                         }}
-                        className="w-full md:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                        className="w-full md:w-auto px-4 py-2 border border-white/20 rounded-lg bg-white/5 backdrop-blur-md text-white focus:ring-2 focus:ring-blue-500/50 outline-none"
                     >
                         {getAvailableMonths().map(({ year, month }) => (
                             <option key={`${year}-${month}`} value={`${year}-${month}`}>
@@ -639,7 +639,7 @@ Terima Kasih
 
                 {/* Staff Link for Staff */}
                 {agentStats && agentStats.role === 'staff' && (
-                    <div className="bg-blue-50/30 dark:bg-blue-900/30 backdrop-blur-xl border border-blue-200/50 dark:border-blue-800/50 rounded-lg p-4 flex justify-between items-center shadow-lg">
+                    <div className="bg-white/10 dark:bg-blue-900/30 backdrop-blur-xl border border-white/20 rounded-xl p-4 flex justify-between items-center shadow-lg">
                         <div>
                             <h3 className="font-bold text-blue-800">{t('billing.staffDashboard')}</h3>
                             <p className="text-blue-600 text-sm">{t('billing.viewStats')}</p>
@@ -657,14 +657,14 @@ Terima Kasih
                     <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
 
 
-                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
-                            <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700">
-                                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t('billing.staffEarnings')} - {getMonthName(selectedMonth)} {selectedYear}</h2>
+                        <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-xl shadow-xl overflow-hidden border border-white/20">
+                            <div className="p-4 md:p-6 border-b border-white/10">
+                                <h2 className="text-lg font-semibold text-white">{t('billing.staffEarnings')} - {getMonthName(selectedMonth)} {selectedYear}</h2>
                             </div>
                             <div className="overflow-x-auto">
 
-                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead className="bg-black/5 dark:bg-white/5">
+                                <table className="min-w-full divide-y divide-white/10">
+                                    <thead className="bg-white/5">
                                         <tr>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.partner')}</th>
                                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.rate')}</th>
@@ -679,14 +679,14 @@ Terima Kasih
                                     <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
                                         {(!agentStats || !agentStats.agents || agentStats.agents.length === 0) ? (
                                             <tr>
-                                                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
+                                                <td colSpan="7" className="px-6 py-4 text-center text-white/50">
                                                     {t('billing.noPartners')}
                                                 </td>
                                             </tr>
                                         ) : (
                                             <>
                                                 {agentStats.agents.map((agent) => (
-                                                    <tr key={agent.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                                    <tr key={agent.id} className="hover:bg-white/5 transition-colors">
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <div className="flex items-center">
                                                                 <div>
@@ -720,8 +720,8 @@ Terima Kasih
                                                     </tr>
                                                 ))}
                                                 {/* Total Row */}
-                                                <tr className="bg-gray-100 dark:bg-gray-700/50 font-semibold">
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" colSpan="4">
+                                                <tr className="bg-white/5 backdrop-blur-md font-semibold font-bold">
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white" colSpan="4">
                                                         {t('common.total')}
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -745,8 +745,8 @@ Terima Kasih
 
                 {/* Bulk Action Toolbar */}
                 {selectedIds.size > 0 && (userRole === 'admin' || userRole === 'superadmin') && (
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-indigo-200 dark:border-indigo-900 flex justify-between items-center mb-4 animate-in fade-in slide-in-from-top-2">
-                        <span className="font-semibold text-gray-700 dark:text-gray-200">
+                    <div className="bg-white/10 dark:bg-black/40 backdrop-blur-xl p-4 rounded-xl shadow-lg border border-white/20 flex justify-between items-center mb-4 animate-in fade-in slide-in-from-top-2">
+                        <span className="font-semibold text-white">
                             {selectedIds.size} {t('billing.itemsSelected')}
                         </span>
                         <div className="flex gap-2">
@@ -767,26 +767,26 @@ Terima Kasih
                 )}
 
                 {/* Payment List */}
-                <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
-                    <div className="p-4 md:p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t('billing.paymentHistory')}</h2>
+                <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-xl shadow-xl overflow-hidden border border-white/20">
+                    <div className="p-4 md:p-6 border-b border-white/10 flex justify-between items-center">
+                        <h2 className="text-lg font-semibold text-white">{t('billing.paymentHistory')}</h2>
 
                         <div className="relative">
-                            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50" />
                             <input
                                 type="text"
                                 placeholder={t('billing.searchPlaceholder')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="pl-10 pr-4 py-2 border border-white/10 rounded-lg bg-white/5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 placeholder-white/30"
                             />
 
                         </div>
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead className="bg-black/5 dark:bg-white/5">
+                        <table className="min-w-full divide-y divide-white/10">
+                            <thead className="bg-white/5">
                                 <tr>
                                     {(userRole === 'admin' || userRole === 'superadmin') && (
                                         <th className="px-6 py-3 w-10">
@@ -847,9 +847,9 @@ Terima Kasih
                             <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
 
                                 {loading ? (
-                                    <tr><td colSpan="8" className="px-6 py-4 text-center text-gray-500">{t('common.loading')}</td></tr>
+                                    <tr><td colSpan="8" className="px-6 py-4 text-center text-white/50">{t('common.loading')}</td></tr>
                                 ) : getSortedPayments().length === 0 ? (
-                                    <tr><td colSpan="8" className="px-6 py-4 text-center text-gray-500">{t('billing.noPayments')}</td></tr>
+                                    <tr><td colSpan="8" className="px-6 py-4 text-center text-white/50">{t('billing.noPayments')}</td></tr>
                                 ) : (
                                     getSortedPayments()
                                         .slice(
@@ -857,7 +857,7 @@ Terima Kasih
                                             rowsPerPage === 'All' ? getSortedPayments().length : currentPage * rowsPerPage
                                         )
                                         .map((payment) => (
-                                            <tr key={payment.id} className={`hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${selectedIds.has(payment.id) ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''}`}>
+                                            <tr key={payment.id} className={`hover:bg-white/5 transition-colors ${selectedIds.has(payment.id) ? 'bg-white/10' : ''}`}>
                                                 {userRole === 'admin' && (
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <input
@@ -946,7 +946,7 @@ Terima Kasih
                     </div>
 
                     {/* Pagination Controls */}
-                    <div className="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between px-6 py-4 bg-white/5 border-t border-white/10">
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-gray-700 dark:text-gray-300">
                                 {t('billing.showing')} <span className="font-medium mx-1">
@@ -1003,13 +1003,13 @@ Terima Kasih
             {/* Add Payment Modal */}
             {
                 showModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-md p-4">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
+                            className="bg-white/10 dark:bg-black/40 backdrop-blur-xl rounded-2xl shadow-2xl p-6 w-full max-w-md border border-white/20"
                         >
-                            <h2 className="text-xl font-bold mb-4 text-gray-800">
+                            <h2 className="text-xl font-bold mb-4 text-white">
                                 {lastRecordedPayment ? t('billing.paymentRecorded') : t('billing.recordPayment')}
                             </h2>
 
@@ -1171,17 +1171,17 @@ Terima Kasih
                                             placeholder={t('billing.optionalNotes')}
                                         />
                                     </div>
-                                    <div className="flex justify-end gap-3 pt-4">
+                                    <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
                                         <button
                                             type="button"
                                             onClick={() => setShowModal(false)}
-                                            className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                                            className="px-4 py-2 text-white/70 hover:bg-white/10 rounded-lg transition-colors"
                                         >
                                             {t('common.cancel')}
                                         </button>
                                         <button
                                             type="submit"
-                                            className="px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90"
+                                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium"
                                         >
                                             {t('billing.savePayment')}
                                         </button>
@@ -1196,13 +1196,13 @@ Terima Kasih
             {/* Month Selection Modal for Invoice Generation */}
             {
                 showMonthModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-md p-4">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
+                            className="bg-white/10 dark:bg-black/40 backdrop-blur-xl rounded-2xl shadow-2xl p-6 w-full max-w-md border border-white/20"
                         >
-                            <h2 className="text-xl font-bold mb-4 text-gray-800">{t('billing.generateTitle')}</h2>
+                            <h2 className="text-xl font-bold mb-4 text-white">{t('billing.generateTitle')}</h2>
                             <div className="space-y-3">
                                 <button
                                     onClick={() => {
@@ -1239,7 +1239,7 @@ Terima Kasih
                             </div>
                             <button
                                 onClick={() => setShowMonthModal(false)}
-                                className="w-full mt-4 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                className="w-full mt-4 px-4 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors border border-red-500/20"
                             >
                                 {t('common.cancel')}
                             </button>
@@ -1250,12 +1250,12 @@ Terima Kasih
             {/* Invoice Modal */}
             {
                 showInvoiceModal && selectedInvoice && (
-                    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm print:p-0 print:bg-white print:static print:block">
+                    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-md print:p-0 print:bg-white print:static print:block">
                         <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className={`bg-white rounded-lg shadow-xl w-full max-w-2xl print:shadow-none print:w-full print:max-w-none print:rounded-none ${printFormat === 'thermal' ? 'max-w-[350px] mx-auto print:max-w-[80mm] print:mx-0' : 'p-8'}`}
+                                className={`bg-white/10 dark:bg-black/40 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 print:shadow-none print:w-full print:max-w-none print:rounded-none ${printFormat === 'thermal' ? 'max-w-[350px] mx-auto print:max-w-[80mm] print:mx-0' : 'p-8'}`}
                             >
                                 {/* Print Controls */}
                                 <div className="flex justify-between items-center mb-6 print:hidden p-6 pb-0">

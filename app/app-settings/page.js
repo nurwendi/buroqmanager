@@ -431,16 +431,16 @@ export default function AppSettingsPage() {
 
   return (
     <div className="w-full space-y-6">
-      <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
+      <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-md">
         {t("appSettings.title")}
       </h1>
 
       {message.text && (
         <div
-          className={`p-4 rounded-lg ${
+          className={`p-4 rounded-xl backdrop-blur-md border ${
             message.type === "success"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
+              ? "bg-green-500/20 text-green-100 border-green-500/30"
+              : "bg-red-500/20 text-red-100 border-red-500/30"
           }`}
         >
           {message.text}
@@ -450,15 +450,15 @@ export default function AppSettingsPage() {
       <div className="flex flex-col lg:flex-row gap-8 items-start">
         {/* Sidebar */}
         <div className="w-full lg:w-64 shrink-0 space-y-2 sticky top-4">
-          <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl rounded-xl p-3 border border-gray-200 dark:border-gray-700 space-y-1">
+          <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-2xl p-3 border border-white/20 shadow-2xl space-y-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-medium ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
                   activeTab === tab.id
                     ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
-                    : "text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700"
+                    : "text-white/60 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <tab.icon size={18} />
@@ -466,10 +466,10 @@ export default function AppSettingsPage() {
               </button>
             ))}
 
-            <div className="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
+            <div className="pt-2 mt-2 border-t border-white/10">
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-medium"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all font-medium"
               >
                 <LogOut size={18} />
                 <span>{t("common.logout")}</span>
@@ -483,13 +483,13 @@ export default function AppSettingsPage() {
           {activeTab === "profile" && (
             <>
               {/* User Profile Settings (New) */}
-              <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
+              <div className="bg-white/10 dark:bg-black/20 backdrop-blur-xl rounded-2xl shadow-2xl p-6 border border-white/20">
                 <div className="flex items-center gap-3 mb-6">
                   <User
-                    className="text-indigo-600 dark:text-indigo-400"
+                    className="text-blue-400"
                     size={24}
                   />
-                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                  <h2 className="text-xl font-semibold text-white">
                     {t("appSettings.userProfile")}
                   </h2>
                 </div>
@@ -498,7 +498,7 @@ export default function AppSettingsPage() {
                   {/* Avatar Upload */}
                   <div className="flex items-center gap-6">
                     <div className="relative group">
-                      <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white dark:border-gray-700 shadow-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                      <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white/20 shadow-lg bg-white/5 flex items-center justify-center">
                         {profile.avatar ? (
                           <img
                             src={profile.avatar}
@@ -520,10 +520,10 @@ export default function AppSettingsPage() {
                       </label>
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">
+                      <h3 className="font-medium text-white">
                         Profile Picture
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-white/50">
                         Click the camera icon to update your avatar
                       </p>
                     </div>
@@ -531,10 +531,10 @@ export default function AppSettingsPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         {t("login.username")}
                         {userRole !== "admin" && userRole !== "superadmin" && (
-                          <span className="text-xs text-red-500 ml-2">
+                          <span className="text-xs text-red-400 ml-2">
                             ({t("appSettings.contactAdminChange")})
                           </span>
                         )}
@@ -545,7 +545,7 @@ export default function AppSettingsPage() {
                         onChange={(e) =>
                           setProfile({ ...profile, username: e.target.value })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-60 disabled:bg-gray-100 dark:disabled:bg-gray-800 cursor-not-allowed"
+                        className="w-full px-4 py-2 border border-white/20 rounded-lg bg-white/5 text-white disabled:opacity-60 disabled:bg-white/5 cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                         required
                         disabled={
                           userRole !== "admin" && userRole !== "superadmin"
@@ -553,7 +553,7 @@ export default function AppSettingsPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         {t("appSettings.fullName")}
                       </label>
                       <input
@@ -562,12 +562,12 @@ export default function AppSettingsPage() {
                         onChange={(e) =>
                           setProfile({ ...profile, fullName: e.target.value })
                         }
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-4 py-2 border border-white/20 rounded-lg bg-white/5 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                         placeholder="John Doe"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         {t("appSettings.phoneNumber")}
                       </label>
                       <div className="relative">
@@ -581,13 +581,13 @@ export default function AppSettingsPage() {
                           onChange={(e) =>
                             setProfile({ ...profile, phone: e.target.value })
                           }
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full pl-10 pr-4 py-2 border border-white/20 rounded-lg bg-white/5 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                           placeholder="0812..."
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         {t("appSettings.address")}
                       </label>
                       <div className="relative">
@@ -601,20 +601,20 @@ export default function AppSettingsPage() {
                           onChange={(e) =>
                             setProfile({ ...profile, address: e.target.value })
                           }
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full pl-10 pr-4 py-2 border border-white/20 rounded-lg bg-white/5 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                           placeholder="Street address..."
                         />
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-4">
+                  <div className="pt-4 border-t border-white/10">
+                    <h3 className="text-sm font-medium text-white mb-4">
                       {t("appSettings.changePasswordOptional")}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-white/80 mb-2">
                           {t("appSettings.newPassword")}
                         </label>
                         <input
@@ -623,12 +623,12 @@ export default function AppSettingsPage() {
                           onChange={(e) =>
                             setProfile({ ...profile, password: e.target.value })
                           }
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full px-4 py-2 border border-white/20 rounded-lg bg-white/5 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                           placeholder={t("appSettings.leaveBlankToKeep")}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-white/80 mb-2">
                           {t("appSettings.confirmPassword")}
                         </label>
                         <input
@@ -640,7 +640,7 @@ export default function AppSettingsPage() {
                               confirmPassword: e.target.value,
                             })
                           }
-                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          className="w-full px-4 py-2 border border-white/20 rounded-lg bg-white/5 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                           placeholder={t("appSettings.confirmPassword")}
                         />
                       </div>
@@ -650,7 +650,7 @@ export default function AppSettingsPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 disabled:bg-gray-400 transition-all shadow-md"
+                    className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-white/10 transition-all shadow-lg font-medium"
                   >
                     <Save size={18} />
                     {loading
@@ -660,13 +660,13 @@ export default function AppSettingsPage() {
                 </form>
 
                 {/* Language Settings (Moved from Appearance) */}
-                <div className="pt-6 mt-6 border-t border-gray-100 dark:border-gray-700">
+                <div className="pt-6 mt-6 border-t border-white/10">
                   <div className="flex items-center gap-3 mb-4">
                     <Globe
-                      className="text-green-600 dark:text-green-400"
+                      className="text-white"
                       size={20}
                     />
-                    <h3 className="font-medium text-gray-900 dark:text-white">
+                    <h3 className="font-medium text-white">
                       {t("appSettings.language")}
                     </h3>
                   </div>
@@ -734,17 +734,17 @@ export default function AppSettingsPage() {
               <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl p-6 border border-white/20 dark:border-white/5">
                 <div className="flex items-center gap-3 mb-4">
                   <ImageIcon
-                    className="text-blue-600 dark:text-blue-400"
+                    className="text-blue-400"
                     size={24}
                   />
-                  <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+                  <h2 className="text-xl font-semibold text-white">
                     Appearance
                   </h2>
                 </div>
 
                 <form onSubmit={handleSaveAppearance}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
                       {t("appSettings.appName")}
                     </label>
                     <input
@@ -753,7 +753,7 @@ export default function AppSettingsPage() {
                       onChange={(e) =>
                         setSettings({ ...settings, appName: e.target.value })
                       }
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      className="w-full px-4 py-2 border border-white/20 rounded-lg bg-white/5 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                       placeholder="Mikrotik Manager"
                     />
                   </div>

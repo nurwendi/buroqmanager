@@ -86,7 +86,7 @@ export default function Navbar() {
     });
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white border-b border-gray-100 shadow-sm">
+        <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/10 backdrop-blur-xl border-b border-white/20 shadow-xl">
             <div className="max-w-full px-4">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
@@ -105,7 +105,7 @@ export default function Navbar() {
                         <div className={`w-10 h-10 bg-accent rounded-lg flex items-center justify-center font-bold text-xl text-white ${appSettings.logoUrl ? 'hidden' : ''}`}>
                             M
                         </div>
-                        <span className="text-xl font-bold hidden sm:block text-gray-800 dark:text-white">{appSettings.appName}</span>
+                        <span className="text-xl font-bold hidden sm:block text-white drop-shadow-md">{appSettings.appName}</span>
                     </Link>
 
                     {/* Desktop Navigation */}
@@ -115,8 +115,8 @@ export default function Navbar() {
                                 key={item.href}
                                 href={item.href}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${pathname === item.href
-                                    ? 'bg-accent text-white shadow-md'
-                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-accent dark:hover:text-accent'
+                                    ? 'bg-white/20 text-white shadow-lg border border-white/30'
+                                    : 'text-white/70 hover:bg-white/10 hover:text-white'
                                     }`}
                             >
                                 <item.icon size={18} />
@@ -130,8 +130,8 @@ export default function Navbar() {
                                 onClick={() => setIsPppoeOpen(!isPppoeOpen)}
                                 onBlur={() => setTimeout(() => setIsPppoeOpen(false), 200)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${pppoeItems.some(item => pathname === item.href)
-                                    ? 'bg-accent text-white shadow-md'
-                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-accent dark:hover:text-accent'
+                                    ? 'bg-white/20 text-white shadow-lg border border-white/30'
+                                    : 'text-white/70 hover:bg-white/10 hover:text-white'
                                     }`}
                             >
                                 <Network size={18} />
@@ -141,15 +141,15 @@ export default function Navbar() {
 
                             {/* Dropdown Menu */}
                             {isPppoeOpen && (
-                                <div className="absolute top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-2 min-w-[200px] border border-gray-100 dark:border-gray-700">
+                                <div className="absolute top-full mt-2 bg-black/80 rounded-lg shadow-2xl py-2 min-w-[200px] border border-white/20 backdrop-blur-xl">
                                     {pppoeItems.map((item) => (
                                         <Link
                                             key={item.href}
                                             href={item.href}
                                             onClick={() => setIsPppoeOpen(false)}
-                                            className={`flex items-center gap-2 px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${pathname === item.href
-                                                ? 'text-accent dark:text-accent font-medium'
-                                                : 'text-gray-600 dark:text-gray-300'
+                                            className={`flex items-center gap-2 px-4 py-2 hover:bg-white/10 transition-colors ${pathname === item.href
+                                                ? 'text-white font-bold'
+                                                : 'text-white/70'
                                                 }`}
                                         >
                                             <item.icon size={16} />
@@ -166,8 +166,8 @@ export default function Navbar() {
                                 key={item.href}
                                 href={item.href}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 ${pathname === item.href
-                                    ? 'bg-accent text-white shadow-md'
-                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-accent dark:hover:text-accent'
+                                    ? 'bg-white/20 text-white shadow-lg border border-white/30'
+                                    : 'text-white/70 hover:bg-white/10 hover:text-white'
                                     }`}
                             >
                                 <item.icon size={18} />
@@ -178,8 +178,8 @@ export default function Navbar() {
                         <Link
                             href="/notifications"
                             className={`p-2 rounded-lg transition-colors relative mr-2 ${pathname === '/notifications'
-                                ? 'bg-accent/10 text-accent'
-                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-accent dark:hover:text-accent'
+                                ? 'bg-white/20 text-white'
+                                : 'text-white/70 hover:bg-white/10 hover:text-white'
                                 }`}
                             title={t('sidebar.notification')}
                         >
@@ -193,8 +193,8 @@ export default function Navbar() {
                         <Link
                             href="/logs"
                             className={`p-2 rounded-lg transition-colors ${pathname === '/logs'
-                                ? 'bg-accent/10 text-accent'
-                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-accent dark:hover:text-accent'
+                                ? 'bg-white/20 text-white'
+                                : 'text-white/70 hover:bg-white/10 hover:text-white'
                                 }`}
                             title={t('sidebar.logs')}
                         >

@@ -47,7 +47,7 @@ export default function ClientLayout({ children }) {
         <LanguageProvider>
             <DashboardProvider>
                 <div 
-                    className="relative min-h-screen overflow-hidden bg-white transition-all duration-700"
+                    className="relative min-h-screen overflow-hidden bg-background transition-all duration-700"
                     style={(!isPublicPage && loginBgUrl) ? {
                         backgroundImage: `url(${loginBgUrl})`,
                         backgroundSize: 'cover',
@@ -55,6 +55,10 @@ export default function ClientLayout({ children }) {
                         backgroundAttachment: 'fixed'
                     } : {}}
                 >
+                    {/* Background Overlay for authenticated pages with bg image */}
+                    {!isPublicPage && loginBgUrl && (
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-md pointer-events-none" />
+                    )}
                     
                     <SessionTimeoutHandler />
 
