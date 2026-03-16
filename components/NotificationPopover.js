@@ -3,12 +3,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, Check, Trash2, X, Info, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function NotificationPopover({ isBadgeOnly = false, position = 'bottom' }) {
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
+    const { t } = useLanguage();
     const popoverRef = useRef(null);
 
     const fetchNotifications = async () => {
