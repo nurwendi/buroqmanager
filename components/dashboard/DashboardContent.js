@@ -62,20 +62,22 @@ export default function DashboardContent() {
   });
   const [userRole, setUserRole] = useState(null);
   const [username, setUsername] = useState("");
+  const [avatar, setAvatar] = useState(null);
   const [bgUrl, setBgUrl] = useState("/dashboard-bg.png");
   const [loginBgUrl, setLoginBgUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(new Date());
-  const [avatar, setAvatar] = useState(null);
 
   // Fetch User Role and Name
   useEffect(() => {
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((data) => {
-        setUserRole(data.user.role);
-        setUsername(data.user.fullName || data.user.username);
-        setAvatar(data.user.avatar || null);
+        if (data.user) {
+          setUserRole(data.user.role);
+          setUsername(data.user.fullName || data.user.username);
+          setAvatar(data.user.avatar || null);
+        }
       })
       .catch((err) => console.error("Failed to fetch user role", err));
 

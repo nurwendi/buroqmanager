@@ -23,11 +23,13 @@ export default function StaffBillingPage() {
         fetch('/api/auth/me')
             .then(res => res.json())
             .then(data => {
-                setUser({
-                    name: data.user.fullName || data.user.username,
-                    avatar: data.user.avatar || '',
-                    role: data.user.role
-                });
+                if (data.user) {
+                    setUser({
+                        name: data.user.fullName || data.user.username,
+                        avatar: data.user.avatar || '',
+                        role: data.user.role
+                    });
+                }
             })
             .catch(err => console.error('Failed to fetch user', err));
 
