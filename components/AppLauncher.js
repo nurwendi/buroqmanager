@@ -18,7 +18,7 @@ export default function AppLauncher({ isOpen, onClose, navItems, currentPath }) 
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[40]"
+                        className="fixed inset-0 bg-black/70 z-[40]"
                         onClick={onClose}
                     />
 
@@ -28,7 +28,7 @@ export default function AppLauncher({ isOpen, onClose, navItems, currentPath }) 
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.3, ease: 'easeOut' }}
-                        className="fixed inset-0 z-[45] bg-white backdrop-blur-xl overflow-y-auto"
+                        className="fixed inset-0 z-[45] bg-white overflow-y-auto"
                     >
                         {/* App Grid */}
                         <div className="container mx-auto px-6 py-20 pb-32">

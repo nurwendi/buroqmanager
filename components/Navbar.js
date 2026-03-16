@@ -141,7 +141,7 @@ export default function Navbar() {
 
                             {/* Dropdown Menu */}
                             {isPppoeOpen && (
-                                <div className="absolute top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-2 min-w-[200px] border border-gray-100 dark:border-gray-700 backdrop-blur-md bg-opacity-90 dark:bg-opacity-90">
+                                <div className="absolute top-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-2 min-w-[200px] border border-gray-100 dark:border-gray-700">
                                     {pppoeItems.map((item) => (
                                         <Link
                                             key={item.href}

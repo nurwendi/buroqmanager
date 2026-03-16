@@ -3,7 +3,7 @@
 export default function CustomTooltip({ active, payload, label }) {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md p-4 rounded-xl shadow-xl border border-white/20 dark:border-gray-700/50">
+            <div className="bg-white/95 dark:bg-gray-800/95 p-4 rounded-xl shadow-xl border border-white/20 dark:border-gray-700/50">
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
                     {label ? new Date(label).toLocaleString() : ''}
                 </p>

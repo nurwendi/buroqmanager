@@ -55,10 +55,6 @@ export default function ClientLayout({ children }) {
                         backgroundAttachment: 'fixed'
                     } : {}}
                 >
-                    {/* Background Overlay for authenticated pages with bg image */}
-                    {!isPublicPage && loginBgUrl && (
-                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] pointer-events-none" />
-                    )}
                     
                     <SessionTimeoutHandler />
 
