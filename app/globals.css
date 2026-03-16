@@ -110,7 +110,7 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.985 0 0); /* Consistent light slate background */
+  --background: oklch(1 0 0); /* Pure white background */
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0); /* Solid white cards */
   --card-foreground: oklch(0.145 0 0);
