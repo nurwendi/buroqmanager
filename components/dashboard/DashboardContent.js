@@ -317,25 +317,13 @@ export default function DashboardContent() {
     >
       {/* Premium Header with Banner & Overlapping Avatar */}
       <motion.div variants={itemVariants} className="relative mb-8 sm:mb-12 -mx-4 md:-mx-8 -mt-4 md:-mt-8 rounded-none">
-        {/* Banner Area - Sharp Corners & Transparent Bottom */}
-        <div className="relative h-48 sm:h-64 w-full overflow-hidden border-0 shadow-none outline-none rounded-none">
-          <img 
-            src={bgUrl} 
-            alt="Dashboard Background" 
-            className="absolute inset-0 w-full h-full object-cover object-center scale-110"
-            style={{ 
-              imageRendering: "high-quality",
-              WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
-              maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)"
-            }}
-          />
-          <div className="absolute inset-0 bg-blue-900/10 mix-blend-multiply"></div>
-          
+        {/* Banner Area - Flat White & No Blur */}
+        <div className="relative h-48 sm:h-64 w-full bg-white border-b border-gray-100 shadow-none outline-none rounded-none overflow-hidden">
           {/* Header Action: Refresh */}
           <div className="absolute top-6 right-6 z-20">
             <button
               onClick={fetchStats}
-              className="p-2.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/40 transition-all shadow-lg group"
+              className="p-2.5 rounded-full bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all shadow-sm group"
               title={t("common.refresh")}
             >
               <RefreshCw size={18} className="group-active:rotate-180 transition-transform duration-500" />

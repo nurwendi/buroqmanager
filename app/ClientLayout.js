@@ -47,7 +47,7 @@ export default function ClientLayout({ children }) {
         <LanguageProvider>
             <DashboardProvider>
                 <div 
-                    className="relative min-h-screen overflow-hidden bg-gray-50 transition-all duration-700"
+                    className="relative min-h-screen overflow-hidden bg-white transition-all duration-700"
                     style={(!isPublicPage && loginBgUrl) ? {
                         backgroundImage: `url(${loginBgUrl})`,
                         backgroundSize: 'cover',

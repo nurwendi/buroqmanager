@@ -129,25 +129,14 @@ export default function StaffBillingPage() {
 
     return (
         <div className="space-y-8 pb-12 bg-background min-h-screen -m-6 p-6">
-            {/* Premium Header with Banner & Overlapping Avatar */}
+            {/* Premium Header - Flat White & No Blur */}
             <div className="relative mb-12 sm:mb-14 -mx-6 -mt-6 rounded-none">
-                {/* Banner Area - Sharp Corners & Transparent Bottom */}
-                <div className="relative h-48 sm:h-64 w-full overflow-hidden border-0 shadow-none outline-none rounded-none">
-                    <img 
-                        src="/dashboard-bg.png" 
-                        alt="Banner" 
-                        className="w-full h-full object-cover scale-110"
-                        style={{
-                            WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
-                            maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)"
-                        }}
-                    />
-                    <div className="absolute inset-0 bg-indigo-900/10 mix-blend-multiply"></div>
-                    
+                {/* Banner Area - Flat White */}
+                <div className="relative h-48 sm:h-64 w-full bg-white border-b border-gray-100 shadow-none outline-none rounded-none overflow-hidden">
                     {/* Date Selector - Absolute Positioned on Banner */}
                     <div className="absolute top-6 right-6 z-20">
-                        <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md border border-white/30 text-white p-2 rounded-xl shadow-lg">
-                            <div className="p-1 px-2 text-xs font-bold uppercase tracking-widest opacity-80 border-r border-white/20">
+                        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 text-gray-600 p-2 rounded-xl shadow-sm">
+                            <div className="p-1 px-2 text-xs font-bold uppercase tracking-widest opacity-80 border-r border-gray-200 italic">
                                 {selectedYear}
                             </div>
                             <select
