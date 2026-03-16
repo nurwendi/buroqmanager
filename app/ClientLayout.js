@@ -60,7 +60,7 @@ export default function ClientLayout({ children }) {
                 >
                     {/* Background Overlay for authenticated pages with bg image */}
                     {!isPublicPage && loginBgUrl && (
-                        <div className="absolute inset-0 bg-black/40 backdrop-blur-md pointer-events-none" />
+                        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
                     )}
                     
                     <SessionTimeoutHandler />

@@ -123,7 +123,7 @@ export default function BottomDock() {
                                     relative flex flex-col items-center justify-center
                                     w-10 h-10 rounded-xl
                                     transition-all duration-300
-                                    bg-white/10 backdrop-blur-md border border-white/20
+                                    bg-white/10 border border-white/20
                                     ${isLauncherOpen ? 'bg-white/30 border-white/40 !text-white' : ''}
                                 `}>
                                     {isLauncherOpen ? (
@@ -165,7 +165,7 @@ export default function BottomDock() {
                                             w-10 h-10 rounded-xl
                                             transition-all duration-300
                                             ${isActive
-                                                ? 'bg-white/30 shadow-xl border border-white/40 backdrop-blur-md'
+                                                ? 'bg-white/30 shadow-xl border border-white/40'
                                                 : 'bg-white/5 border border-white/10 hover:bg-white/10'
                                             }
                                         `}>

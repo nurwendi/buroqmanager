@@ -139,7 +139,7 @@ export default function StaffBillingPage() {
                         className="w-full h-full object-cover scale-105"
                         style={{ imageRendering: "high-quality" }}
                     />
-                    <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"></div>
+                    <div className="absolute inset-0 bg-black/30"></div>
                     
                     {/* Date Selector - Absolute Positioned on Banner */}
                     <div className="absolute top-6 right-6 z-20">
