@@ -13,7 +13,7 @@ export async function GET(request) {
         }
 
         const currentUser = await getUserFromRequest(request);
-        const isAgent = currentUser?.role === 'staff' || currentUser?.isAgent;
+        const isAgent = currentUser?.role === 'staff' || currentUser?.role === 'agent' || currentUser?.isAgent;
         const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
 
         if (!currentUser || (!isAgent && !isAdmin)) {
