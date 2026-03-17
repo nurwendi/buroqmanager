@@ -86,6 +86,11 @@ export default function FinancialReportPage() {
                     </Link>
                     <div>
                         <h1 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">{t('billing.reports.title')}</h1>
+                        {data?.isAgentView && (
+                            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
+                                {resolvedLanguage === 'id' ? 'Agen:' : 'Agent:'} {data.ownerName}
+                            </p>
+                        )}
                     </div>
                 </div>
 
@@ -141,8 +146,9 @@ export default function FinancialReportPage() {
                     <div className="text-right font-serif">
                         <div className="text-sm font-bold uppercase">{months[selectedMonth]} {selectedYear}</div>
                         <div className="text-[10px] text-gray-600 space-y-0.5 mt-1 text-black">
-                            <p>{t('billing.reports.statusFinal')}</p>
+                            <p>{data?.isAgentView ? (resolvedLanguage === 'id' ? 'STATUS: DRAFT' : 'STATUS: DRAFT') : t('billing.reports.statusFinal')}</p>
                             <p>{t('common.date')}: {new Date().toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-GB')}</p>
+                            {data?.isAgentView && <p>{resolvedLanguage === 'id' ? 'AGEN' : 'AGENT'}: {data.ownerName}</p>}
                         </div>
                     </div>
                 </div>
