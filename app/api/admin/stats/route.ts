@@ -48,13 +48,8 @@ export async function GET(request: Request) {
         // For simplicity, active customers are those not suspended. 
         // In this system, active usually implies having an active PPPoE connection or status != 'suspend'.
         // Assuming status 'active'. If status field is not present, we can just use totalCustomers or check pppoe.
-        // Let's count customers with status = 'active'
-        const activeCustomers = await db.customer.count({
-            where: {
-                ...whereClause,
-                status: 'active'
-            }
-        });
+        // Let's count customers. Since status field is not present, active is total.
+        const activeCustomers = totalCustomers;
 
         // 2. Get Monthly Revenue (Gross from payments in the current month)
         const startOfMonth = new Date();

@@ -13,17 +13,23 @@ export async function GET(request) {
         }
 
         const currentUser = await getUserFromRequest(request);
-        if (!currentUser || currentUser.role !== 'admin') {
+        const isAgent = currentUser?.role === 'staff' || currentUser?.isAgent;
+        const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'superadmin';
+
+        if (!currentUser || (!isAgent && !isAdmin)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const ownerId = currentUser.role === 'admin' ? currentUser.id : null;
+        const ownerId = isAdmin ? (currentUser.role === 'admin' ? currentUser.id : null) : null;
+        const agentId = isAgent ? currentUser.id : null;
+
         const customersWhere = {};
         if (ownerId) customersWhere.ownerId = ownerId;
+        if (agentId) customersWhere.agentId = agentId;
 
         const customers = await db.customer.findMany({
             where: customersWhere,
-            select: { username: true, customerId: true, name: true }
+            select: { username: true, customerId: true, name: true, agentId: true }
         });
 
         const customerMap = customers.reduce((acc, c) => {
@@ -34,6 +40,15 @@ export async function GET(request) {
         // 1. Fetch all payments for the period
         const where = { month, year };
         if (ownerId) where.ownerId = ownerId;
+        
+        // If agent, we primarily care about payments where they are the agent
+        // or payments linked to their customers.
+        if (agentId) {
+            where.OR = [
+                { commissions: { some: { userId: agentId } } },
+                { username: { in: customers.map(c => c.username) } }
+            ];
+        }
 
         const payments = await db.payment.findMany({
             where,
@@ -54,16 +69,20 @@ export async function GET(request) {
 
         for (const p of payments) {
             const amount = parseFloat(p.amount);
+            const isCompleted = p.status === 'completed';
 
-            if (p.status === 'completed') {
+            if (isCompleted) {
                 totalRevenue += amount;
-
-                // Method breakdown
                 const method = p.method || 'cash';
                 methodBreakdown[method] = (methodBreakdown[method] || 0) + amount;
 
                 // Commissions
                 for (const c of p.commissions) {
+                    // If viewing as agent, we only sum OUR commissions for the "Total Expenses" field?
+                    // Actually, for an agent report, totalRevenue is the gross from their customers,
+                    // and totalCommissions should be what THEY earned.
+                    if (agentId && c.userId !== agentId) continue;
+                    
                     totalCommissions += c.amount;
 
                     if (!staffBreakdown[c.userId]) {
@@ -84,34 +103,22 @@ export async function GET(request) {
             }
         }
 
-        // Determine top customers (optional, based on recent payments)
-        const topCustomers = Object.entries(
-            payments
-                .filter(p => p.status === 'completed')
-                .reduce((acc, p) => {
-                    acc[p.username] = (acc[p.username] || 0) + p.amount;
-                    return acc;
-                }, {})
-        )
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map(([username, total]) => ({ username, total }));
-
-        const ownerName = payments.find(p => p.owner)?.owner?.fullName ||
-            payments.find(p => p.owner)?.owner?.username ||
-            (currentUser.role === 'admin' ? currentUser.fullName || currentUser.username : 'Global');
+        const ownerName = isAgent ? (currentUser.fullName || currentUser.username) :
+            (payments.find(p => p.owner)?.owner?.fullName ||
+             payments.find(p => p.owner)?.owner?.username ||
+             (currentUser.role === 'admin' ? currentUser.fullName || currentUser.username : 'Global'));
 
         return NextResponse.json({
             ownerName,
+            isAgentView: !!isAgent,
             summary: {
                 totalRevenue,
                 totalUnpaid,
                 totalCommissions,
-                netIncome: totalRevenue - totalCommissions
+                netIncome: isAgent ? totalCommissions : (totalRevenue - totalCommissions)
             },
             methodBreakdown,
-            staffBreakdown: Object.values(staffBreakdown),
-            topCustomers,
+            staffBreakdown: isAgent ? [] : Object.values(staffBreakdown),
             allPayments: payments.map(p => {
                 const customer = customerMap[p.username] || {};
                 return {
@@ -124,7 +131,7 @@ export async function GET(request) {
                     status: p.status,
                     date: p.date,
                     description: p.description,
-                    agentName: p.commissions[0]?.username || '-'
+                    agentName: p.commissions.find(c => c.role === 'agent')?.username || '-'
                 };
             })
         });

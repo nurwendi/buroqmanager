@@ -149,7 +149,7 @@ export async function GET(request) {
         }));
 
         const [activeCustomers, totalCustomersCount] = await Promise.all([
-            db.customer.count({ where: { ...where, status: 'active' } }),
+            db.customer.count({ where }),
             db.customer.count({ where })
         ]);
 
