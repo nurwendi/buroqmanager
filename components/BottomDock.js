@@ -95,8 +95,13 @@ export default function BottomDock() {
     const dockedNavItems = desktopNavItems;
     const launcherNavItems = mobileLauncherItems;
 
-    // Mobile navigation items (Static 4 items for Bottom Dock)
-    const mobileNavItems = [
+    // Mobile navigation items (Dynamic based on role)
+    const mobileNavItems = userRole === 'superadmin' ? [
+        { href: '/', icon: Home, label: t('sidebar.dashboard') },
+        { href: '/system-admin', icon: Shield, label: t('sidebar.owners') },
+        { href: '/admin/notifications/blast', icon: Megaphone, label: t('sidebar.broadcast') },
+        { href: '/app-settings', icon: Settings, label: t('sidebar.settings') || t('sidebar.appSettings') },
+    ] : [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
         { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'staff'] },
         { href: '/notifications', icon: Bell, label: t('sidebar.notification'), roles: ['admin', 'manager', 'partner', 'staff', 'customer'] },
