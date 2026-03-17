@@ -165,7 +165,8 @@ export default function SystemAdminPage() {
                 </button>
             </div>
 
-            <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-black/5 dark:bg-white/5">
                         <tr>
@@ -232,7 +233,68 @@ export default function SystemAdminPage() {
                         )}
                     </tbody>
                 </table>
+            </div>
 
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+                {loading ? (
+                    <div className="text-center py-10 text-gray-500">{t('common.loading')}</div>
+                ) : admins.length === 0 ? (
+                    <div className="text-center py-10 text-gray-500">{t('common.noData')}</div>
+                ) : (
+                    admins.map((admin) => (
+                        <div key={admin.id} className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl p-4 rounded-2xl border border-white/20 dark:border-white/10 shadow-lg space-y-4">
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-500/20">
+                                        <Shield size={20} />
+                                    </div>
+                                    <div>
+                                        <div className="font-bold text-gray-900 dark:text-white">{admin.username}</div>
+                                        <div className="text-xs text-gray-500 dark:text-gray-400">{admin.fullName}</div>
+                                    </div>
+                                </div>
+                                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500 text-white shadow-sm">
+                                    {admin.agentNumber || 'N/A'}
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-2 text-sm">
+                                {admin.phone && (
+                                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg border border-gray-100 dark:border-gray-800">
+                                        <span className="font-bold text-[10px] uppercase text-gray-400 w-12 shrink-0">{t('appSettings.phone')}</span>
+                                        <span className="text-xs truncate">{admin.phone}</span>
+                                    </div>
+                                )}
+                                {admin.address && (
+                                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg border border-gray-100 dark:border-gray-800">
+                                        <span className="font-bold text-[10px] uppercase text-gray-400 w-12 shrink-0">{t('users.address')}</span>
+                                        <span className="text-xs truncate">{admin.address}</span>
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-lg border border-gray-100 dark:border-gray-800">
+                                    <span className="font-bold text-[10px] uppercase text-gray-400 w-12 shrink-0">{t('common.date')}</span>
+                                    <span className="text-xs">{new Date(admin.createdAt).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                                <button
+                                    onClick={() => handleEdit(admin)}
+                                    className="flex-1 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 py-2.5 rounded-xl border border-blue-200 dark:border-blue-900 flex items-center justify-center gap-2 font-bold text-xs"
+                                >
+                                    <Edit2 size={16} /> {t('common.edit')}
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(admin)}
+                                    className="flex-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 py-2.5 rounded-xl border border-red-200 dark:border-red-900 flex items-center justify-center gap-2 font-bold text-xs"
+                                >
+                                    <Trash2 size={16} /> {t('common.delete')}
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
 
 
