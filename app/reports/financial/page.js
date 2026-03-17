@@ -53,7 +53,7 @@ export default function FinancialReportPage() {
             style: 'currency',
             currency: 'IDR',
             minimumFractionDigits: 0
-        }).format(amount || 0);
+        }).format(amount || 0).replace('IDR', 'Rp').replace('Rp ', 'Rp');
     };
 
     const formatDate = (dateString) => {
@@ -158,19 +158,19 @@ export default function FinancialReportPage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:grid-cols-4 print:gap-0 print:border-t print:border-l print:border-black">
                         <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
                             <p className="text-[10px] font-medium text-gray-500 uppercase print:text-black print:font-bold">{t('billing.reports.revenue')}</p>
-                            <h3 className="text-lg font-bold text-blue-600 print:text-black">{formatCurrency(data.summary.totalRevenue)}</h3>
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 print:text-black">{formatCurrency(data.summary.totalRevenue)}</h3>
                         </div>
                         <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
                             <p className="text-[10px] font-medium text-gray-500 uppercase print:text-black print:font-bold">{t('billing.reports.unpaid')}</p>
-                            <h3 className="text-lg font-bold text-orange-600 print:text-black">{formatCurrency(data.summary.totalUnpaid)}</h3>
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 print:text-black">{formatCurrency(data.summary.totalUnpaid)}</h3>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:border-black/10">
                             <p className="text-[10px] font-medium text-gray-500 uppercase print:text-black print:font-bold">{t('billing.reports.expenses')}</p>
-                            <h3 className="text-lg font-bold text-red-600 print:text-black">{formatCurrency(data.summary.totalCommissions)}</h3>
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-200 print:text-black">{formatCurrency(data.summary.totalCommissions)}</h3>
                         </div>
                         <div className="bg-accent/10 dark:bg-accent/20 p-3 rounded-lg shadow border border-accent/20 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
-                            <p className="text-[10px] font-medium text-accent uppercase print:text-black print:font-bold">{t('billing.reports.netIncome')}</p>
-                            <h3 className="text-lg text-accent dark:text-accent print:text-black" style={{ fontWeight: '400' }}>{formatCurrency(data.summary.netIncome)}</h3>
+                            <p className="text-[10px] font-medium text-gray-700 dark:text-gray-300 uppercase print:text-black print:font-bold">{t('billing.reports.netIncome')}</p>
+                            <h3 className="text-lg text-gray-900 dark:text-white print:text-black" style={{ fontWeight: '700' }}>{formatCurrency(data.summary.netIncome)}</h3>
                         </div>
                     </div>
 
@@ -196,8 +196,8 @@ export default function FinancialReportPage() {
                                             <td className="px-4 py-1.5 font-medium">{s.name}</td>
                                             <td className="px-4 py-1.5 text-center">{s.count}</td>
                                             <td className="px-4 py-1.5 text-right">{formatCurrency(s.revenue)}</td>
-                                            <td className="px-4 py-1.5 text-right text-red-500">-{formatCurrency(s.commission)}</td>
-                                            <td className="px-4 py-1.5 text-right font-bold text-green-600">{formatCurrency(s.revenue - s.commission)}</td>
+                                            <td className="px-4 py-1.5 text-right text-gray-600 dark:text-gray-400">-{formatCurrency(s.commission)}</td>
+                                            <td className="px-4 py-1.5 text-right font-bold text-gray-800 dark:text-white print:text-black">{formatCurrency(s.revenue - s.commission)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -226,7 +226,7 @@ export default function FinancialReportPage() {
                                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                     {data.allPayments.map((p, i) => (
                                         <tr key={i} className={`
-                                            ${p.status !== 'completed' ? 'bg-red-50 dark:bg-red-900/30 text-red-600 print:bg-red-100 print:text-red-700' : ''}
+                                            ${p.status !== 'completed' ? 'bg-gray-100 dark:bg-gray-800/50 text-gray-600 print:bg-gray-200 print:text-black font-bold' : ''}
                                         `}>
                                             <td className="px-3 py-1 font-mono text-gray-400 print:text-black">{i + 1}</td>
                                             <td className={`px-3 py-1 ${p.status === 'completed' ? 'text-accent print:text-black' : ''}`} style={{ fontWeight: '400' }}>{p.customerNumber}</td>
