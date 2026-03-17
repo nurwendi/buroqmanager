@@ -222,44 +222,95 @@ export default function FinancialReportPage() {
                     )}
 
                     {/* All Payments Table (Detail) */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black/10">
-                        <div className="bg-gray-50 dark:bg-gray-900/50 px-4 py-2 border-b border-gray-100">
-                            <h3 className="text-xs font-bold uppercase tracking-wider">{t('billing.reports.allPayments')}</h3>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full text-xs print:text-[10px]">
-                                <thead className="bg-gray-50 dark:bg-gray-900/50">
-                                    <tr>
-                                        <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.no')}</th>
-                                        <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.customerId')}</th>
-                                        <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.customerName')}</th>
-                                        <th className="px-3 py-2 text-left text-gray-500 font-bold">{t('billing.reports.agent')}</th>
-                                        <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.paymentDate')}</th>
-                                        <th className="px-3 py-2 text-right text-gray-500">{t('billing.reports.amount')}</th>
-                                        <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.description')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                                    {data.allPayments.map((p, i) => (
-                                        <tr key={i} className={`
-                                            ${p.status !== 'completed' ? 'bg-gray-100 dark:bg-gray-800/50 text-gray-600 print:bg-gray-200 print:text-black font-bold' : ''}
-                                        `}>
-                                            <td className="px-3 py-1 font-mono text-gray-400 print:text-black">{i + 1}</td>
-                                            <td className={`px-3 py-1 ${p.status === 'completed' ? 'text-accent print:text-black' : ''}`} style={{ fontWeight: '400' }}>{p.customerNumber}</td>
-                                            <td className="px-3 py-1 font-medium">{p.customerName}</td>
-                                            <td className="px-3 py-1 font-medium">{p.agentName}</td>
-                                            <td className="px-3 py-1">{formatDate(p.date)}</td>
-                                            <td className="px-3 py-1 text-right font-bold">{formatCurrency(p.amount)}</td>
-                                            <td className="px-3 py-1 truncate max-w-[150px]">{p.description || '-'}</td>
-                                        </tr>
-                                    ))}
-                                    {data.allPayments.length === 0 && (
+                    <div className="space-y-6 print:space-y-4">
+                        {/* Paid Payments */}
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black/10">
+                            <div className="bg-green-50 dark:bg-green-900/20 px-4 py-2 border-b border-green-100 dark:border-green-800 flex justify-between items-center">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-green-700 dark:text-green-400">
+                                    {resolvedLanguage === 'id' ? 'Pembayaran Lunas (Masuk)' : 'Paid Payments (Revenue)'}
+                                </h3>
+                                <span className="text-xs font-bold text-green-700 dark:text-green-400">
+                                    {formatCurrency(data.summary.totalRevenue)}
+                                </span>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full text-xs print:text-[10px]">
+                                    <thead className="bg-gray-50 dark:bg-gray-900/50">
                                         <tr>
-                                            <td colSpan="7" className="px-6 py-10 text-center text-gray-400 italic font-medium">{t('billing.reports.noData')}</td>
+                                            <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.no')}</th>
+                                            <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.customerId')}</th>
+                                            <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.customerName')}</th>
+                                            <th className="px-3 py-2 text-left text-gray-500 font-bold">{t('billing.reports.agent')}</th>
+                                            <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.paymentDate')}</th>
+                                            <th className="px-3 py-2 text-right text-gray-500">{t('billing.reports.amount')}</th>
+                                            <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.description')}</th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                        {data.allPayments.filter(p => p.status === 'completed').map((p, i) => (
+                                            <tr key={i}>
+                                                <td className="px-3 py-1 font-mono text-gray-400 print:text-black">{i + 1}</td>
+                                                <td className="px-3 py-1 text-accent print:text-black" style={{ fontWeight: '400' }}>{p.customerNumber}</td>
+                                                <td className="px-3 py-1 font-medium">{p.customerName}</td>
+                                                <td className="px-3 py-1 font-medium">{p.agentName}</td>
+                                                <td className="px-3 py-1">{formatDate(p.date)}</td>
+                                                <td className="px-3 py-1 text-right font-bold">{formatCurrency(p.amount)}</td>
+                                                <td className="px-3 py-1 truncate max-w-[150px]">{p.description || '-'}</td>
+                                            </tr>
+                                        ))}
+                                        {data.allPayments.filter(p => p.status === 'completed').length === 0 && (
+                                            <tr>
+                                                <td colSpan="7" className="px-6 py-10 text-center text-gray-400 italic font-medium">{t('billing.reports.noData')}</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* Unpaid / Pending Payments */}
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black/10">
+                            <div className="bg-orange-50 dark:bg-orange-900/20 px-4 py-2 border-b border-orange-100 dark:border-orange-800 flex justify-between items-center">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-400">
+                                    {resolvedLanguage === 'id' ? 'Tagihan Belum Bayar (Piutang)' : 'Unpaid Bills (Pending)'}
+                                </h3>
+                                <span className="text-xs font-bold text-orange-700 dark:text-orange-400">
+                                    {formatCurrency(data.summary.totalUnpaid)}
+                                </span>
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full text-xs print:text-[10px]">
+                                    <thead className="bg-gray-50 dark:bg-gray-900/50">
+                                        <tr>
+                                            <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.no')}</th>
+                                            <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.customerId')}</th>
+                                            <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.customerName')}</th>
+                                            <th className="px-3 py-2 text-left text-gray-500 font-bold">{t('billing.reports.agent')}</th>
+                                            <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.paymentDate')}</th>
+                                            <th className="px-3 py-2 text-right text-gray-500">{t('billing.reports.amount')}</th>
+                                            <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.description')}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                        {data.allPayments.filter(p => p.status !== 'completed').map((p, i) => (
+                                            <tr key={i} className="bg-gray-50/50 dark:bg-gray-800/50 italic">
+                                                <td className="px-3 py-1 font-mono text-gray-400 print:text-black">{i + 1}</td>
+                                                <td className="px-3 py-1 font-medium">{p.customerNumber}</td>
+                                                <td className="px-3 py-1 font-medium">{p.customerName}</td>
+                                                <td className="px-3 py-1 font-medium">{p.agentName}</td>
+                                                <td className="px-3 py-1">{formatDate(p.date)}</td>
+                                                <td className="px-3 py-1 text-right font-bold text-orange-600 dark:text-orange-400">{formatCurrency(p.amount)}</td>
+                                                <td className="px-3 py-1 truncate max-w-[150px]">{p.description || '-'}</td>
+                                            </tr>
+                                        ))}
+                                        {data.allPayments.filter(p => p.status !== 'completed').length === 0 && (
+                                            <tr>
+                                                <td colSpan="7" className="px-6 py-10 text-center text-gray-400 italic font-medium">{t('billing.reports.noData')}</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
