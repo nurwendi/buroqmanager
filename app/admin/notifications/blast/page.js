@@ -130,7 +130,9 @@ export default function BlastPage() {
                                             } bg-gray-50 dark:bg-gray-900`}
                                         >
                                             <div className={`w-3 h-3 rounded-full ${tColor.color} mr-2`}></div>
-                                            <span className="text-[10px] font-bold uppercase text-gray-600 dark:text-gray-400">{tColor.id}</span>
+                                            <span className="text-[10px] font-bold uppercase text-gray-600 dark:text-gray-400">
+                                                {tColor.id === 'alert' ? t('common.warning') : t(`common.${tColor.id}`)}
+                                            </span>
                                         </button>
                                     ))}
                                 </div>
