@@ -119,13 +119,32 @@ export default function FinancialReportPage() {
             </div>
 
             {/* Print Header (Only visible on print) */}
-            <div className="hidden print:flex flex-col items-center text-center border-b-2 border-black pb-4 mb-4">
-                {appSettings.logoUrl && <img src={appSettings.logoUrl} alt="Logo" className="h-10 mb-2" />}
-                <h1 className="text-base font-bold uppercase">{appSettings.appName}</h1>
-                <p className="text-[10px] text-gray-600 font-medium">{t('billing.reports.title')} - {months[selectedMonth]} {selectedYear}</p>
-                <div className="w-full flex justify-between mt-2 text-[8px]">
-                    <p>{t('billing.reports.printedAt')}: {new Date().toLocaleString()}</p>
-                    <p>{t('billing.reports.statusFinal')}</p>
+            <div className="hidden print:block mb-8">
+                <div className="flex justify-between items-start border-b-2 border-black pb-4">
+                    <div className="flex items-center gap-6">
+                        {appSettings.logoUrl && (
+                            <img 
+                                src={appSettings.logoUrl} 
+                                alt="Logo" 
+                                className="h-20 w-auto object-contain print:!grayscale-0" 
+                            />
+                        )}
+                        <div className="space-y-1">
+                            <h1 className="text-2xl font-serif font-bold uppercase tracking-tight leading-none text-black">
+                                {appSettings.appName}
+                            </h1>
+                            <p className="text-xs font-serif uppercase tracking-[0.2em] text-gray-700">
+                                {t('billing.reports.title')}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="text-right font-serif">
+                        <div className="text-sm font-bold uppercase">{months[selectedMonth]} {selectedYear}</div>
+                        <div className="text-[10px] text-gray-600 space-y-0.5 mt-1 text-black">
+                            <p>{t('billing.reports.statusFinal')}</p>
+                            <p>{t('common.date')}: {new Date().toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-GB')}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -136,22 +155,22 @@ export default function FinancialReportPage() {
             ) : data ? (
                 <div className="space-y-6 print:space-y-4">
                     {/* Summary Row */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:grid-cols-4 print:gap-2">
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:border-black/10">
-                            <p className="text-[10px] font-medium text-gray-500 uppercase">{t('billing.reports.revenue')}</p>
-                            <h3 className="text-lg font-bold text-blue-600">{formatCurrency(data.summary.totalRevenue)}</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:grid-cols-4 print:gap-0 print:border-t print:border-l print:border-black">
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
+                            <p className="text-[10px] font-medium text-gray-500 uppercase print:text-black print:font-bold">{t('billing.reports.revenue')}</p>
+                            <h3 className="text-lg font-bold text-blue-600 print:text-black">{formatCurrency(data.summary.totalRevenue)}</h3>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:border-black/10">
-                            <p className="text-[10px] font-medium text-gray-500 uppercase">{t('billing.reports.unpaid')}</p>
-                            <h3 className="text-lg font-bold text-orange-600">{formatCurrency(data.summary.totalUnpaid)}</h3>
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
+                            <p className="text-[10px] font-medium text-gray-500 uppercase print:text-black print:font-bold">{t('billing.reports.unpaid')}</p>
+                            <h3 className="text-lg font-bold text-orange-600 print:text-black">{formatCurrency(data.summary.totalUnpaid)}</h3>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:border-black/10">
-                            <p className="text-[10px] font-medium text-gray-500 uppercase">{t('billing.reports.expenses')}</p>
-                            <h3 className="text-lg font-bold text-red-600">{formatCurrency(data.summary.totalCommissions)}</h3>
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
+                            <p className="text-[10px] font-medium text-gray-500 uppercase print:text-black print:font-bold">{t('billing.reports.expenses')}</p>
+                            <h3 className="text-lg font-bold text-red-600 print:text-black">{formatCurrency(data.summary.totalCommissions)}</h3>
                         </div>
-                        <div className="bg-accent/10 dark:bg-accent/20 p-3 rounded-lg shadow border border-accent/20 print:shadow-none print:border-black/10">
-                            <p className="text-[10px] font-medium text-accent uppercase">{t('billing.reports.netIncome')}</p>
-                            <h3 className="text-lg text-accent dark:text-accent " style={{ fontWeight: '400' }}>{formatCurrency(data.summary.netIncome)}</h3>
+                        <div className="bg-accent/10 dark:bg-accent/20 p-3 rounded-lg shadow border border-accent/20 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
+                            <p className="text-[10px] font-medium text-accent uppercase print:text-black print:font-bold">{t('billing.reports.netIncome')}</p>
+                            <h3 className="text-lg text-accent dark:text-accent print:text-black" style={{ fontWeight: '400' }}>{formatCurrency(data.summary.netIncome)}</h3>
                         </div>
                     </div>
 
@@ -244,34 +263,80 @@ export default function FinancialReportPage() {
                     body {
                         background: white !important;
                         color: black !important;
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
+                        font-family: 'Times New Roman', Times, serif !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
+
+                    /* Formal B&W Reset, but exclude Logo */
                     * {
                         color: black !important;
+                        background-color: transparent !important;
+                        background-image: none !important;
                         text-shadow: none !important;
                         box-shadow: none !important;
+                        backdrop-filter: none !important;
+                        -webkit-backdrop-filter: none !important;
+                        image-rendering: auto !important;
                     }
-                    .text-red-600, .text-red-700, .bg-red-100 {
-                        color: #b91c1c !important; /* Force dark red for visibility */
+
+                    /* Allow color only for items marked with grayscale-0 */
+                    img.print\\:!grayscale-0 {
+                        filter: none !important;
+                        -webkit-filter: none !important;
                     }
-                    .bg-red-100 {
-                        background-color: #fee2e2 !important;
+
+                    /* Border enforcement */
+                    .border, .border-b, .border-t, .border-l, .border-r, .divide-y > * {
+                        border-color: black !important;
+                        border-width: 1px !important;
                     }
-                    h1, h2, h3, th {
-                        font-weight: 900 !important;
-                        color: black !important;
-                    }
+                    .border-b-2 { border-bottom-width: 2px !important; }
+                    .border-b-[3px] { border-bottom-width: 3px !important; }
+
+                    /* Table and formatting */
                     table {
-                        page-break-inside: auto;
+                        width: 100% !important;
                         border-collapse: collapse !important;
+                        border: 2px solid black !important;
+                        table-layout: auto !important;
+                        page-break-inside: auto !important;
                     }
                     tr {
-                        page-break-inside: avoid;
-                        page-break-after: auto;
+                        page-break-inside: avoid !important;
+                        page-break-after: auto !important;
                     }
-                    nav, .fixed, .print\\:hidden {
+                    th, td {
+                        border: 1px solid black !important;
+                        padding: 6px 10px !important;
+                        color: black !important;
+                        word-break: break-word !important;
+                    }
+                    th {
+                        background-color: #eee !important;
+                        font-weight: bold !important;
+                        text-transform: uppercase !important;
+                        letter-spacing: 0.05em !important;
+                    }
+                    
+                    /* Summary Row Boxes */
+                    .print\\:grid-cols-4 > div {
+                        padding: 10px !important;
+                        min-height: 60px !important;
+                    }
+
+                    .print\\:rounded-none { border-radius: 0 !important; }
+                    .print\\:bg-gray-100 { background-color: #f9f9f9 !important; }
+                    
+                    /* Hide non-printable elements */
+                    nav, footer, .fixed, .print\\:hidden, button, select, [role="status"], [class*="ArrowLeft"] {
                         display: none !important;
+                    }
+
+                    /* Ensure report starts on first page */
+                    .max-w-7xl {
+                        padding-top: 0 !important;
+                        margin-top: 0 !important;
                     }
                 }
             `}</style>
