@@ -1502,7 +1502,16 @@ export default function UsersPage() {
                                                 {/* Unified User Column */}
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}`} title={isOnline ? t('users.online') : t('users.offline')} />
+                                                        <div className="relative">
+                                                            <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-100 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                                                                {customersData[user.name]?.avatar ? (
+                                                                    <img src={customersData[user.name].avatar} alt={user.name} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <User size={14} className="text-gray-400" />
+                                                                )}
+                                                            </div>
+                                                            <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-gray-800 ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-gray-300 dark:bg-gray-600'}`} title={isOnline ? t('users.online') : t('users.offline')} />
+                                                        </div>
                                                         <div className="flex flex-col min-w-0">
                                                             <span className="text-sm font-bold text-gray-900 dark:text-white truncate" title={user.name}>
                                                                 {user.name}

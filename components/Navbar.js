@@ -103,10 +103,11 @@ export default function Navbar() {
                             />
                         ) : null}
                         <div className={`w-10 h-10 bg-accent rounded-lg flex items-center justify-center font-bold text-xl text-white ${appSettings.logoUrl ? 'hidden' : ''}`}>
-                            M
+                            {appSettings.appName ? appSettings.appName.charAt(0).toUpperCase() : 'M'}
                         </div>
                         <span className="text-xl font-bold hidden sm:block text-gray-800 dark:text-white">{appSettings.appName}</span>
                     </Link>
+
 
                     {/* Desktop Navigation */}
                     <div className="hidden lg:flex items-center gap-1">

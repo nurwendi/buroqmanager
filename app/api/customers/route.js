@@ -45,6 +45,7 @@ export async function GET(request) {
                 customerId: true,
                 phone: true,
                 address: true,
+                avatar: true,
                 email: true,
                 agentId: true,
                 technicianId: true,
