@@ -172,7 +172,7 @@ export default function FinancialReportPage() {
                             <p className="text-[10px] font-medium text-gray-500 uppercase print:text-black print:font-bold">{t('billing.reports.unpaid')}</p>
                             <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 print:text-black">{formatCurrency(data.summary.totalUnpaid)}</h3>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:border-black/10">
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
                             <p className="text-[10px] font-medium text-gray-500 uppercase print:text-black print:font-bold">
                                 {data.isAgentView ? (resolvedLanguage === 'id' ? 'STATUS LAPORAN' : 'REPORT STATUS') : t('billing.reports.expenses')}
                             </p>
@@ -190,7 +190,7 @@ export default function FinancialReportPage() {
 
                     {/* Staff Performance Table (Compact) - Hide for Agents */}
                     {!data.isAgentView && data.staffBreakdown && data.staffBreakdown.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black/10">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black print:rounded-none print:overflow-visible">
                             <div className="bg-gray-50 dark:bg-gray-900/50 px-4 py-2 border-b border-gray-100">
                                 <h3 className="text-xs font-bold uppercase tracking-wider">{t('billing.reports.staffPerformance')}</h3>
                             </div>
@@ -224,7 +224,7 @@ export default function FinancialReportPage() {
                     {/* All Payments Table (Detail) */}
                     <div className="space-y-6 print:space-y-4">
                         {/* Paid Payments */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black/10">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black print:rounded-none print:overflow-visible">
                             <div className="bg-green-50 dark:bg-green-900/20 px-4 py-2 border-b border-green-100 dark:border-green-800 flex justify-between items-center">
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-green-700 dark:text-green-400">
                                     {resolvedLanguage === 'id' ? 'Pembayaran Lunas (Masuk)' : 'Paid Payments (Revenue)'}
@@ -269,7 +269,7 @@ export default function FinancialReportPage() {
                         </div>
 
                         {/* Unpaid / Pending Payments */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black/10">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black print:rounded-none print:overflow-visible">
                             <div className="bg-orange-50 dark:bg-orange-900/20 px-4 py-2 border-b border-orange-100 dark:border-orange-800 flex justify-between items-center">
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-400">
                                     {resolvedLanguage === 'id' ? 'Tagihan Belum Bayar (Piutang)' : 'Unpaid Bills (Pending)'}
