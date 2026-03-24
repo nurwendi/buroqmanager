@@ -74,7 +74,8 @@ export default function UsersPage() {
         agentId: '',
         technicianId: '',
         coordinates: '',
-        ownerId: ''
+        ownerId: '',
+        id: ''
     });
 
     const formatCurrency = (amount) => {
@@ -719,6 +720,7 @@ export default function UsersPage() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        id: formData.id,
                         username: formData.name,
                         customerId: formData.customerId,
                         name: formData.customerName,
@@ -787,7 +789,8 @@ export default function UsersPage() {
                 customerEmail: customerData.email || '',
                 agentId: customerData.agentId || '',
                 technicianId: customerData.technicianId || '',
-                ownerId: customerData.ownerId || ''
+                ownerId: customerData.ownerId || '',
+                id: customerData.id || ''
             });
         } catch (error) {
             setFormData({
@@ -805,7 +808,8 @@ export default function UsersPage() {
                 customerEmail: '',
                 agentId: '',
                 technicianId: '',
-                ownerId: ''
+                ownerId: '',
+                id: ''
             });
         }
 
@@ -1727,7 +1731,6 @@ export default function UsersPage() {
                                             <input
                                                 type="text"
                                                 required
-                                                disabled={editMode}
                                                 value={formData.name}
                                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
