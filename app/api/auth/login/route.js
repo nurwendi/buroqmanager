@@ -13,13 +13,10 @@ export async function POST(request) {
         if (!user) {
             const db = (await import('@/lib/db')).default;
 
-            // Find Customer by customerId (primary login method for customers)
+            // Find Customer by customerId only (primary login method for customers)
             const customer = await db.customer.findFirst({
                 where: {
-                    OR: [
-                        { customerId: username },   // Login by Customer ID (e.g. BRQ-0001)
-                        { username: username }       // Fallback: login by PPPoE username
-                    ]
+                    customerId: username // ONLY login by Customer ID (e.g. BRQ-0001)
                 }
             });
 

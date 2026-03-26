@@ -307,6 +307,21 @@ export async function POST(request) {
                 }
             });
 
+            // Send Notification to Admin/Owner
+            try {
+                const { sendNotification } = await import('@/lib/notifications-db');
+                const ownerId = user.role === 'admin' ? user.id : user.ownerId;
+                await sendNotification({
+                    title: 'Pendaftaran Baru',
+                    message: `Pelanggan ${body.customerName || finalUsername} telah didaftarkan oleh ${user.fullName || user.username} dan memerlukan verifikasi.`,
+                    type: 'alert',
+                    ownerId: ownerId,
+                    recipients: [{ userId: ownerId }] // Notify the Admin
+                });
+            } catch (notifError) {
+                console.error('Failed to send registration notification:', notifError);
+            }
+
             return NextResponse.json({
                 success: true,
                 message: "Registration submitted for approval. Please wait for admin confirmation."

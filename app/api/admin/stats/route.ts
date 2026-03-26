@@ -24,8 +24,22 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Determine target owner ID
+        // Determine target owner ID and scope
         const ownerId = currentUser.role === 'admin' ? currentUser.id : currentUser.ownerId;
+        
+        let whereClause: any = {};
+        if (currentUser.role === 'superadmin') {
+            whereClause = {};
+        } else if (currentUser.role === 'admin') {
+            whereClause = { ownerId: currentUser.id };
+        } else if (currentUser.role === 'technician') {
+            whereClause = { technicianId: currentUser.id, ownerId: currentUser.ownerId };
+        } else if (['agent', 'staff', 'partner', 'editor'].includes(currentUser.role)) {
+            whereClause = { agentId: currentUser.id, ownerId: currentUser.ownerId };
+        } else {
+            // viewer or unauthorized
+            whereClause = { ownerId: currentUser.ownerId || 'impossible_id' };
+        }
 
         if (!ownerId && currentUser.role !== 'superadmin') {
            return NextResponse.json({
@@ -38,42 +52,49 @@ export async function GET(request: Request) {
            });
         }
 
-        const whereClause = currentUser.role === 'superadmin' ? {} : { ownerId };
-
         // 1. Get Customers counts
-        const totalCustomers = await db.customer.count({
-            where: whereClause
+        const customersList = await db.customer.findMany({
+            where: whereClause,
+            select: { username: true }
         });
+        const totalCustomers = customersList.length;
+        const activeCustomers = totalCustomers; // Status field not implemented, assuming all are active
+        const allowedUsernames = new Set(customersList.map(c => c.username));
 
-        // For simplicity, active customers are those not suspended. 
-        // In this system, active usually implies having an active PPPoE connection or status != 'suspend'.
-        // Assuming status 'active'. If status field is not present, we can just use totalCustomers or check pppoe.
-        // Let's count customers. Since status field is not present, active is total.
-        const activeCustomers = totalCustomers;
-
-        // 2. Get Monthly Revenue (Gross from payments in the current month)
+        // 2. Get Monthly Revenue
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
 
+        let paymentWhereClause: any = {
+            date: { gte: startOfMonth },
+            method: { not: 'EXPENSE' },
+        };
+
+        if (currentUser.role !== 'superadmin') {
+            paymentWhereClause.username = { in: Array.from(allowedUsernames) };
+            paymentWhereClause.ownerId = ownerId;
+        }
+
         const payments = await db.payment.findMany({
             where: {
-                paymentDate: {
-                    gte: startOfMonth
-                },
-                method: {
-                    not: 'EXPENSE'
-                },
-                customer: currentUser.role === 'superadmin' ? undefined : { ownerId }
+                ...paymentWhereClause,
+                status: 'completed'
             },
-            select: {
-                amount: true
+            include: {
+                commissions: true
             }
         });
 
-        const monthlyRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
+        const grossRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
+        const staffCommission = payments.reduce((sum, p) => {
+            const paymentCommission = p.commissions.reduce((cSum, c) => cSum + c.amount, 0);
+            return sum + paymentCommission;
+        }, 0);
+        const netRevenue = grossRevenue - staffCommission;
+        const monthlyRevenue = grossRevenue; // Backward compatibility
 
-        // 3. Get Routers
+        // 3. Get Routers & Real-time PPPoE Active Count
         const config = await (await import('@/lib/config')).getConfig();
         const allConnections = config.connections || [];
         const targetConnections = currentUser.role === 'superadmin' 
@@ -81,19 +102,29 @@ export async function GET(request: Request) {
            : allConnections.filter((c: any) => c.ownerId === ownerId);
 
         let onlineRouters = 0;
+        let pppoeActive = 0;
         
         const routers = await Promise.all(targetConnections.map(async (conn: any) => {
             try {
                 const connClient = await getMikrotikClient(conn.id);
-                // System Identity
-                const identityRes = await connClient.write('/system/identity/print');
-                const identity = identityRes[0]?.name || 'Unknown';
+                
+                // Fetch basic info and active sessions in parallel
+                const [identityRes, resources, pppActive] = await Promise.all([
+                    connClient.write('/system/identity/print'),
+                    connClient.write('/system/resource/print'),
+                    connClient.write('/ppp/active/print')
+                ]);
 
-                // Resources
-                const resources = await connClient.write('/system/resource/print');
+                const identity = identityRes[0]?.name || 'Unknown';
                 const res = resources[0] || {};
                 
                 onlineRouters++;
+
+                // Count active sessions belonging to this user's scope
+                if (Array.isArray(pppActive)) {
+                    const routerActiveCount = pppActive.filter(a => allowedUsernames.has(a.name)).length;
+                    pppoeActive += routerActiveCount;
+                }
                 
                 return {
                     id: conn.id,
@@ -114,21 +145,64 @@ export async function GET(request: Request) {
             }
         }));
 
-        // For the chart in the mobile app, we can use these fields
-        const pppoeActive = routers.reduce((sum, r) => sum + (r.status === 'online' ? activeCustomers : 0), 0); 
-        // Note: Simple heuristic for now since this endpoint doesn't fetch detailed PPP active for each owner individually yet
-        // However, activeCustomers (status='active') is a good representation of 'Total Active'
-        // For 'Online' vs 'Offline', let's use the actual active count from the provided stats if possible.
+        // 4. Pending Approvals (Registrations & Payments)
+        const pendingRegs = await db.registration.findMany({
+            where: { ...whereClause, status: 'pending' },
+            orderBy: { createdAt: 'desc' },
+            take: 10
+        });
+
+        const pendingPaymentList = await db.payment.findMany({
+            where: { ...paymentWhereClause, status: 'pending' },
+            orderBy: { date: 'desc' },
+            take: 10
+        });
+
+        const pendingRegistrationsCount = await db.registration.count({
+            where: { ...whereClause, status: 'pending' }
+        });
+
+        const pendingPaymentsCount = await db.payment.count({
+            where: { ...paymentWhereClause, status: 'pending' }
+        });
+
+        const pendingPayments = [
+            ...pendingRegs.map(r => ({
+                id: r.id,
+                name: r.name || r.username,
+                customerName: r.name || r.username,
+                type: 'registration',
+                subType: r.type,
+                date: r.createdAt,
+                status: r.status
+            })),
+            ...pendingPaymentList.map(p => ({
+                id: p.id,
+                name: p.username,
+                customerName: p.username,
+                type: 'payment',
+                amount: p.amount,
+                date: p.date,
+                status: p.status
+            }))
+        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10);
 
         return NextResponse.json({
             totalCustomers,
             activeCustomers,
-            pppoeActive: activeCustomers, // Using active status as a proxy for 'Online'
-            pppoeOffline: totalCustomers - activeCustomers,
+            pppoeActive,
+            pppoeOffline: Math.max(0, totalCustomers - pppoeActive),
             routersCount: targetConnections.length,
             onlineRouters,
             monthlyRevenue,
-            routers
+            grossRevenue,
+            netRevenue,
+            staffCommission,
+            pendingCount: pendingRegistrationsCount + pendingPaymentsCount,
+            pendingRegistrationsCount,
+            pendingPaymentsCount,
+            pendingPayments,
+            routers: routers || []
         });
 
     } catch (error: any) {

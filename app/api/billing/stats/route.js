@@ -15,55 +15,60 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        let where = {};
-
-        // NEW: Contextual Filtering based on Active Router
-        const config = await (await import('@/lib/config')).getConfig();
-        const { getUserConnectionId } = await import('@/lib/config');
-        const connectionId = getUserConnectionId(currentUser, config);
-
+        let customerWhere = {};
+        
         // Determine effective connection/owner
         let effectiveConnectionId = connectionId;
 
-        // Fallback for staff/managers if not set directly
         if (!effectiveConnectionId && currentUser.ownerId) {
             const ownerConn = config.connections?.find(c => c.ownerId === currentUser.ownerId);
             if (ownerConn) effectiveConnectionId = ownerConn.id;
         }
 
-        // Superadmin Fallback Logic (Align with Dashboard Stats)
         if (!effectiveConnectionId && currentUser.role === 'superadmin' && config.connections?.length > 0) {
             effectiveConnectionId = config.connections[0].id; // Default to first if none selected
         }
 
-        // Apply filtering
-        // 1. Admin/Manager: Always limited to their own scope
+        // Apply filtering for Customers
         if (currentUser.role === 'admin') {
-            where = { ownerId: currentUser.id };
+            customerWhere = { ownerId: currentUser.id };
         } else if (currentUser.role === 'manager' && currentUser.ownerId) {
-            where = { ownerId: currentUser.ownerId };
-        }
-        // 2. Staff: Limited to their owner
-        else if (['agent', 'partner', 'technician', 'staff'].includes(currentUser.role)) {
-            if (currentUser.ownerId) {
-                where = { ownerId: currentUser.ownerId };
-            } else {
-                where = { ownerId: 'nothing' }; // Invalid state
-            }
-        }
-        // 3. Superadmin: Context-aware
-        else if (currentUser.role === 'superadmin') {
-            // If we have an effective connection, filter by its owner
+            customerWhere = { ownerId: currentUser.ownerId };
+        } else if (currentUser.role === 'technician') {
+            customerWhere = { technicianId: currentUser.id, ownerId: currentUser.ownerId };
+        } else if (['agent', 'partner', 'staff', 'editor'].includes(currentUser.role)) {
+            customerWhere = { agentId: currentUser.id, ownerId: currentUser.ownerId };
+        } else if (currentUser.role === 'superadmin') {
             const activeConnection = config.connections?.find(c => c.id === effectiveConnectionId);
             if (activeConnection && activeConnection.ownerId) {
-                where = { ownerId: activeConnection.ownerId };
+                customerWhere = { ownerId: activeConnection.ownerId };
             } else {
-                // Global view (or no owner assigned to router)
-                where = {};
+                customerWhere = {};
+            }
+        } else {
+            customerWhere = { ownerId: currentUser.ownerId || 'impossible_id' };
+        }
+
+        const myCustomers = await db.customer.findMany({
+            where: customerWhere,
+            select: { username: true }
+        });
+        const allowedUsernames = myCustomers.map(c => c.username);
+
+        let paymentWhere = {};
+        if (currentUser.role !== 'superadmin') {
+            paymentWhere = {
+                username: { in: allowedUsernames },
+                ownerId: currentUser.role === 'admin' ? currentUser.id : currentUser.ownerId
+            };
+        } else {
+            const activeConnection = config.connections?.find(c => c.id === effectiveConnectionId);
+            if (activeConnection && activeConnection.ownerId) {
+                paymentWhere.ownerId = activeConnection.ownerId;
             }
         }
 
-        const payments = await db.payment.findMany({ where });
+        const payments = await db.payment.findMany({ where: paymentWhere });
 
         const totalRevenue = payments
             .filter(p => p.status === 'completed')
@@ -149,8 +154,8 @@ export async function GET(request) {
         }));
 
         const [activeCustomers, totalCustomersCount] = await Promise.all([
-            db.customer.count({ where }),
-            db.customer.count({ where })
+            db.customer.count({ where: customerWhere }),
+            db.customer.count({ where: customerWhere })
         ]);
 
         return NextResponse.json({

@@ -123,11 +123,37 @@ export async function GET(request) {
 
     const payments = await db.payment.findMany({
         where,
-        include: { commissions: true },
+        include: { 
+            commissions: {
+                include: {
+                    user: {
+                        select: { fullName: true }
+                    }
+                }
+            }
+        },
         orderBy: { date: 'desc' }
     });
 
-    return NextResponse.json(payments);
+    const userNames = [...new Set(payments.map(p => p.username))];
+    const customers = await db.customer.findMany({
+        where: { username: { in: userNames } },
+        select: { username: true, name: true }
+    });
+    
+    const customerMap = {};
+    customers.forEach(c => { customerMap[c.username] = c.name; });
+
+    const enrichedPayments = payments.map(p => {
+        const agentComm = p.commissions.find(c => c.role === 'agent');
+        return {
+            ...p,
+            customerName: customerMap[p.username] || p.username,
+            agentFullName: agentComm?.user?.fullName || agentComm?.username || '-'
+        };
+    });
+
+    return NextResponse.json(enrichedPayments);
 }
 
 export async function POST(request) {

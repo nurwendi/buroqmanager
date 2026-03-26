@@ -53,7 +53,13 @@ export async function GET(request) {
         const payments = await db.payment.findMany({
             where,
             include: {
-                commissions: true,
+                commissions: {
+                    include: {
+                        user: {
+                            select: { fullName: true }
+                        }
+                    }
+                },
                 owner: {
                     select: { username: true, fullName: true }
                 }
@@ -88,7 +94,7 @@ export async function GET(request) {
                     if (!staffBreakdown[c.userId]) {
                         staffBreakdown[c.userId] = {
                             id: c.userId,
-                            name: c.username,
+                            name: c.user?.fullName || c.username,
                             commission: 0,
                             revenue: 0,
                             count: 0
@@ -131,7 +137,7 @@ export async function GET(request) {
                     status: p.status,
                     date: p.date,
                     description: p.description,
-                    agentName: p.commissions.find(c => c.role === 'agent')?.username || '-'
+                    agentName: p.commissions.find(c => c.role === 'agent')?.user?.fullName || p.commissions.find(c => c.role === 'agent')?.username || '-'
                 };
             })
         });

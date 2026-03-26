@@ -130,6 +130,20 @@ export async function POST(request) {
                     }
                 });
 
+                // Send Notification to Admin/Owner
+                try {
+                    const { sendNotification } = await import('@/lib/notifications-db');
+                    await sendNotification({
+                        title: type === 'edit' ? 'Permintaan Edit' : 'Permintaan Hapus',
+                        message: `Permintaan ${type === 'edit' ? 'perubahan data' : 'penghapusan'} untuk pelanggan ${body.name || targetUsername} telah diajukan oleh ${user.fullName || user.username} dan memerlukan verifikasi.`,
+                        type: 'alert',
+                        ownerId: ownerId,
+                        recipients: [{ userId: ownerId }] // Notify the Admin
+                    });
+                } catch (notifError) {
+                    console.error(`Failed to send ${type} notification:`, notifError);
+                }
+
                 return NextResponse.json({ success: true, message: `${type === 'edit' ? 'Edit' : 'Delete'} request submitted for approval` });
             }
         }

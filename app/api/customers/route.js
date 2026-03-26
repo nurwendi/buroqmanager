@@ -49,7 +49,18 @@ export async function GET(request) {
                 email: true,
                 agentId: true,
                 technicianId: true,
-                ownerId: true
+                ownerId: true,
+                profileId: true,
+                profile: {
+                    select: {
+                        name: true
+                    }
+                },
+                coordinates: true,
+                comment: true,
+                disabled: true,
+                service: true,
+                id: true
             };
         } else {
             queryOptions.include = {
@@ -75,7 +86,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { username, name, address, phone, email, customerId, password, profileId } = body; // Extract profileId
+        const { username, name, address, phone, email, customerId, password, profileId, profile, coordinates, comment, disabled, service } = body; // Extract extra fields
 
 
         // Radius Sync Flags
@@ -136,6 +147,13 @@ export async function POST(request) {
                     return NextResponse.json({ error: "Unauthorized: not your tenant" }, { status: 403 });
                 }
             }
+        }
+
+        // Resolve profile name to ID if only name is provided
+        let effectiveProfileId = profileId;
+        if (!effectiveProfileId && profile) {
+            const profileObj = await db.profile.findUnique({ where: { name: profile } });
+            if (profileObj) effectiveProfileId = profileObj.id;
         }
 
         // Verify agent/tech existence if IDs provided
@@ -275,22 +293,13 @@ export async function POST(request) {
                     customerId: finalCustomerId,
                     agentId: agentId,
                     technicianId: technicianId,
-                }
-            });
-        } else {
-            customer = await db.customer.create({
-                data: {
-                    username,
-                    name: name || '',
-                    address: address || '',
-                    phone: phone || '',
-                    email: email || '',
-                    customerId: finalCustomerId,
-                    agentId: agentId,
-                    technicianId: technicianId,
                     ownerId: ownerId,
                     password: password || undefined,
-                    profileId: profileId || undefined
+                    profileId: effectiveProfileId || undefined,
+                    coordinates: coordinates || undefined,
+                    comment: comment || undefined,
+                    disabled: disabled !== undefined ? disabled : undefined,
+                    service: service || 'pppoe'
                 }
             });
         }

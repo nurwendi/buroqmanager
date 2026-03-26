@@ -20,26 +20,20 @@ export async function GET(request) {
         if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const decoded = await verifyToken(token);
-        if (!decoded || decoded.role !== 'customer') {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-        }
+        if (!decoded) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         let username = decoded.username;
+        let isUserAdmin = ['admin', 'superadmin', 'staff', 'agent', 'technician'].includes(decoded.role);
 
         // Determine Owner ID for router selection
         let targetOwnerId = decoded.ownerId;
-        if (decoded.role === 'customer' && !decoded.ownerId) {
-            // Fallback if token missing ownerId (older tokens)
-            const u = await db.user.findUnique({ where: { username } });
-            if (u) targetOwnerId = u.ownerId;
-        }
-
+        
+        // 4. Get Customer Name & Avatar from Customer table
         let asCustomer = null;
 
-        // Check for customerId lookup (Query Param has priority)
+        // Check for customerId lookup (Query Param has priority for admins)
         const { searchParams } = new URL(request.url);
         const searchId = searchParams.get('customerId');
-
 
         if (searchId) {
             console.log(`[CustomerStats] Searching for customerId: ${searchId}`);
@@ -49,6 +43,11 @@ export async function GET(request) {
             });
 
             if (customer) {
+                // Security Check: Admins can only see their own customers (unless superadmin)
+                if (decoded.role === 'admin' && customer.ownerId !== decoded.id) {
+                     return NextResponse.json({ error: 'Forbidden: Not your customer' }, { status: 403 });
+                }
+                
                 asCustomer = customer;
                 username = customer.username;
                 targetOwnerId = customer.ownerId;
@@ -57,6 +56,11 @@ export async function GET(request) {
                 return NextResponse.json({ error: 'Customer ID not found' }, { status: 404 });
             }
         } else {
+            // If No searchId, must be a customer role accessing their own stats
+            if (!isUserAdmin && decoded.role !== 'customer') {
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            }
+            
             // Implicit Lookup: user logged in with CustomerID
             const found = await db.customer.findFirst({
                 where: { customerId: username }
@@ -72,52 +76,62 @@ export async function GET(request) {
 
         console.log(`[CustomerStats] Fetching stats for user: ${username} (Owner: ${targetOwnerId})`);
 
-        // Get correct Mikrotik Connection
-        const { getConfig, getUserConnectionId } = await import('@/lib/config');
+        // Get correct Mikrotik Connections
+        const { getConfig } = await import('@/lib/config');
         const config = await getConfig();
-        // Emulate a user object for getUserConnectionId
-        const connectionId = getUserConnectionId({ role: 'customer', ownerId: targetOwnerId }, config);
+        
+        // Find ALL connections belonging to this owner
+        const ownerConnections = (config.connections || []).filter(c => c.ownerId === targetOwnerId || (decoded.role === 'superadmin' && !targetOwnerId));
+        
+        // If no specifically owned connections, fallback to active connection or all connections for superadmin
+        const connectionsToScan = ownerConnections.length > 0 
+            ? ownerConnections 
+            : (config.activeConnectionId ? config.connections.filter(c => c.id === config.activeConnectionId) : config.connections);
 
-        // 1. Get Session Status (Mikrotik)
+        // 1. Get Session Status (Mikrotik) - Scan All Applicable Routers
         let session = {
             id: null,
             uptime: '-',
-            active: false
+            active: false,
+            routerId: null
         };
 
-        try {
-            console.log(`[CustomerStats] Connecting to Mikrotik (ConnID: ${connectionId})...`);
-            const client = await getMikrotikClient(connectionId);
+        for (const conn of connectionsToScan) {
+            try {
+                console.log(`[CustomerStats] Connecting to Mikrotik (ConnID: ${conn.id})...`);
+                const client = await getMikrotikClient(conn.id);
 
-            const activeConnections = await client.write('/ppp/active/print', [
-                `?name=${username}`
-            ]);
-            console.log(`[CustomerStats] Active connections found: ${activeConnections.length}`, activeConnections);
+                const activeConnections = await client.write('/ppp/active/print', [
+                    `?name=${username}`
+                ]);
 
-            if (activeConnections.length > 0) {
-                const active = activeConnections[0];
-                session.id = active['.id'];
-                session.uptime = active.uptime;
-                session.active = true;
-                // ... (rest of logic handles traffic)
-                session.ipAddress = active['address'];
+                if (activeConnections.length > 0) {
+                    const active = activeConnections[0];
+                    session.id = active['.id'];
+                    session.uptime = active.uptime;
+                    session.active = true;
+                    session.routerId = conn.id;
+                    session.ipAddress = active['address'];
 
-                try {
-                    const traffic = await client.write('/interface/monitor-traffic', [
-                        `=interface=<pppoe-${username}>`,
-                        '=once='
-                    ]);
-                    if (traffic && traffic[0]) {
-                        session.currentSpeed = {
-                            tx: traffic[0]['tx-bits-per-second'] || '0',
-                            rx: traffic[0]['rx-bits-per-second'] || '0'
-                        };
-                    }
-                } catch (tErr) { console.warn('Traffic monitor failed', tErr); }
+                    try {
+                        const traffic = await client.write('/interface/monitor-traffic', [
+                            `=interface=<pppoe-${username}>`,
+                            '=once='
+                        ]);
+                        if (traffic && traffic[0]) {
+                            session.currentSpeed = {
+                                tx: traffic[0]['tx-bits-per-second'] || '0',
+                                rx: traffic[0]['rx-bits-per-second'] || '0'
+                            };
+                        }
+                    } catch (tErr) { console.warn('Traffic monitor failed', tErr); }
+                    
+                    // Found him! Stop scanning other routers.
+                    break;
+                }
+            } catch (mikrotikError) {
+                console.error(`Mikrotik connection failed for ${conn.id}:`, mikrotikError);
             }
-        } catch (mikrotikError) {
-            console.error('Mikrotik connection failed:', mikrotikError);
-            // Non-fatal, session remains inactive/offline
         }
 
         // 2. Get Monthly Usage (Accumulated)

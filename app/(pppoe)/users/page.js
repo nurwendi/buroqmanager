@@ -65,6 +65,7 @@ export default function UsersPage() {
         profile: '',
         service: 'pppoe',
         comment: '',
+        coordinates: '',
         disabled: false,
         customerId: '',
         customerName: '',
@@ -790,6 +791,8 @@ export default function UsersPage() {
                 agentId: customerData.agentId || '',
                 technicianId: customerData.technicianId || '',
                 ownerId: customerData.ownerId || '',
+                coordinates: customerData.coordinates || '',
+                comment: customerData.comment || '',
                 id: customerData.id || ''
             });
         } catch (error) {
@@ -1910,6 +1913,30 @@ export default function UsersPage() {
                                                 onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                                 placeholder={t('users.emailPlaceholder')}
+                                            />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                                                <MapPin size={16} /> {t('users.coordinates')}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.coordinates || ''}
+                                                onChange={(e) => setFormData({ ...formData, coordinates: e.target.value })}
+                                                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                                                placeholder="-6.1234, 106.1234"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                                                <Info size={16} /> {t('users.comment')}
+                                            </label>
+                                            <textarea
+                                                value={formData.comment || ''}
+                                                onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+                                                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                                                rows="2"
+                                                placeholder={t('pppoe.commentPlaceholder')}
                                             />
                                         </div>
                                         <div className="md:col-span-2">
