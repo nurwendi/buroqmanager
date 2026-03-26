@@ -173,22 +173,38 @@ export async function GET(request) {
             console.error('Error reading billing data', e);
         }
 
-        // 4. Get Customer Name & Avatar from Customer table
-        let name = username;
-        let avatar = asCustomer?.avatar || '';
+        // 4. Get Customer Details & Latest Notification
+        let address = '-';
+        let profileName = '-';
+        let latestNotification = 'Belum ada notifikasi baru.';
+        let name = username; // Default to username
+        let avatar = '';
+
         try {
-            if (!asCustomer) {
-                // Try to look up by PPPoE username
-                const customerProfile = await db.customer.findFirst({ where: { username } });
-                if (customerProfile) {
-                    name = customerProfile.name || username;
-                    avatar = customerProfile.avatar || '';
+            const customer = await db.customer.findFirst({
+                where: { username },
+                include: { profile: { select: { name: true } } }
+            });
+
+            if (customer) {
+                name = customer.name || username;
+                avatar = customer.avatar || '';
+                address = customer.address || '-';
+                profileName = customer.profile?.name || '-';
+
+                // Find latest notification for this customer
+                const latestRecipient = await db.notificationRecipient.findFirst({
+                    where: { userId: customer.id },
+                    orderBy: { notification: { createdAt: 'desc' } },
+                    include: { notification: { select: { message: true, createdAt: true } } }
+                });
+
+                if (latestRecipient && latestRecipient.notification) {
+                    latestNotification = latestRecipient.notification.message;
                 }
-            } else {
-                name = asCustomer.name || username;
             }
         } catch (e) {
-            console.error('Error reading customer profile', e);
+            console.error('Error reading customer details', e);
         }
 
         return NextResponse.json({
@@ -196,7 +212,12 @@ export async function GET(request) {
             avatar,
             usage,
             billing,
-            session
+            session,
+            address,
+            profileName,
+            latestNotification,
+            customerId: asCustomer?.customerId || decoded.username,
+            pppoeUsername: username
         });
 
     } catch (error) {

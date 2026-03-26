@@ -9,7 +9,7 @@ export async function POST(request) {
 
         let user = await verifyPassword(username, password);
 
-        // If local system user not found, check if input is Customer ID or PPPoE username
+        // If local system user not found, check if input is Customer ID (e.g. BRQ-0001)
         if (!user) {
             const db = (await import('@/lib/db')).default;
 

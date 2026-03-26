@@ -15,10 +15,14 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        let customerWhere = {};
+        const { searchParams } = new URL(request.url);
+        const connectionId = searchParams.get('connectionId');
+        const { getConfig } = await import('@/lib/config');
+        const config = await getConfig();
         
         // Determine effective connection/owner
         let effectiveConnectionId = connectionId;
+        let customerWhere = {};
 
         if (!effectiveConnectionId && currentUser.ownerId) {
             const ownerConn = config.connections?.find(c => c.ownerId === currentUser.ownerId);
