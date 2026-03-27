@@ -25,13 +25,13 @@ export async function GET(request: Request) {
         }
 
         // Determine target owner ID and scope
-        const ownerId = currentUser.role === 'admin' ? currentUser.id : currentUser.ownerId;
+        const ownerId = currentUser.role === 'admin' ? (currentUser.ownerId || currentUser.id) : currentUser.ownerId;
         
         let whereClause: any = {};
         if (currentUser.role === 'superadmin') {
             whereClause = {};
         } else if (currentUser.role === 'admin') {
-            whereClause = { ownerId: currentUser.id };
+            whereClause = { ownerId: currentUser.ownerId || currentUser.id };
         } else if (currentUser.role === 'technician') {
             whereClause = { technicianId: currentUser.id, ownerId: currentUser.ownerId };
         } else if (['agent', 'staff', 'partner', 'editor'].includes(currentUser.role)) {

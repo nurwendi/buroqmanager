@@ -163,11 +163,8 @@ export async function GET(request) {
                     let filterWhere = {};
 
                     if (user.role === 'admin' || user.role === 'manager') {
-                        // Admin and Manager see ALL users of the owner
-                        filterWhere = { ownerId: user.id };
-                        if (user.role === 'manager' && user.ownerId) {
-                            filterWhere = { ownerId: user.ownerId };
-                        }
+                        // Admin and Manager see ALL users of their tenant owner
+                        filterWhere = { ownerId: user.ownerId || user.id };
                     } else if (['agent', 'partner', 'technician', 'staff', 'editor'].includes(user.role)) {
                         // Staff/Agent/Technician/Editor see ONLY assigned users
                         filterWhere = {

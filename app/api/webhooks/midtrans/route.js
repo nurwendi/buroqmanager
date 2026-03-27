@@ -82,11 +82,25 @@ export async function POST(request) {
             }
         });
 
-        // 5. Trigger Reactivation if Success
+        // 5. Trigger Reactivation and Notification if Success
         if (newStatus === 'success') {
             console.log(`Payment ${order_id} successful. Restoring connection for ${payment.username}...`);
-            // Execute restoration in background or await depending on preference. Await is safer for now.
-            await restoreUserConnection(payment.username);
+            // Execute restoration
+            try {
+                await restoreUserConnection(payment.username);
+
+                // Notify the user via Push Notification
+                const { sendTargetedNotificationByUsername } = await import('@/lib/notifications-db');
+                await sendTargetedNotificationByUsername({
+                    username: payment.username,
+                    title: 'Pembayaran Berhasil',
+                    message: `Terima kasih! Pembayaran tagihan ${payment.invoiceNumber.split('-')[0]} telah diterima. Koneksi Anda telah aktif kembali.`,
+                    type: 'billing',
+                    ownerId: payment.ownerId
+                });
+            } catch (notifyError) {
+                console.error('[Webhook] Failed to send payment notification:', notifyError.message);
+            }
         }
 
         return NextResponse.json({ message: 'OK' });

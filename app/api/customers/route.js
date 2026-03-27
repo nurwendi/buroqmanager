@@ -15,21 +15,19 @@ export async function GET(request) {
                 where.ownerId = user.id;
             } else if (user.role === 'superadmin') {
                 // No filter
-            } else if (['agent', 'technician', 'staff', 'editor'].includes(user.role)) {
+            } else if (['agent', 'partner', 'technician', 'staff', 'editor'].includes(user.role)) {
                 // Combined restriction logic
                 if (user.role === 'technician') {
                     where.technicianId = user.id;
+                } else if (user.role === 'staff' || user.role === 'editor') {
+                    // Staff and Editor should see all customers of their owner
+                    if (user.ownerId) where.ownerId = user.ownerId;
                 } else {
-                    // Agent, Staff, Editor -> assumed Agent role for now unless logic differs?
-                    // Actually, staff usually means generic agent. Editor is now same.
+                    // Agent or Partner -> explicitly their assigned ones
                     where.agentId = user.id;
                 }
 
-                // Allow finding if they are EITHER agent OR technician if they have both flags?
-                // The DB structure is rigid here in the IF/ELSE blocks.
-                // Let's defer to the existing simpler logic or improve it.
-                // Existing logic had separate blocks. Let's act like 'agent'.
-                if (user.ownerId) where.ownerId = user.ownerId;
+                if (user.ownerId && !where.ownerId) where.ownerId = user.ownerId;
             } else {
                 // Fallback (e.g. viewer)
                 if (user.ownerId) where.ownerId = user.ownerId;
@@ -393,6 +391,22 @@ export async function POST(request) {
             } catch (rErr) {
                 console.error("[Radius-Sync] Error syncing to Radius tables:", rErr);
                 // Do not fail the whole request, just log it.
+            }
+        }
+
+        // Notify Technician if assigned/changed
+        if (technicianId && (!existing || existing.technicianId !== technicianId)) {
+            try {
+                const { sendNotification } = await import('@/lib/notifications-db');
+                await sendNotification({
+                    title: 'Tugas Baru',
+                    message: `Anda telah ditugaskan untuk mengelola pelanggan ${customer.name} (${customer.username}).`,
+                    type: 'info',
+                    ownerId: ownerId,
+                    recipients: [{ userId: technicianId }]
+                });
+            } catch (notifyError) {
+                console.error('[API] Failed to notify technician:', notifyError.message);
             }
         }
 
