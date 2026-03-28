@@ -41,7 +41,7 @@ export async function GET(request) {
                         if (existing) {
                             // Update existing if missing customerId
                             if (!existing.customerId) {
-                                const cleanAgentNumber = (await getAgentNumber(conn.ownerId)) || '999';
+                                const cleanAgentNumber = (await getAgentNumber(conn.ownerId)) || '99';
                                 const suffix = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
                                 const customerNumber = `${cleanAgentNumber}${suffix}`;
 
@@ -53,7 +53,7 @@ export async function GET(request) {
                             syncedCount++;
                         } else {
                             // Create new if missing (Auto-Import)
-                            const cleanAgentNumber = (await getAgentNumber(conn.ownerId)) || '999';
+                            const cleanAgentNumber = (await getAgentNumber(conn.ownerId)) || '99';
                             const suffix = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
                             const customerNumber = `${cleanAgentNumber}${suffix}`;
 
