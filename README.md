@@ -275,3 +275,18 @@ npx pm2 restart billing
 
 **4. Reset All Data**
 - To wipe database and start fresh: `node scripts/reset-data.js`
+
+## 🛠 Utility Scripts (Migration Tools)
+
+Used for batch updates of system numbering formats:
+
+- **Batch Migration (101-105 -> 11-15)**:
+  `node scripts/migrate-batch-prefixes.js`
+  (Auto-detects and converts 3-digit prefixes to 2-digit).
+
+- **Manual Prefix Migration**:
+  `node scripts/migrate-customer-ids.js [OLD] [NEW]`
+  `node scripts/migrate-customer-ids.js 999 99`
+
+- **Owner ID Update**:
+  `node -e 'const { PrismaClient } = require("@prisma/client"); const prisma = new PrismaClient(); prisma.user.updateMany({ where: { username: "admin" }, data: { agentNumber: "99" } }).then(console.log).finally(() => prisma.$disconnect())'`
