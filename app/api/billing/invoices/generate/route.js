@@ -1,15 +1,14 @@
-import { NextResponse } from 'next/server';
+import { getUserFromRequest } from '@/lib/api-auth';
 import { generateInvoices } from '@/lib/billing';
-import { verifyToken } from '@/lib/security';
+import { NextResponse } from 'next/server';
 import { getConfig, getUserConnectionId } from '@/lib/config';
 
 export async function POST(request) {
     try {
-        const token = request.cookies.get('auth_token')?.value;
-        if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-        const currentUser = await verifyToken(token);
-        if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const currentUser = await getUserFromRequest(request);
+        if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
         const config = await getConfig();
         let connectionId = getUserConnectionId(currentUser, config);

@@ -1,16 +1,8 @@
-import { NextResponse } from 'next/server';
-import db from '@/lib/db';
-import { verifyToken } from '@/lib/security';
-
-async function getCurrentUser(request) {
-    const token = request.cookies.get('auth_token')?.value;
-    if (!token) return null;
-    return await verifyToken(token);
-}
+import { getUserFromRequest } from '@/lib/api-auth';
 
 export async function GET(request) {
     try {
-        const currentUser = await getCurrentUser(request);
+        const currentUser = await getUserFromRequest(request);
         if (!currentUser) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

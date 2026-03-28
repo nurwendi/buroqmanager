@@ -1,29 +1,24 @@
 import { NextResponse } from 'next/server';
 import { getLogs } from '@/lib/logs-db';
-import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/security';
+import { getUserFromRequest } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('auth_token')?.value;
-
-        let decoded = null;
-        if (token) decoded = await verifyToken(token);
+        const user = await getUserFromRequest(request);
 
         // Determine effective OwnerId for filtering
         let ownerId = null;
         let connectionId = null;
-        if (decoded) {
-            if (decoded.role === 'admin') ownerId = decoded.id;
-            else if (decoded.role !== 'superadmin') ownerId = decoded.ownerId; // Staff
+        if (user) {
+            if (user.role === 'admin') ownerId = user.id;
+            else if (user.role !== 'superadmin') ownerId = user.ownerId; // Staff
 
             // Get Connection ID
             const config = await (await import('@/lib/config')).getConfig();
             const { getUserConnectionId } = await import('@/lib/config');
-            connectionId = getUserConnectionId(decoded, config);
+            connectionId = getUserConnectionId(user, config);
         }
 
         let logs = await getLogs(ownerId);
@@ -36,14 +31,13 @@ export async function GET(request) {
             logs = await getLogs(ownerId);
         }
 
-        if (token) {
-            const decoded = await verifyToken(token);
+        if (user) {
             // If user is a customer, filter logs to only show their own
-            if (decoded && decoded.role === 'customer') {
+            if (user.role === 'customer') {
                 const userLogs = logs.filter(log =>
-                    log.username === decoded.username ||
+                    log.username === user.username ||
                     log.username === null || // Broadcast/System message
-                    (log.message && log.message.startsWith(decoded.username + ' :'))
+                    (log.message && log.message.startsWith(user.username + ' :'))
                 );
                 return NextResponse.json(userLogs);
             }
@@ -59,11 +53,8 @@ export async function GET(request) {
 
 export async function POST(request) {
     try {
-        const token = request.cookies.get('auth_token')?.value;
-        if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        
-        const decoded = await verifyToken(token);
-        if (!decoded || decoded.role === 'customer') {
+        const user = await getUserFromRequest(request);
+        if (!user || user.role === 'customer') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 

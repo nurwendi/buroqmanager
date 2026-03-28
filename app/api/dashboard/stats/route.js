@@ -1,24 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getMikrotikClient } from '@/lib/mikrotik';
-import { verifyToken } from '@/lib/security';
+import { getUserFromRequest } from '@/lib/api-auth';
 import db from '@/lib/db';
 import os from 'os';
 
-async function getCurrentUser(request) {
-    let token = request.cookies.get('auth_token')?.value;
-    if (!token) {
-        const authHeader = request.headers.get('authorization');
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            token = authHeader.substring(7);
-        }
-    }
-    if (!token) return null;
-    return await verifyToken(token);
-}
-
 export async function GET(request) {
     try {
-        const currentUser = await getCurrentUser(request);
+        const currentUser = await getUserFromRequest(request);
         if (!currentUser) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
