@@ -32,7 +32,11 @@ After installation:
     npx prisma migrate deploy
     npx prisma db seed
     ```
-4.  Restart App: `pm2 restart billing`
+4.  Start/Restart App:
+    ```bash
+    pm2 start ecosystem.config.js
+    ```
+    *Note: Use `pm2 restart billing` only if the app is already running.*
 
 ---
 
@@ -186,10 +190,10 @@ crontab -e
 
 ## 🔧 Troubleshooting
 
-### Database "Table does not exist"
-Run migration command manually:
+### PM2 "Process not found"
+If you see `[PM2][ERROR] Process or Namespace billing not found`, it means the app hasn't been started for the first time. Run:
 ```bash
-npx prisma migrate deploy
+pm2 start ecosystem.config.js
 ```
 
 ### "PM2 not found" after install
