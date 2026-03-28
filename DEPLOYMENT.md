@@ -149,6 +149,7 @@ To ensure your database is always in sync with your code and prevent "missing co
     ```bash
     npm run db:check
     ```
+    *This will warn you if you have unapplied migrations or schema drifts.*
 
 2.  **Handling Schema Changes:**
     Whenever you modify `prisma/schema.prisma`, you **MUST** run:

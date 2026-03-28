@@ -44,11 +44,24 @@ fi
 git clone https://github.com/nurwendi/buroqmanager.git billing
 cd /opt/billing
 
-echo -e "${GREEN}[6/7]${NC} Installing dependencies and building..."
+echo -e "${GREEN}[6/7]${NC} Installing dependencies and preparing database..."
 npm install
+npx prisma generate
+
+# Create .env if not exists
+if [ ! -f ".env" ]; then
+    echo -e "${YELLOW}Creating .env from .env.example...${NC}"
+    cp .env.example .env
+    echo -e "${RED}IMPORTANT: Please edit .env with your database and Mikrotik credentials later!${NC}"
+fi
+
+# Try to run migrations (will fail if DB not ready, but that's okay, user is instructed to run it later)
+echo -e "${YELLOW}Attempting to run database migrations...${NC}"
+npx prisma migrate deploy || echo -e "${RED}Migration failed (likely due to missing DB config). Please run manually after configuring .env.${NC}"
+
+echo -e "${GREEN}[7/7]${NC} Building and starting application with PM2..."
 npm run build
 
-echo -e "${GREEN}[7/7]${NC} Starting application with PM2..."
 pm2 start npm --name "billing" -- start
 pm2 start npm --name "isolir" -- run isolir
 pm2 save
@@ -59,17 +72,13 @@ echo "=============================================="
 echo -e "${GREEN}  Installation Complete!${NC}"
 echo "=============================================="
 echo ""
+echo "1. Configure your environment: nano /opt/billing/.env"
+echo "2. Initialize Database (if Step 6 failed):"
+echo "   cd /opt/billing"
+echo "   npx prisma migrate deploy"
+echo "   npx prisma db seed"
+echo "3. Restart App: pm2 restart billing"
+echo ""
 echo "Access the application at:"
 echo -e "  ${GREEN}http://$(hostname -I | awk '{print $1}'):2000${NC}"
-echo ""
-echo "Default Login:"
-echo "  Username: admin"
-echo "  Password: admin"
-echo ""
-echo -e "${YELLOW}⚠️  Change the default password after first login!${NC}"
-echo ""
-echo "Useful commands:"
-echo "  pm2 logs billing     - View logs"
-echo "  pm2 restart billing  - Restart app"
-echo "  pm2 stop billing     - Stop app"
 echo ""
