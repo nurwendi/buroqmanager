@@ -39,9 +39,17 @@ export async function GET(request) {
                         });
 
                         if (existing) {
-                            // Update existing if needed (e.g. check if owner matches, already true by query)
-                            // But maybe update other fields if they were in secret? 
-                            // For now, sync only ensures it EXISTS under the right owner.
+                            // Update existing if missing customerId
+                            if (!existing.customerId) {
+                                const cleanAgentNumber = (await getAgentNumber(conn.ownerId)) || '999';
+                                const suffix = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+                                const customerNumber = `${cleanAgentNumber}${suffix}`;
+
+                                await db.customer.update({
+                                    where: { id: existing.id },
+                                    data: { customerId: customerNumber }
+                                });
+                            }
                             syncedCount++;
                         } else {
                             // Create new if missing (Auto-Import)
