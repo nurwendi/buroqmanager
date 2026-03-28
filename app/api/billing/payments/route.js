@@ -53,9 +53,11 @@ async function calculateCommissions(amount, username, ownerId = null) {
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const username = searchParams.get('username');
+    const status = searchParams.get('status');
     const user = await getUserFromRequest(request);
 
     let where = {};
+    if (status) where.status = status;
 
     // Filter based on role
     if (user && user.role !== 'superadmin') {
