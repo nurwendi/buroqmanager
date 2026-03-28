@@ -179,11 +179,12 @@ export async function GET(request) {
         let latestNotification = 'Belum ada notifikasi baru.';
         let name = username; // Default to username
         let avatar = '';
+        let profilePrice = 0;
 
         try {
             const customer = await db.customer.findFirst({
                 where: { username },
-                include: { profile: { select: { name: true } } }
+                include: { profile: { select: { name: true, price: true } } }
             });
 
             if (customer) {
@@ -191,6 +192,7 @@ export async function GET(request) {
                 avatar = customer.avatar || '';
                 address = customer.address || '-';
                 profileName = customer.profile?.name || '-';
+                profilePrice = customer.profile?.price || 0;
 
                 // Find latest notification for this customer
                 const latestRecipient = await db.notificationRecipient.findFirst({
@@ -215,6 +217,7 @@ export async function GET(request) {
             session,
             address,
             profileName,
+            profilePrice,
             latestNotification,
             customerId: asCustomer?.customerId || decoded.username,
             pppoeUsername: username

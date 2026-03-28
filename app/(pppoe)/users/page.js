@@ -2520,6 +2520,12 @@ export default function UsersPage() {
                                             {formatBytes(detailsModal.usage?.tx || 0)}
                                         </span>
                                     </div>
+                                    <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl col-span-2 text-center">
+                                        <span className="text-xs text-purple-600 dark:text-purple-400 block mb-1">{t('common.total')}</span>
+                                        <span className="font-bold text-gray-800 dark:text-white">
+                                            {formatBytes((detailsModal.usage?.rx || 0) + (detailsModal.usage?.tx || 0))}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-3">

@@ -14,7 +14,9 @@ export default function CustomerDashboard() {
         usage: { download: 0, upload: 0 },
         billing: { status: 'loading', amount: 0, invoice: '' },
         session: { id: null, uptime: '', active: false, ipAddress: null, currentSpeed: null },
-        avatar: ''
+        avatar: '',
+        profileName: '',
+        profilePrice: 0
     });
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -212,7 +214,7 @@ export default function CustomerDashboard() {
                                 {t('customerDashboard.customerRole') || 'PELANGGAN'}
                             </span>
                             <span className="text-[10px] sm:text-xs text-gray-500 font-medium">
-                                IP: {stats.session.ipAddress || '-'}
+                                IP: {stats.session.ipAddress || '-'} • {stats.profileName || 'Paket'} ({new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(stats.profilePrice || 0)})
                             </span>
                         </div>
                     </div>
@@ -243,6 +245,10 @@ export default function CustomerDashboard() {
                         <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700/50">
                             <span className="text-gray-500 dark:text-gray-400">{t('customerDashboard.totalUsage')}</span>
                             <span className="font-semibold text-gray-900 dark:text-white">{formatBytes((stats.usage.download || 0) + (stats.usage.upload || 0))}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1 text-xs">
+                             <span className="text-gray-400">Download: {formatBytes(stats.usage.download || 0)}</span>
+                             <span className="text-gray-400">Upload: {formatBytes(stats.usage.upload || 0)}</span>
                         </div>
 
                         {stats.session.currentSpeed && (

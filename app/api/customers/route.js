@@ -175,7 +175,7 @@ export async function POST(request) {
                 // Generate new Customer ID
                 // Strict Requirement: Prefix with Owner's Agent Number (ownerId di awal)
 
-                let prefix = '999'; // Default fallback
+                let prefix = '99'; // Default fallback
 
                 let effectiveOwnerId = ownerId;
                 if (!effectiveOwnerId && user.role === 'superadmin') {
