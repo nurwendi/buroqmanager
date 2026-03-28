@@ -195,6 +195,15 @@ export default function UsersPage() {
     const [userRole, setUserRole] = useState(null);
     const [customersData, setCustomersData] = useState({});
 
+    const customersDataLowerCase = useMemo(() => {
+        const map = {};
+        Object.keys(customersData).forEach(key => {
+            map[key.toLowerCase()] = customersData[key];
+        });
+        return map;
+    }, [customersData]);
+
+
     const [connections, setConnections] = useState([]);
     const [selectedRouterIds, setSelectedRouterIds] = useState([]);
     const [routerIdentities, setRouterIdentities] = useState({}); // { [connectionId]: 'identity name' }
@@ -466,8 +475,9 @@ export default function UsersPage() {
             if (filterStatus === 'online' && !isActive) return false;
             if (filterStatus === 'offline' && isActive) return false;
 
-            const customerName = String(customersData[user.name]?.name || '');
-            const customerId = String(customersData[user.name]?.customerId || '');
+            const customer = customersDataLowerCase[user.name.toLowerCase()];
+            const customerName = String(customer?.name || '');
+            const customerId = String(customer?.customerId || '');
             const userProfile = String(user.profile || '');
             const userService = String(user.service || '');
             const userNameStr = String(user.name || '');
@@ -537,8 +547,10 @@ export default function UsersPage() {
                     bVal = bSignal;
                     break;
                 case 'id':
-                    aVal = String(a._customerId || customersData[a.name]?.customerId || '').toLowerCase();
-                    bVal = String(b._customerId || customersData[b.name]?.customerId || '').toLowerCase();
+                    const customerA = customersDataLowerCase[a.name.toLowerCase()];
+                    const customerB = customersDataLowerCase[b.name.toLowerCase()];
+                    aVal = String(a._customerId || customerA?.customerId || '').toLowerCase();
+                    bVal = String(b._customerId || customerB?.customerId || '').toLowerCase();
                     break;
                 case 'password':
                     aVal = String(a.password || '').toLowerCase();
@@ -898,11 +910,11 @@ export default function UsersPage() {
     };
 
     const getCustomerName = (username) => {
-        return customersData[username]?.name || username;
+        return customersDataLowerCase[username.toLowerCase()]?.name || username;
     };
 
     const getPartnerName = (username) => {
-        const customer = customersData[username];
+        const customer = customersDataLowerCase[username.toLowerCase()];
         if (!customer) return '-';
 
         const agentId = customer.agentId;
@@ -1264,7 +1276,9 @@ export default function UsersPage() {
                                                 {user.profile || 'Default'}
                                             </span>
                                             {(() => {
-                                                const cid = (user._customerId && user._customerId !== '-') ? user._customerId : (customersData[user.name]?.customerId && customersData[user.name]?.customerId !== '-') ? customersData[user.name].customerId : null;
+                                                const customer = customersDataLowerCase[user.name.toLowerCase()];
+                                                const cid = (user._customerId && user._customerId !== '-') ? user._customerId : (customer?.customerId && customer?.customerId !== '-') ? customer.customerId : null;
+
                                                 if (!cid) return null;
                                                 return (
                                                     <span className="px-1.5 py-0.5 bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 rounded text-[10px] font-medium border border-purple-100 dark:border-purple-800/30">
@@ -1353,7 +1367,7 @@ export default function UsersPage() {
                                     </th>
                                     <th
                                         onClick={() => sortData('id')}
-                                        className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                        className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
                                             {t('users.customerId')} <ArrowUpDown size={14} />
@@ -1511,8 +1525,8 @@ export default function UsersPage() {
                                                     <div className="flex items-center gap-3">
                                                         <div className="relative">
                                                             <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-100 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                                                                {customersData[user.name]?.avatar ? (
-                                                                    <img src={customersData[user.name].avatar} alt={user.name} className="w-full h-full object-cover" />
+                                                                {customersDataLowerCase[user.name.toLowerCase()]?.avatar ? (
+                                                                    <img src={customersDataLowerCase[user.name.toLowerCase()].avatar} alt={user.name} className="w-full h-full object-cover" />
                                                                 ) : (
                                                                     <User size={14} className="text-gray-400" />
                                                                 )}
@@ -1528,9 +1542,11 @@ export default function UsersPage() {
                                                     </div>
                                                 </td>
 
-                                                <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
+                                                <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                                                     {(() => {
-                                                        const cid = (user._customerId && user._customerId !== '-') ? user._customerId : (customersData[user.name]?.customerId && customersData[user.name]?.customerId !== '-') ? customersData[user.name].customerId : null;
+                                                        const customer = customersDataLowerCase[user.name.toLowerCase()];
+                                                        const cid = (user._customerId && user._customerId !== '-') ? user._customerId : (customer?.customerId && customer?.customerId !== '-') ? customer.customerId : null;
+
                                                         if (cid) {
                                                             return (
                                                                 <span className="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded-md font-medium border border-blue-200 dark:border-blue-800/50">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Server, Plus, Trash2, Edit2, CheckCircle, Power, X, Settings, Copy, Check, Save, AlertTriangle, Loader2, WifiOff, Shield } from 'lucide-react';
+import { Server, Plus, Trash2, Edit2, CheckCircle, Power, X, Settings, Copy, Check, Save, AlertTriangle, Loader2, WifiOff, Shield, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function SettingsPage() {
@@ -39,6 +39,7 @@ export default function SettingsPage() {
         appPort: '80'
     });
     const [savingConfig, setSavingConfig] = useState(false);
+    const [syncing, setSyncing] = useState(false);
     const [copied, setCopied] = useState(false);
 
     // Radius NAS State
@@ -343,6 +344,26 @@ export default function SettingsPage() {
         }
     };
 
+    const handleSyncAll = async () => {
+        if (!confirm(t('routers.syncConfirm'))) return;
+        setSyncing(true);
+        try {
+            const res = await fetch('/api/system/sync-ownership');
+            const data = await res.json();
+            if (res.ok) {
+                setMessage({ type: 'success', text: t('routers.syncSuccess') });
+                // We could show more details from data.results if needed
+                alert(t('routers.syncSuccess'));
+            } else {
+                setMessage({ type: 'error', text: data.error || t('routers.syncError') });
+            }
+        } catch (err) {
+            setMessage({ type: 'error', text: t('routers.syncError') });
+        } finally {
+            setSyncing(false);
+        }
+    };
+
     return (
         <div className="w-full space-y-8">
             <div className="flex items-center gap-3 mb-8">
@@ -355,12 +376,22 @@ export default function SettingsPage() {
                 {/* ... existing connections content ... */}
                 <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
                     <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('routers.mikrotikConnections')}</h2>
-                    <button
-                        onClick={() => openEditModal()}
-                        className="w-full md:w-auto flex items-center justify-center gap-2 bg-accent text-white px-4 py-2 rounded-md hover:opacity-90 transition-all shadow-lg shadow-accent/30"
-                    >
-                        <Plus size={18} /> {t('routers.addConnection')}
-                    </button>
+                    <div className="flex flex-col md:flex-row gap-2">
+                        <button
+                            onClick={handleSyncAll}
+                            disabled={syncing}
+                            className="w-full md:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50"
+                        >
+                            {syncing ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+                            {syncing ? t('routers.syncing') : t('routers.syncAll')}
+                        </button>
+                        <button
+                            onClick={() => openEditModal()}
+                            className="w-full md:w-auto flex items-center justify-center gap-2 bg-accent text-white px-4 py-2 rounded-md hover:opacity-90 transition-all shadow-lg shadow-accent/30"
+                        >
+                            <Plus size={18} /> {t('routers.addConnection')}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="space-y-4">

@@ -27,27 +27,22 @@ export async function GET(request) {
 
                 for (const secret of secrets) {
                     // Upsert Customer
-                    // Strategy: Match by username. Update ownerId to match Router Owner.
+                    // Strategy: Match by username AND ownerId (composite unique key)
                     try {
                         const existing = await db.customer.findUnique({
-                            where: { username: secret.name }
+                            where: {
+                                username_ownerId: {
+                                    username: secret.name,
+                                    ownerId: conn.ownerId
+                                }
+                            }
                         });
 
                         if (existing) {
-                            if (existing.ownerId !== conn.ownerId) {
-                                await db.customer.update({
-                                    where: { id: existing.id }, // Wait, Customer defined by @id username? Let's check schema.
-                                    // Schema says: username String @id. So `where: { username: ... }`.
-                                    // Existing code said `where: { id: existing.id }`. ID might not exist if username is ID.
-                                    // Schema: username @id. No 'id' column on Customer?
-                                    // Let's check schema again.
-                                    where: { username: secret.name },
-                                    data: {
-                                        owner: { connect: { id: conn.ownerId } }
-                                    }
-                                });
-                                syncedCount++;
-                            }
+                            // Update existing if needed (e.g. check if owner matches, already true by query)
+                            // But maybe update other fields if they were in secret? 
+                            // For now, sync only ensures it EXISTS under the right owner.
+                            syncedCount++;
                         } else {
                             // Create new if missing (Auto-Import)
                             const cleanAgentNumber = (await getAgentNumber(conn.ownerId)) || '999';
@@ -59,10 +54,7 @@ export async function GET(request) {
                                     username: secret.name,
                                     customerId: customerNumber,
                                     name: secret.name,
-                                    // ownerId: conn.ownerId, // Replaced with relation
                                     owner: { connect: { id: conn.ownerId } },
-                                    // service: secret.service || 'pppoe', // Not in DB schema
-                                    // profile: secret.profile || 'default', // Not in DB schema
                                     createdAt: new Date()
                                 }
                             });
@@ -77,7 +69,7 @@ export async function GET(request) {
                         errorCount++;
                     }
                 }
-                results.push({ router: conn.name, ownerId: conn.ownerId, syncedIds: syncedCount, errors: errorCount });
+                results.push({ router: conn.name, ownerId: conn.ownerId, syncedCount: syncedCount, errors: errorCount });
 
             } catch (err) {
                 console.error(`Failed to sync router ${conn.name}:`, err);
