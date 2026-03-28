@@ -138,7 +138,7 @@ export async function GET(request) {
     const userNames = [...new Set(payments.map(p => p.username))];
     const customers = await db.customer.findMany({
         where: { username: { in: userNames } },
-        select: { username: true, name: true }
+        select: { username: true, name: true, customerId: true }
     });
     
     const customerMap = {};
@@ -146,9 +146,11 @@ export async function GET(request) {
 
     const enrichedPayments = payments.map(p => {
         const agentComm = p.commissions.find(c => c.role === 'agent');
+        const customer = customers.find(c => c.username === p.username);
         return {
             ...p,
-            customerName: customerMap[p.username] || p.username,
+            customerName: customer?.name || p.username,
+            customerId: customer?.customerId || '-',
             agentFullName: agentComm?.user?.fullName || agentComm?.username || '-'
         };
     });

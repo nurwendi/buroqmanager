@@ -174,8 +174,22 @@ export default function SystemUsersPage() {
                 <button
                     onClick={() => {
                         setEditMode(false);
+                        // Default role depends on current user's power
                         const defaultRole = currentUserRole === 'superadmin' ? 'admin' : 'staff';
-                        setFormData({ username: '', password: '', role: defaultRole, isAgent: false, isTechnician: false, agentRate: 0, technicianRate: 0, prefix: '' });
+                        setFormData({ 
+                            username: '', 
+                            password: '', 
+                            role: defaultRole, 
+                            isAgent: false, 
+                            isTechnician: false, 
+                            agentRate: 0, 
+                            technicianRate: 0, 
+                            prefix: '',
+                            fullName: '',
+                            phone: '',
+                            address: '',
+                            agentNumber: ''
+                        });
                         setShowModal(true);
                     }}
                     className="w-full md:w-auto bg-accent text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all font-medium shadow-lg shadow-accent/20"
@@ -245,6 +259,14 @@ export default function SystemUsersPage() {
                                     )}
                                 </div>
 
+                                 <div className="grid grid-cols-2 gap-2 mb-3">
+                                    <div className="p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-700">
+                                        <p className="text-[9px] text-gray-500 uppercase font-bold mb-0.5">{t('systemUsers.owner') || 'Owner'}</p>
+                                        <p className="text-[12px] font-bold text-gray-700 dark:text-gray-300">{user.ownerName || '-'}</p>
+                                    </div>
+                                    <div className="hidden"></div>
+                                </div>
+
                                 <div className="grid grid-cols-2 gap-2 mb-3">
                                     {user.isAgent && (
                                         <div className="p-2 bg-green-50/50 dark:bg-green-900/10 rounded-lg border border-green-100/50 dark:border-green-800/20">
@@ -284,9 +306,10 @@ export default function SystemUsersPage() {
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-black/5 dark:bg-white/5">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.username')}</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.role')}</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.businessRoles')}</th>
+                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.username')}</th>
+                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.role')}</th>
+                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.owner') || 'Owner'}</th>
+                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.businessRoles')}</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.rates')}</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.createdAt')}</th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.actions')}</th>
@@ -320,6 +343,9 @@ export default function SystemUsersPage() {
                                                             user.role === 'staff' ? t('systemUsers.staffAgentTech') :
                                                                 user.role === 'viewer' ? t('systemUsers.viewerReadOnly') : user.role}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                            <div className="text-gray-900 dark:text-white font-medium">{user.ownerName || '-'}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                                             <div className="flex gap-2">

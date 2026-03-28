@@ -1,4 +1,6 @@
+import { NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/api-auth';
+import { getUsers, createUser } from '@/lib/auth';
 
 export async function GET(request) {
     try {
@@ -9,9 +11,13 @@ export async function GET(request) {
 
         let filter = {};
         if (currentUser.role === 'admin') {
-            // Admin sees only their own users (and themselves if needed, but mainly their staff)
-            // They should also see users where they are the owner
-            filter = { ownerId: currentUser.id };
+            // Admin sees only their own users and themselves
+            filter = { 
+                OR: [
+                    { ownerId: currentUser.id },
+                    { id: currentUser.id }
+                ]
+            };
         } else if (currentUser.role === 'superadmin') {
             // Superadmin sees all (or specific logic)
             // For now, no filter means all
@@ -21,8 +27,14 @@ export async function GET(request) {
         }
 
         const users = await getUsers(filter);
-        // Remove password hash from response
-        const safeUsers = users.map(({ passwordHash, ...user }) => user);
+        
+        // Remove password hash and ensure we return what we need
+        const safeUsers = users.map(({ passwordHash, ...user }) => ({
+            ...user,
+            // Ensure owner is flattened or available for display
+            ownerName: user.owner?.username || null
+        }));
+        
         return NextResponse.json(safeUsers);
     } catch (error) {
         return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });

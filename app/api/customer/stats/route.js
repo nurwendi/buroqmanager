@@ -142,10 +142,13 @@ export async function GET(request) {
         };
 
         // 3. Get Billing Status (Real Data)
+        const now = new Date();
         let billing = {
             status: 'paid',
             amount: 0,
-            invoice: '-'
+            invoice: '-',
+            month: now.getMonth(),   // 0-indexed, same as JS Date
+            year: now.getFullYear()
         };
 
         try {
@@ -163,10 +166,25 @@ export async function GET(request) {
                 billing.amount = totalUnpaid;
                 // Show the latest invoice number or a generic text if multiple
                 billing.invoice = unpaidInvoices.length === 1 ? unpaidInvoices[0].invoiceNumber : `${unpaidInvoices.length} Pending Invoices`;
+                // Use the month/year from the most recent unpaid invoice if available
+                const latestUnpaid = unpaidInvoices[0];
+                if (latestUnpaid.month !== null && latestUnpaid.month !== undefined) {
+                    billing.month = latestUnpaid.month;
+                }
+                if (latestUnpaid.year !== null && latestUnpaid.year !== undefined) {
+                    billing.year = latestUnpaid.year;
+                }
             } else {
                 if (payments.length > 0) {
                     const latest = payments[0];
                     billing.invoice = latest.invoiceNumber;
+                    // Use month/year from latest payment
+                    if (latest.month !== null && latest.month !== undefined) {
+                        billing.month = latest.month;
+                    }
+                    if (latest.year !== null && latest.year !== undefined) {
+                        billing.year = latest.year;
+                    }
                 }
             }
         } catch (e) {

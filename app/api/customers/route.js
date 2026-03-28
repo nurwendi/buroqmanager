@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/api-auth';
 import db from '@/lib/db';
+import { getMikrotikClient } from '@/lib/mikrotik';
+import { getConfig, getUserConnectionId } from '@/lib/config';
 
 export async function GET(request) {
     try {
@@ -51,13 +53,10 @@ export async function GET(request) {
                 profileId: true,
                 profile: {
                     select: {
-                        name: true
+                        name: true,
+                        price: true
                     }
                 },
-                coordinates: true,
-                comment: true,
-                disabled: true,
-                service: true,
                 id: true
             };
         } else {
@@ -69,9 +68,52 @@ export async function GET(request) {
 
         const customersList = await db.customer.findMany(queryOptions);
 
+        // --- NEW: Live-Merge with Mikrotik for Admins/Staf ---
+        // If DB is empty or for live-view purposes, pull raw Mikrotik data if Admin
+        let mergedList = [...customersList];
+        
+        if (user && ['admin', 'superadmin', 'staff', 'agent', 'partner', 'technician', 'editor'].includes(user.role)) {
+            try {
+                const config = await getConfig();
+                const connectionId = getUserConnectionId(user, config);
+                let effectiveId = connectionId;
+                if (!effectiveId && user.ownerId) {
+                    effectiveId = config.connections?.find(c => c.ownerId === user.ownerId)?.id;
+                }
+
+                const client = await getMikrotikClient(effectiveId);
+                const mikrotikUsers = await client.write('/ppp/secret/print');
+                
+                if (Array.isArray(mikrotikUsers)) {
+                    const existingUsernames = new Set(customersList.map(c => c.username));
+                    
+                    mikrotikUsers.forEach(u => {
+                        if (!existingUsernames.has(u.name)) {
+                            // Add as virtual customer object
+                            mergedList.push({
+                                username: u.name,
+                                name: u.name, // Fallback
+                                customerId: u.comment || u.name, // Use comment as ID if exists
+                                phone: '-',
+                                address: '-',
+                                profile: { name: u.profile, price: 0 },
+                                isVirtual: true // Mark for local logic if needed
+                            });
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error('[API] Live Mikrotik merge failed:', err.message);
+                // Fallback to DB-only
+            }
+        }
+
         // Convert array to object to maintain API compatibility
-        const customers = customersList.reduce((acc, curr) => {
-            acc[curr.username] = curr;
+        const customers = mergedList.reduce((acc, curr) => {
+            acc[curr.username] = {
+                ...curr,
+                isIsolir: curr.profile?.name?.toLowerCase().includes('isolir') || false
+            };
             return acc;
         }, {});
 
@@ -280,24 +322,33 @@ export async function POST(request) {
             customer = await db.customer.update({
                 where: { id: existing.id },
                 data: {
-                    username: username, // Allow updating username if finding by ID
+                    username: username,
                     name: name,
                     address: address,
                     phone: phone,
                     email: email,
-                    // customerId: finalCustomerId, // Don't update ID if exists unless necessary? Let's keep existing logic.
-                    // Actually, usually we don't change customerId on edit unless explicit?
-                    // But here we are syncing. Let's update it if provided.
                     customerId: finalCustomerId,
                     agentId: agentId,
                     technicianId: technicianId,
                     ownerId: ownerId,
                     password: password || undefined,
-                    profileId: effectiveProfileId || undefined,
-                    coordinates: coordinates || undefined,
-                    comment: comment || undefined,
-                    disabled: disabled !== undefined ? disabled : undefined,
-                    service: service || 'pppoe'
+                    profileId: effectiveProfileId || undefined
+                }
+            });
+        } else {
+            customer = await db.customer.create({
+                data: {
+                    username: username,
+                    name: name || "",
+                    address: address || "",
+                    phone: phone || "",
+                    email: email || "",
+                    customerId: finalCustomerId,
+                    agentId: agentId,
+                    technicianId: technicianId,
+                    ownerId: ownerId,
+                    password: password || undefined,
+                    profileId: effectiveProfileId || undefined
                 }
             });
         }
