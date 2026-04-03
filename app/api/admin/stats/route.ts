@@ -62,23 +62,24 @@ export async function GET(request: Request) {
         const allowedUsernames = new Set(customersList.map(c => c.username));
 
         // 2. Get Monthly Revenue
-        const startOfMonth = new Date();
-        startOfMonth.setDate(1);
-        startOfMonth.setHours(0, 0, 0, 0);
+        const jakartaNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+        const currentMonth = jakartaNow.getMonth();
+        const currentYear = jakartaNow.getFullYear();
 
-        let paymentWhereClause: any = {
-            date: { gte: startOfMonth },
+        let paymentWhereClauseBase: any = {
+            month: currentMonth,
+            year: currentYear,
             method: { not: 'EXPENSE' },
         };
 
         if (currentUser.role !== 'superadmin') {
-            paymentWhereClause.username = { in: Array.from(allowedUsernames) };
-            paymentWhereClause.ownerId = ownerId;
+            paymentWhereClauseBase.username = { in: Array.from(allowedUsernames) };
+            paymentWhereClauseBase.ownerId = ownerId;
         }
 
         const payments = await db.payment.findMany({
             where: {
-                ...paymentWhereClause,
+                ...paymentWhereClauseBase,
                 status: 'completed'
             },
             include: {
@@ -93,6 +94,15 @@ export async function GET(request: Request) {
         }, 0);
         const netRevenue = grossRevenue - staffCommission;
         const monthlyRevenue = grossRevenue; // Backward compatibility
+
+        // Calculate Unpaid for the current month
+        const totalUnpaid = await db.payment.aggregate({
+            _sum: { amount: true },
+            where: {
+                ...paymentWhereClauseBase,
+                status: 'pending'
+            }
+        }).then(res => res._sum.amount || 0);
 
         // 3. Get Routers & Real-time PPPoE Active Count
         const config = await (await import('@/lib/config')).getConfig();
@@ -153,7 +163,7 @@ export async function GET(request: Request) {
         });
 
         const pendingPaymentList = await db.payment.findMany({
-            where: { ...paymentWhereClause, status: 'pending' },
+            where: { ...paymentWhereClauseBase, status: 'pending' },
             orderBy: { date: 'desc' },
             take: 10
         });
@@ -163,7 +173,7 @@ export async function GET(request: Request) {
         });
 
         const pendingPaymentsCount = await db.payment.count({
-            where: { ...paymentWhereClause, status: 'pending' }
+            where: { ...paymentWhereClauseBase, status: 'pending' }
         });
 
         const pendingPayments = [
@@ -198,6 +208,7 @@ export async function GET(request: Request) {
             grossRevenue,
             netRevenue,
             staffCommission,
+            totalUnpaid,
             pendingCount: pendingRegistrationsCount + pendingPaymentsCount,
             pendingRegistrationsCount,
             pendingPaymentsCount,

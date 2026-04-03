@@ -77,6 +77,9 @@ export async function GET(request) {
             const amount = parseFloat(p.amount);
             const isCompleted = p.status === 'completed';
 
+            // Don't include EXPENSE in financial revenue logic
+            if (p.method === 'EXPENSE' || p.method === 'expense') continue;
+
             if (isCompleted) {
                 totalRevenue += amount;
                 const method = p.method || 'cash';

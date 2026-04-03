@@ -72,7 +72,7 @@ export async function GET(request) {
         // If DB is empty or for live-view purposes, pull raw Mikrotik data if Admin
         let mergedList = [...customersList];
         
-        if (user && ['admin', 'superadmin', 'staff', 'agent', 'partner', 'technician', 'editor'].includes(user.role)) {
+        if (user && ['admin', 'superadmin'].includes(user.role)) {
             try {
                 const config = await getConfig();
                 const connectionId = getUserConnectionId(user, config);

@@ -270,11 +270,11 @@ export default function FinancialReportPage() {
 
                         {/* Unpaid / Pending Payments */}
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black print:rounded-none print:overflow-visible">
-                            <div className="bg-orange-50 dark:bg-orange-900/20 px-4 py-2 border-b border-orange-100 dark:border-orange-800 flex justify-between items-center">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-orange-700 dark:text-orange-400">
+                            <div className="bg-red-50 dark:bg-red-900/20 px-4 py-2 border-b border-red-100 dark:border-red-800 flex justify-between items-center">
+                                <h3 className="text-xs font-bold uppercase tracking-wider text-red-700 dark:text-red-400">
                                     {resolvedLanguage === 'id' ? 'Tagihan Belum Bayar (Piutang)' : 'Unpaid Bills (Pending)'}
                                 </h3>
-                                <span className="text-xs font-bold text-orange-700 dark:text-orange-400">
+                                <span className="text-xs font-bold text-red-700 dark:text-red-400">
                                     {formatCurrency(data.summary.totalUnpaid)}
                                 </span>
                             </div>
@@ -299,7 +299,7 @@ export default function FinancialReportPage() {
                                                 <td className="px-3 py-1 font-medium">{p.customerName}</td>
                                                 <td className="px-3 py-1 font-medium">{p.agentName}</td>
                                                 <td className="px-3 py-1">{formatDate(p.date)}</td>
-                                                <td className="px-3 py-1 text-right font-bold text-orange-600 dark:text-orange-400">{formatCurrency(p.amount)}</td>
+                                                <td className="px-3 py-1 text-right font-bold text-red-600 dark:text-red-400">{formatCurrency(p.amount)}</td>
                                                 <td className="px-3 py-1 truncate max-w-[150px]">{p.description || '-'}</td>
                                             </tr>
                                         ))}

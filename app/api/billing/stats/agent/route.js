@@ -61,8 +61,8 @@ export async function GET(request) {
                 const pDate = new Date(p.date); // or use p.month if reliable
                 const mIndex = pDate.getMonth();
 
-                if (p.status === 'completed') {
-                    const amount = p.amount;
+                if (p.status === 'completed' && p.method !== 'EXPENSE' && p.method !== 'expense') {
+                    const amount = parseFloat(p.amount);
 
                     if (currentUser.role === 'admin') {
                         yearlyData[mIndex].revenue += amount;
@@ -152,8 +152,11 @@ export async function GET(request) {
             const agentMap = involvedAgents.reduce((acc, a) => { acc[a.id] = a; return acc; }, {});
 
             for (const p of filteredPayments) {
+                // Ignore EXPENSE
+                if (p.method === 'EXPENSE' || p.method === 'expense') continue;
+
                 if (p.status === 'completed') {
-                    grandTotalRevenue += p.amount;
+                    grandTotalRevenue += parseFloat(p.amount);
                 }
 
                 const processedUsersForPayment = new Set();
@@ -174,7 +177,7 @@ export async function GET(request) {
                     }
 
                     if (p.status === 'completed') {
-                        partnerStats[ownerId].totalRevenue += p.amount;
+                        partnerStats[ownerId].totalRevenue += parseFloat(p.amount);
                         partnerStats[ownerId].paidCount += 1;
                         // No commission for owner
                     } else {
@@ -200,12 +203,12 @@ export async function GET(request) {
                         }
 
                         if (p.status === 'completed') {
-                            partnerStats[comm.userId].commission += comm.amount;
-                            grandTotalCommission += comm.amount;
+                            partnerStats[comm.userId].commission += parseFloat(comm.amount);
+                            grandTotalCommission += parseFloat(comm.amount);
 
                             // Prevent double counting revenue/count if user has multiple roles (Agent + Tech)
                             if (!processedUsersForPayment.has(comm.userId)) {
-                                partnerStats[comm.userId].totalRevenue += p.amount;
+                                partnerStats[comm.userId].totalRevenue += parseFloat(p.amount);
                                 partnerStats[comm.userId].paidCount += 1;
                                 processedUsersForPayment.add(comm.userId);
                             }
@@ -248,15 +251,18 @@ export async function GET(request) {
             };
 
             for (const p of filteredPayments) {
+                // Ignore EXPENSE
+                if (p.method === 'EXPENSE' || p.method === 'expense') continue;
+
                 const myComms = p.commissions.filter(c => c.userId === currentUser.id);
 
                 if (myComms.length > 0) {
                     if (p.status === 'completed') {
                         for (const c of myComms) {
-                            myStats.commission += c.amount;
+                            myStats.commission += parseFloat(c.amount);
                         }
                         // Revenue: Count once per payment
-                        myStats.totalRevenue += p.amount;
+                        myStats.totalRevenue += parseFloat(p.amount);
                         myStats.paidCount += 1;
                     } else {
                         myStats.unpaidCount += 1;

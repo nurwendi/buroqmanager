@@ -88,11 +88,10 @@ export async function GET(request) {
 
         const thisMonthRevenue = payments
             .filter(p => {
-                if (p.status !== 'completed') return false;
-                const paymentDate = new Date(p.date);
-                const jakartaPaymentDate = new Date(paymentDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
-                const paymentMonth = jakartaPaymentDate.toISOString().slice(0, 7);
-                return paymentMonth === currentMonth;
+                return p.status === 'completed' && 
+                       p.method !== 'EXPENSE' &&
+                       p.month === jakartaNow.getMonth() && 
+                       p.year === jakartaNow.getFullYear();
             })
             .reduce((sum, p) => sum + Number(p.amount), 0);
 
