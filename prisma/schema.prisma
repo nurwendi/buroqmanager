@@ -67,6 +67,8 @@ model Customer {
   email         String                  @default("")
   agentId       String?
   technicianId  String?
+  coordinates   String?
+  comment       String?
   updatedAt     DateTime                @updatedAt
   createdAt     DateTime                @default(now())
   ownerId       String?
@@ -143,6 +145,8 @@ model Registration {
   profile        String?
   service        String?
   comment        String?
+  coordinates    String?
+  technicianId   String?
   routerIds      String?
   newValues      String?
   createdAt      DateTime @default(now())

@@ -3,6 +3,7 @@ import { getUserFromRequest } from '@/lib/api-auth';
 import db from '@/lib/db';
 import { getMikrotikClient } from '@/lib/mikrotik';
 import { getConfig, getUserConnectionId } from '@/lib/config';
+import { generateCustomerId } from '@/lib/customer-utils';
 
 export async function GET(request) {
     try {
@@ -126,7 +127,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { username, name, address, phone, email, customerId, password, profileId, profile, coordinates, comment, disabled, service } = body; // Extract extra fields
+        const { username, name, address, phone, email, password, profileId, profile, coordinates, comment, disabled, service } = body; // Extract extra fields, IGNORE customerId
 
 
         // Radius Sync Flags
@@ -207,57 +208,13 @@ export async function POST(request) {
         }
 
         // Handle Customer ID Auto-generation
-        let finalCustomerId = customerId;
+        let finalCustomerId = null;
 
-        // If not provided, check if exists in DB or generate
-        if (!finalCustomerId) {
-            if (existingCustomer && existingCustomer.customerId) {
-                finalCustomerId = existingCustomer.customerId;
-            } else {
-                // Generate new Customer ID
-                // Strict Requirement: Prefix with Owner's Agent Number (ownerId di awal)
-
-                let prefix = '99'; // Default fallback
-
-                let effectiveOwnerId = ownerId;
-                if (!effectiveOwnerId && user.role === 'superadmin') {
-                    // fallback?
-                }
-
-                if (effectiveOwnerId) {
-                    const ownerUser = await db.user.findUnique({ where: { id: effectiveOwnerId } });
-                    if (ownerUser && ownerUser.agentNumber) {
-                        prefix = ownerUser.agentNumber;
-                    }
-                }
-
-                // Optimization: Find customers where customerId starts with prefix
-                const existingWithPrefix = await db.customer.findMany({
-                    where: {
-                        customerId: {
-                            startsWith: prefix
-                        }
-                    },
-                    select: { customerId: true }
-                });
-
-                let maxSeq = 0;
-                for (const c of existingWithPrefix) {
-                    if (c.customerId && c.customerId.length > prefix.length) {
-                        const seqStr = c.customerId.substring(prefix.length);
-                        const seq = parseInt(seqStr, 10); // Ensure base 10
-                        if (!isNaN(seq) && seq > maxSeq) {
-                            maxSeq = seq;
-                        }
-                    }
-                }
-
-                // Pad sequence to 5 digits
-                const nextSeq = maxSeq + 1;
-                const paddedSeq = String(nextSeq).padStart(5, '0');
-
-                finalCustomerId = `${prefix}${paddedSeq}`;
-            }
+        if (existingCustomer && existingCustomer.customerId) {
+            finalCustomerId = existingCustomer.customerId;
+        } else {
+            // Generate new Customer ID
+            finalCustomerId = await generateCustomerId(ownerId);
         }
 
         // Upsert Logic
@@ -331,6 +288,8 @@ export async function POST(request) {
                     agentId: agentId,
                     technicianId: technicianId,
                     ownerId: ownerId,
+                    coordinates: coordinates || undefined,
+                    comment: comment || undefined,
                     password: password || undefined,
                     profileId: effectiveProfileId || undefined
                 }
@@ -347,6 +306,8 @@ export async function POST(request) {
                     agentId: agentId,
                     technicianId: technicianId,
                     ownerId: ownerId,
+                    coordinates: coordinates || undefined,
+                    comment: comment || undefined,
                     password: password || undefined,
                     profileId: effectiveProfileId || undefined
                 }

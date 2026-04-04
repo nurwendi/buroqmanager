@@ -410,7 +410,10 @@ export default function UsersPage() {
                 name: values.name || '',
                 address: values.address || '',
                 phone: values.phone || '',
-                agentId: values.agentId || ''
+                agentId: values.agentId || '',
+                technicianId: values.technicianId || '',
+                coordinates: values.coordinates || '',
+                comment: values.comment || ''
             });
         } else if (reg.type === 'delete') {
             setReviewFormData({});
@@ -425,6 +428,9 @@ export default function UsersPage() {
                 address: reg.address || '',
                 phone: reg.phone || '',
                 agentId: reg.agentId || '',
+                technicianId: reg.technicianId || '',
+                coordinates: reg.coordinates || '',
+                comment: reg.comment || '',
                 routerIds: reg.routerIds ? (typeof reg.routerIds === 'string' ? JSON.parse(reg.routerIds) : reg.routerIds) : []
             });
         }
@@ -675,7 +681,9 @@ export default function UsersPage() {
                             address: formData.customerAddress,
                             phone: formData.customerPhone,
                             agentId: effectiveAgentId,
-                            technicianId: effectiveTechnicianId
+                            technicianId: effectiveTechnicianId,
+                            coordinates: formData.coordinates,
+                            comment: formData.comment
                         },
                         agentId: currentUserId
                     }),
@@ -742,7 +750,9 @@ export default function UsersPage() {
                         email: formData.customerEmail,
                         agentId: effectiveAgentId,
                         technicianId: effectiveTechnicianId,
-                        ownerId: formData.ownerId
+                        ownerId: formData.ownerId,
+                        coordinates: formData.coordinates,
+                        comment: formData.comment
                     })
                 });
 
@@ -905,7 +915,9 @@ export default function UsersPage() {
             customerPhone: '',
             agentId: '',
             technicianId: '',
-            ownerId: ''
+            ownerId: '',
+            coordinates: '',
+            comment: ''
         });
     };
 
@@ -2220,14 +2232,32 @@ export default function UsersPage() {
                                                     className="w-full px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                                 />
                                             </div>
+                                            <div className="md:col-span-2">
+                                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('users.coordinates')}</label>
+                                                <input
+                                                    type="text"
+                                                    value={reviewFormData.coordinates || ''}
+                                                    onChange={(e) => setReviewFormData({ ...reviewFormData, coordinates: e.target.value })}
+                                                    className="w-full px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="-6.1234, 106.1234"
+                                                />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('users.comment')}</label>
+                                                <textarea
+                                                    value={reviewFormData.comment || ''}
+                                                    onChange={(e) => setReviewFormData({ ...reviewFormData, comment: e.target.value })}
+                                                    className="w-full px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                                    rows="2"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
-                                    {/* Agent Info */}
                                     <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
                                         <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('pppoe.registrationInfo')}</h3>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex-1 mr-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
                                                 <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">{t('pppoe.registeredBy')}</label>
                                                 <select
                                                     value={reviewFormData.agentId}
@@ -2240,9 +2270,22 @@ export default function UsersPage() {
                                                     ))}
                                                 </select>
                                             </div>
-                                            <div className="text-xs text-gray-500">
-                                                {t('common.date')}: {new Date().toLocaleDateString()}
+                                            <div>
+                                                <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">{t('users.technician')}</label>
+                                                <select
+                                                    value={reviewFormData.technicianId}
+                                                    onChange={(e) => setReviewFormData({ ...reviewFormData, technicianId: e.target.value })}
+                                                    className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
+                                                >
+                                                    <option value="">{t('users.selectTechnician')}</option>
+                                                    {systemUsers.filter(u => u.isTechnician).map(user => (
+                                                        <option key={user.id} value={user.id}>{user.username}</option>
+                                                    ))}
+                                                </select>
                                             </div>
+                                        </div>
+                                        <div className="mt-3 text-xs text-gray-500 flex justify-end">
+                                            {t('common.date')}: {new Date().toLocaleDateString()}
                                         </div>
                                     </div>
 

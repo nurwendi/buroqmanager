@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getMikrotikClient } from '@/lib/mikrotik';
 import db from '@/lib/db';
 import { getUserFromRequest } from '@/lib/api-auth';
+import { generateCustomerId } from '@/lib/customer-utils';
 
 export async function GET(request) {
     try {
@@ -83,6 +84,8 @@ export async function POST(request) {
                         profile: body.profile,
                         service: body.service,
                         comment: body.comment,
+                        coordinates: body.coordinates,
+                        technicianId: body.technicianId,
                         routerIds: body.routerIds ? JSON.stringify(body.routerIds) : null
                     }
                 });
@@ -201,6 +204,8 @@ export async function POST(request) {
                     profile: registration.profile,
                     service: registration.service,
                     comment: registration.comment,
+                    coordinates: registration.coordinates,
+                    technicianId: registration.technicianId,
                     routerIds: registration.routerIds ? JSON.parse(registration.routerIds) : []
                 };
 
@@ -231,15 +236,19 @@ export async function POST(request) {
                 let newCustomer;
                 try {
                     newCustomer = await db.$transaction(async (tx) => {
+                        const generatedId = await generateCustomerId(registration.ownerId, tx);
                         const c = await tx.customer.create({
                             data: {
                                 username: finalData.username,
-                                customerId: finalData.username, // Using username as customerId initially
+                                customerId: generatedId,
                                 password: passwordHash, // Save hashed password to Customer table
                                 name: finalData.name || '',
                                 phone: finalData.phone || '',
                                 address: finalData.address || '',
                                 agentId: finalData.agentId,
+                                technicianId: finalData.technicianId,
+                                coordinates: finalData.coordinates,
+                                comment: finalData.comment,
                                 ownerId: registration.ownerId
                             }
                         });
@@ -437,7 +446,10 @@ export async function POST(request) {
                                 name: newValues.name || undefined,
                                 address: newValues.address || undefined,
                                 phone: newValues.phone || undefined,
-                                agentId: newValues.agentId || undefined
+                                agentId: newValues.agentId || undefined,
+                                technicianId: newValues.technicianId || undefined,
+                                coordinates: newValues.coordinates || undefined,
+                                comment: newValues.comment || undefined
                             }
                         });
                     }
@@ -454,7 +466,10 @@ export async function POST(request) {
                             name: newValues.name,
                             address: newValues.address,
                             phone: newValues.phone,
-                            agentId: newValues.agentId
+                            agentId: newValues.agentId,
+                            technicianId: newValues.technicianId,
+                            coordinates: newValues.coordinates,
+                            comment: newValues.comment
                         }
                     });
                 }

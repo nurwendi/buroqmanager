@@ -29,7 +29,7 @@ export async function PUT(request, { params }) {
     try {
         const { username } = await params;
         const body = await request.json();
-        const { name, address, phone } = body;
+        const { name, address, phone, coordinates, comment } = body;
 
         // Note: This endpoint updates customer DETAILS. 
         // It does not seem to handle username changes (which would require changing the ID in Customer model).
@@ -41,7 +41,9 @@ export async function PUT(request, { params }) {
             data: {
                 name: name || undefined,
                 address: address || undefined,
-                phone: phone || undefined
+                phone: phone || undefined,
+                coordinates: coordinates || undefined,
+                comment: comment || undefined
             }
         });
 
