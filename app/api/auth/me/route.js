@@ -44,17 +44,16 @@ export async function GET(request) {
 
   if (!freshUser) return unauthorizedResponse();
 
-  const token = Buffer.from(
-    JSON.stringify({
-      username: freshUser.username,
-      fullName: freshUser.fullName,
-      role: freshUser.role,
-      id: freshUser.id,
-      ownerId: freshUser.ownerId,
-      language: freshUser.language,
-      avatar: freshUser.avatar,
-    })
-  ).toString("base64");
+  const { signToken } = await import("@/lib/security");
+  const token = await signToken({
+    username: freshUser.username,
+    fullName: freshUser.fullName,
+    role: freshUser.role,
+    id: freshUser.id,
+    ownerId: freshUser.ownerId,
+    language: freshUser.language,
+    avatar: freshUser.avatar,
+  });
 
   return NextResponse.json({ user: freshUser, token });
 }

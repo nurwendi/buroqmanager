@@ -629,6 +629,7 @@ export default function UsersPage() {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
+                            id: formData.id,
                             username: formData.originalName,
                             customerId: formData.customerId,
                             name: formData.customerName,
@@ -637,7 +638,13 @@ export default function UsersPage() {
                             email: formData.customerEmail,
                             agentId: effectiveAgentId,
                             technicianId: effectiveTechnicianId,
-                            ownerId: formData.ownerId
+                            ownerId: formData.ownerId,
+                            coordinates: formData.coordinates,
+                            comment: formData.comment,
+                            // Support for synced fields even when router isn't updated
+                            password: formData.password,
+                            profile: formData.profile,
+                            service: formData.service || 'pppoe'
                         })
                     });
 
@@ -752,7 +759,10 @@ export default function UsersPage() {
                         technicianId: effectiveTechnicianId,
                         ownerId: formData.ownerId,
                         coordinates: formData.coordinates,
-                        comment: formData.comment
+                        comment: formData.comment,
+                        profile: formData.profile,
+                        password: formData.password,
+                        service: formData.service || 'pppoe'
                     })
                 });
 

@@ -54,7 +54,7 @@ export async function GET(request) {
                 where: filterWhere,
                 select: { username: true }
             });
-            allowedUsernames = new Set(myCustomers.map(c => c.username));
+            allowedUsernames = new Set(myCustomers.map(c => c.username.toLowerCase()));
         }
 
         // 3. Scan All Routers in Parallel
@@ -70,7 +70,7 @@ export async function GET(request) {
                 interfaces.forEach(i => { if (i.name) interfaceMap.set(i.name, i); });
 
                 return activeConnections.reduce((acc, pppConn) => {
-                    if (allowedUsernames !== null && !allowedUsernames.has(pppConn.name)) {
+                    if (allowedUsernames !== null && pppConn.name && !allowedUsernames.has(pppConn.name.toLowerCase())) {
                         return acc;
                     }
 

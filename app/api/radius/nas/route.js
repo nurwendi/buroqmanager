@@ -17,14 +17,28 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const start = Date.now();
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'superadmin' && user.role !== 'admin')) {
+            return unauthorizedResponse();
+        }
+
         // Validation: Required fields for FreeRADIUS
         if (!body.nasname || !body.secret) {
             return NextResponse.json({ error: 'nasname (IP) and secret are required' }, { status: 400 });
         }
 
-        const newNas = await db.nas.create({
-            data: {
+        const newNas = await db.nas.upsert({
+            where: { nasname: body.nasname },
+            update: {
+                shortname: body.shortname || null,
+                type: body.type || 'other',
+                ports: body.ports ? parseInt(body.ports) : null,
+                secret: body.secret,
+                description: body.description || null,
+                community: body.community || null,
+                server: body.server || null
+            },
+            create: {
                 nasname: body.nasname,
                 shortname: body.shortname || null,
                 type: body.type || 'other',
@@ -38,11 +52,8 @@ export async function POST(request) {
 
         return NextResponse.json(newNas, { status: 201 });
     } catch (error) {
-        console.error("Error creating NAS:", error);
-        if (error.code === 'P2002') {
-            return NextResponse.json({ error: 'NAS IP (nasname) must be unique' }, { status: 409 });
-        }
-        return NextResponse.json({ error: 'Failed to create NAS' }, { status: 500 });
+        console.error("Error creating/updating NAS:", error);
+        return NextResponse.json({ error: 'Failed to create NAS: ' + error.message }, { status: 500 });
     }
 }
 

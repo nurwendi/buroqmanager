@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { getConfig, saveConfig } from '@/lib/config';
 import db from '@/lib/db';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 const SETTINGS_KEY = 'billing_config';
 
@@ -43,7 +44,15 @@ async function getBillingSettings() {
     }
 }
 
-export async function GET() {
+export async function GET(request) {
+    const user = await getUserFromRequest(request);
+    // Allow superadmin and admin to view (Admin needs it for billing dashboard price lookups occasionally)
+    // But restrict specific fields if needed.
+    // For now, let's keep GET open to admin/superadmin.
+    if (!user || (user.role !== 'superadmin' && user.role !== 'admin')) {
+        return unauthorizedResponse();
+    }
+
     const settings = await getBillingSettings();
     const config = await getConfig();
 
@@ -58,6 +67,11 @@ export async function GET() {
 
 export async function POST(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || user.role !== 'superadmin') {
+            return unauthorizedResponse();
+        }
+
         const body = await request.json();
 
         // Separate email config from billing settings

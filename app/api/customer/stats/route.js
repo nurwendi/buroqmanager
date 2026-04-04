@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
+import { getUserFromRequest } from '@/lib/api-auth';
 import { getMikrotikClient } from '@/lib/mikrotik';
-import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/security';
 import { getMonthlyUsage } from '@/lib/usage-tracker';
 import db from '@/lib/db';
 
@@ -9,17 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
     try {
-        const cookieStore = await cookies();
-        let token = cookieStore.get('auth_token')?.value;
-        if (!token) {
-            const authHeader = request.headers.get('authorization');
-            if (authHeader && authHeader.startsWith('Bearer ')) {
-                token = authHeader.substring(7);
-            }
-        }
-        if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-        const decoded = await verifyToken(token);
+        const decoded = await getUserFromRequest(request);
         if (!decoded) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         let username = decoded.username;
@@ -37,40 +26,34 @@ export async function GET(request) {
 
         if (searchId) {
             console.log(`[CustomerStats] Searching for customerId: ${searchId}`);
-
             const customer = await db.customer.findFirst({
                 where: { customerId: searchId }
             });
-
             if (customer) {
-                // Security Check: Admins can only see their own customers (unless superadmin)
                 if (decoded.role === 'admin' && customer.ownerId !== decoded.id) {
                      return NextResponse.json({ error: 'Forbidden: Not your customer' }, { status: 403 });
                 }
-                
                 asCustomer = customer;
                 username = customer.username;
                 targetOwnerId = customer.ownerId;
-                console.log(`[CustomerStats] Found user ${username} for ID ${searchId}`);
             } else {
                 return NextResponse.json({ error: 'Customer ID not found' }, { status: 404 });
             }
         } else {
-            // If No searchId, must be a customer role accessing their own stats
             if (!isUserAdmin && decoded.role !== 'customer') {
                 return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
             }
-            
-            // Implicit Lookup: user logged in with CustomerID
             const found = await db.customer.findFirst({
                 where: { customerId: username }
             });
 
             if (found) {
                 asCustomer = found;
-                console.log(`[CustomerStats] Logged in with CustomerID ${username}, resolving to ${found.username}`);
                 username = found.username;
                 targetOwnerId = found.ownerId;
+            } else if (decoded.role === 'customer') {
+                // Critical Fix: If logged in as customer but record missing, return 404
+                return NextResponse.json({ error: 'Customer record not found. Please contact support.' }, { status: 404 });
             }
         }
 
@@ -101,12 +84,10 @@ export async function GET(request) {
                 console.log(`[CustomerStats] Connecting to Mikrotik (ConnID: ${conn.id})...`);
                 const client = await getMikrotikClient(conn.id);
 
-                const activeConnections = await client.write('/ppp/active/print', [
-                    `?name=${username}`
-                ]);
+                const activeConnections = await client.write('/ppp/active/print');
+                const active = activeConnections.find(a => a.name && a.name.toLowerCase() === username.toLowerCase());
 
-                if (activeConnections.length > 0) {
-                    const active = activeConnections[0];
+                if (active) {
                     session.id = active['.id'];
                     session.uptime = active.uptime;
                     session.active = true;
@@ -137,18 +118,23 @@ export async function GET(request) {
         // 2. Get Monthly Usage (Accumulated)
         const usageVals = await getMonthlyUsage(username);
         const usage = {
-            download: usageVals.rx || 0,
-            upload: usageVals.tx || 0
+            download: usageVals.tx || 0,
+            upload: usageVals.rx || 0
         };
 
         // 3. Get Billing Status (Real Data)
         const now = new Date();
+        const dFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jakarta', year: 'numeric', month: 'numeric' });
+        const parts = dFmt.formatToParts(now);
+        const currentMonthId = parseInt(parts.find(p => p.type === 'month')?.value || '1') - 1;
+        const currentYearId = parseInt(parts.find(p => p.type === 'year')?.value || '2026');
+
         let billing = {
             status: 'paid',
             amount: 0,
             invoice: '-',
-            month: now.getMonth(),   // 0-indexed, same as JS Date
-            year: now.getFullYear()
+            month: currentMonthId,
+            year: currentYearId
         };
 
         try {

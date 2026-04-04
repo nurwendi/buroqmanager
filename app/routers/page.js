@@ -46,6 +46,7 @@ export default function SettingsPage() {
     const [nasList, setNasList] = useState([]);
     const [showNasModal, setShowNasModal] = useState(false);
     const [nasForm, setNasForm] = useState({ nasname: '', secret: '', description: '' });
+    const [syncingNas, setSyncingNas] = useState(false);
 
     useEffect(() => {
         fetchSettings();
@@ -91,6 +92,49 @@ export default function SettingsPage() {
             await fetch(`/api/radius/nas?id=${id}`, { method: 'DELETE' });
             fetchNasList();
         } catch (e) { console.error(e); }
+    };
+
+    const handleSyncMikrotikToNas = async () => {
+        if (!settings.connections || settings.connections.length === 0) {
+            alert(t('routers.noConnectionsToSync'));
+            return;
+        }
+
+        if (!confirm(t('routers.syncNasConfirm'))) return;
+
+        setSyncingNas(true);
+        let successCount = 0;
+        let failCount = 0;
+
+        try {
+            for (const conn of settings.connections) {
+                // Use Mikrotik IP/Host as NAS Name
+                // We assumption secret is 'buroq-radius' or same as Mikrotik?
+                // Usually Mikrotik connection is API port 8728, but NAS is for RADIUS (Port 1812/1813).
+                // We just need to register the IP in the `nas` table.
+                const res = await fetch('/api/radius/nas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nasname: conn.host,
+                        secret: 'buroq-radius', // Default secret for auto-sync
+                        shortname: conn.name,
+                        description: `Auto-synced from Mikrotik Connection: ${conn.name}`
+                    })
+                });
+
+                if (res.ok) successCount++;
+                else failCount++;
+            }
+
+            alert(t('routers.syncNasComplete', { success: successCount, fail: failCount }));
+            fetchNasList();
+        } catch (error) {
+            console.error("Sync NAS failed", error);
+            alert(t('routers.syncNasError'));
+        } finally {
+            setSyncingNas(false);
+        }
     };
 
     const fetchInterfaces = async () => {
@@ -468,12 +512,22 @@ export default function SettingsPage() {
                         <h2 className="text-xl font-semibold text-gray-800 dark:text-white">{t('routers.radiusClients')}</h2>
                         <p className="text-sm text-gray-500">{t('routers.radiusClientsDesc')}</p>
                     </div>
-                    <button
-                        onClick={() => setShowNasModal(true)}
-                        className="w-full md:w-auto flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30"
-                    >
-                        <Plus size={18} /> {t('routers.addRadiusClient')}
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleSyncMikrotikToNas}
+                            disabled={syncingNas}
+                            className="w-full md:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 disabled:opacity-50"
+                        >
+                            {syncingNas ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+                            {syncingNas ? t('routers.syncing') : t('routers.syncFromMikrotik')}
+                        </button>
+                        <button
+                            onClick={() => setShowNasModal(true)}
+                            className="w-full md:w-auto flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-all shadow-lg shadow-purple-500/30"
+                        >
+                            <Plus size={18} /> {t('routers.addRadiusClient')}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="space-y-4">

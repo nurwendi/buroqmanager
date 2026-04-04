@@ -64,7 +64,10 @@ export async function GET(request) {
             }
         }
 
-        const payments = await db.payment.findMany({ where: paymentWhere });
+        const payments = await db.payment.findMany({ 
+            where: paymentWhere,
+            include: { commissions: true }
+        });
 
         const totalRevenue = payments
             .filter(p => p.status === 'completed')
@@ -72,28 +75,39 @@ export async function GET(request) {
 
         // Use Asia/Jakarta timezone for date calculations
         const now = new Date();
-        const jakartaNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
-        const today = jakartaNow.toISOString().split('T')[0];
-        const currentMonth = jakartaNow.toISOString().slice(0, 7); // YYYY-MM
+        const dFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jakarta', year: 'numeric', month: 'numeric', day: 'numeric' });
+        const parts = dFmt.formatToParts(now);
+        const currentMonth = parseInt(parts.find(p => p.type === 'month').value) - 1;
+        const currentYear = parseInt(parts.find(p => p.type === 'year').value);
+        const todayStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${parts.find(p => p.type === 'day').value.padStart(2, '0')}`;
 
         const todaysRevenue = payments
             .filter(p => {
                 if (p.status !== 'completed') return false;
-                const paymentDate = new Date(p.date);
-                const jakartaPaymentDate = new Date(paymentDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
-                const paymentDay = jakartaPaymentDate.toISOString().split('T')[0];
-                return paymentDay === today;
+                const pDate = new Date(p.date);
+                const pParts = dFmt.formatToParts(pDate);
+                const pDayStr = `${pParts.find(px => px.type === 'year').value}-${String(parseInt(pParts.find(px => px.type === 'month').value)).padStart(2, '0')}-${pParts.find(px => px.type === 'day').value.padStart(2, '0')}`;
+                return pDayStr === todayStr;
             })
             .reduce((sum, p) => sum + Number(p.amount), 0);
 
-        const thisMonthRevenue = payments
-            .filter(p => {
-                return p.status === 'completed' && 
-                       p.method !== 'EXPENSE' &&
-                       p.month === jakartaNow.getMonth() && 
-                       p.year === jakartaNow.getFullYear();
-            })
-            .reduce((sum, p) => sum + Number(p.amount), 0);
+        const thisMonthPayments = payments.filter(p => {
+            return p.status === 'completed' && 
+                   p.method !== 'EXPENSE' &&
+                   p.month === currentMonth && 
+                   p.year === currentYear;
+        });
+
+        const grossRevenue = thisMonthPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+        
+        // Calculate commission specifically for the logged in staff/agent if applicable
+        const staffCommission = thisMonthPayments.reduce((sum, p) => {
+            const myComm = (p.commissions || []).find(c => c.userId === currentUser.id);
+            return sum + (myComm ? myComm.amount : 0);
+        }, 0);
+
+        const netRevenue = grossRevenue - staffCommission;
+        const thisMonthRevenue = grossRevenue; // Backward compatibility
 
         const pendingCount = payments.filter(p => p.status === 'pending').length;
 
@@ -104,16 +118,15 @@ export async function GET(request) {
         // --- NEW: Calculate 6-month historical revenue for chart ---
         const monthlyRevenue = [];
         for (let i = 5; i >= 0; i--) {
-            const targetDate = new Date(jakartaNow);
-            targetDate.setMonth(jakartaNow.getMonth() - i);
-            const targetMonthStr = targetDate.toISOString().slice(0, 7); // YYYY-MM
+            const targetDate = new Date(now);
+            targetDate.setMonth(now.getMonth() - i);
+            const tParts = dFmt.formatToParts(targetDate);
+            const tMonth = parseInt(tParts.find(px => px.type === 'month').value) - 1;
+            const tYear = parseInt(tParts.find(px => px.type === 'year').value);
             
             const monthTotal = payments
                 .filter(p => {
-                    if (p.status !== 'completed') return false;
-                    const paymentDate = new Date(p.date);
-                    const pJakarta = new Date(paymentDate.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
-                    return pJakarta.toISOString().slice(0, 7) === targetMonthStr;
+                    return p.status === 'completed' && p.month === tMonth && p.year === tYear;
                 })
                 .reduce((sum, p) => sum + Number(p.amount), 0);
 
@@ -148,14 +161,15 @@ export async function GET(request) {
             method: p.method || 'cash'
         }));
 
-        const [activeCustomers, totalCustomersCount] = await Promise.all([
-            db.customer.count({ where: customerWhere }),
-            db.customer.count({ where: customerWhere })
-        ]);
+        const activeCustomers = 0; // Handled client-side via live Mikrotik query or ignored
+        const totalCustomersCount = await db.customer.count({ where: customerWhere });
 
         return NextResponse.json({
             totalRevenue,
             thisMonthRevenue,
+            grossRevenue,
+            netRevenue,
+            staffCommission,
             todaysRevenue,
             pendingCount,
             totalUnpaid,

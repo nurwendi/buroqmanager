@@ -1,25 +1,11 @@
-export const dynamic = 'force-dynamic';
-
 import { NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/security';
+import { getUserFromRequest } from '@/lib/api-auth';
 import db from '@/lib/db';
 import { getMikrotikClient } from '@/lib/mikrotik';
 
-async function getCurrentUser(request: Request) {
-    let token = request.headers.get('cookie')?.split('auth_token=')[1]?.split(';')[0];
-    if (!token) {
-        const authHeader = request.headers.get('authorization');
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            token = authHeader.substring(7);
-        }
-    }
-    if (!token) return null;
-    return await verifyToken(token);
-}
-
 export async function GET(request: Request) {
     try {
-        const currentUser = await getCurrentUser(request);
+        const currentUser = await getUserFromRequest(request);
         if (!currentUser) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -51,35 +37,39 @@ export async function GET(request: Request) {
                routers: []
            });
         }
-
         // 1. Get Customers counts
         const customersList = await db.customer.findMany({
             where: whereClause,
             select: { username: true }
         });
         const totalCustomers = customersList.length;
-        const activeCustomers = totalCustomers; // Status field not implemented, assuming all are active
-        const allowedUsernames = new Set(customersList.map(c => c.username));
+        const activeCustomers = totalCustomers; 
+        const allowedUsernames = new Set(customersList.map(c => c.username.toLowerCase()));
 
-        // 2. Get Monthly Revenue
-        const jakartaNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
-        const currentMonth = jakartaNow.getMonth();
-        const currentYear = jakartaNow.getFullYear();
+        // 2. Get Monthly Revenue (Scoped to current month)
+        // Use Intl.DateTimeFormat for robust timezone-aware date components
+        const now = new Date();
+        const dFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jakarta', year: 'numeric', month: 'numeric' });
+        const parts = dFmt.formatToParts(now);
+        const currentMonth = parseInt(parts.find(p => p.type === 'month')?.value || '1') - 1; // 0-indexed
+        const currentYear = parseInt(parts.find(p => p.type === 'year')?.value || '2026');
 
-        let paymentWhereClauseBase: any = {
+        let baseWhere: any = {};
+        if (currentUser.role !== 'superadmin') {
+            baseWhere.username = { in: Array.from(allowedUsernames) };
+            baseWhere.ownerId = ownerId;
+        }
+
+        const paymentWhereClauseMonth: any = {
+            ...baseWhere,
             month: currentMonth,
             year: currentYear,
             method: { not: 'EXPENSE' },
         };
 
-        if (currentUser.role !== 'superadmin') {
-            paymentWhereClauseBase.username = { in: Array.from(allowedUsernames) };
-            paymentWhereClauseBase.ownerId = ownerId;
-        }
-
         const payments = await db.payment.findMany({
             where: {
-                ...paymentWhereClauseBase,
+                ...paymentWhereClauseMonth,
                 status: 'completed'
             },
             include: {
@@ -89,18 +79,19 @@ export async function GET(request: Request) {
 
         const grossRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
         const staffCommission = payments.reduce((sum, p) => {
-            const paymentCommission = p.commissions.reduce((cSum, c) => cSum + c.amount, 0);
+            const paymentCommission = (p.commissions || []).reduce((cSum, c) => cSum + c.amount, 0);
             return sum + paymentCommission;
         }, 0);
         const netRevenue = grossRevenue - staffCommission;
         const monthlyRevenue = grossRevenue; // Backward compatibility
 
-        // Calculate Unpaid for the current month
+        // Calculate Unpaid (Piutang) - GLOBAL scope (all months)
         const totalUnpaid = await db.payment.aggregate({
             _sum: { amount: true },
             where: {
-                ...paymentWhereClauseBase,
-                status: 'pending'
+                ...baseWhere,
+                status: 'pending',
+                method: { not: 'EXPENSE' }
             }
         }).then(res => res._sum.amount || 0);
 
@@ -132,7 +123,7 @@ export async function GET(request: Request) {
 
                 // Count active sessions belonging to this user's scope
                 if (Array.isArray(pppActive)) {
-                    const routerActiveCount = pppActive.filter(a => allowedUsernames.has(a.name)).length;
+                    const routerActiveCount = pppActive.filter(a => a.name && allowedUsernames.has(a.name.toLowerCase())).length;
                     pppoeActive += routerActiveCount;
                 }
                 
@@ -163,7 +154,7 @@ export async function GET(request: Request) {
         });
 
         const pendingPaymentList = await db.payment.findMany({
-            where: { ...paymentWhereClauseBase, status: 'pending' },
+            where: { ...baseWhere, status: 'pending' },
             orderBy: { date: 'desc' },
             take: 10
         });
@@ -173,7 +164,7 @@ export async function GET(request: Request) {
         });
 
         const pendingPaymentsCount = await db.payment.count({
-            where: { ...paymentWhereClauseBase, status: 'pending' }
+            where: { ...baseWhere, status: 'pending' }
         });
 
         const pendingPayments = [
