@@ -375,12 +375,12 @@ export default function DashboardContent() {
         ) : (
           <div className="space-y-6">
             {/* Admin/Agent Stats Section (Restored) */}
-            {stats.agentStats && stats.agentStats.role === "admin" && (
+            {(userRole === "admin" || (stats.agentStats && stats.agentStats.role === "admin")) && (
               <motion.div variants={itemVariants} className="w-full">
                 <UnifiedFinancialStats
-                  gross={stats.agentStats.grandTotal?.revenue || 0}
-                  commission={stats.agentStats.grandTotal?.commission || 0}
-                  net={stats.agentStats.grandTotal?.netRevenue || 0}
+                  gross={stats.agentStats?.grandTotal?.revenue || 0}
+                  commission={stats.agentStats?.grandTotal?.commission || 0}
+                  net={stats.agentStats?.grandTotal?.netRevenue || 0}
                 />
               </motion.div>
             )}

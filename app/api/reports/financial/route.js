@@ -132,6 +132,7 @@ export async function GET(request) {
                 const customer = customerMap[p.username] || {};
                 return {
                     id: p.id,
+                    invoiceNumber: p.invoiceNumber,
                     username: p.username,
                     customerNumber: customer.customerId || '-',
                     customerName: customer.name || p.username,

@@ -38,13 +38,16 @@ export default function RecentTransactions({ transactions = [] }) {
                                             {tx.customerName ? String(tx.customerName).charAt(0).toUpperCase() : '?'}
                                         </span>
                                     </div>
-                                    <div className="min-w-0">
+                                    <div className="min-w-0 flex-1">
                                         <p className="text-sm font-semibold text-gray-900 dark:text-white truncate pr-2">
                                             {tx.customerName}
                                         </p>
-                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                        <p className="text-[10px] font-mono text-gray-400 mt-0.5">
+                                            {tx.invoiceNumber}
+                                        </p>
+                                        <div className="flex items-center gap-1.5 mt-1">
                                             <CheckCircle2 size={12} className="text-green-500" />
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase">
+                                            <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-medium">
                                                 {tx.method || 'CASH'}
                                             </p>
                                         </div>

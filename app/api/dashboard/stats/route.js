@@ -96,91 +96,113 @@ export async function GET(request) {
 
         if (!effectiveConnectionId) {
             return NextResponse.json({
-                cpu: 0,
-                memory: 0,
+                pppoeActive: 0,
+                pppoeOffline: 0,
+                cpuLoad: 0,
+                memoryUsed: 0,
+                memoryTotal: 0,
                 uptime: 'N/A',
-                temperature: 0,
-                activePppoe: 0,
-                activeHotspot: 0,
-                system: { boardName: 'No Router', version: '-' },
+                temperature: null,
+                voltage: null,
+                interfaces: [],
+                adminCount: 0,
+                totalCustomers: 0,
+                systemUserCount: 0,
                 serverCpuLoad,
                 serverMemoryUsed,
                 serverMemoryTotal,
-                interfaces: [],
                 routers: routerStats
             });
         }
 
-        const client = await getMikrotikClient(effectiveConnectionId);
-
-        // ... existing logic for the active router (activePppoe, pppoeOffline, etc.) ...
-        const activeConnections = await client.write('/ppp/active/print');
-
-        // ... skipping unchanged logic for brevity and using multi_replace if needed, 
-        // but for now I'll just finish the return object ...
-        // Wait, I need to keep the existing logic. I'll use multi_replace to be safe.
-        // Actually, I'll just complete the replacement here and ensure I don't lose the filtering logic.
-        
-        let myTotalUsers = 0;
         let myActiveCount = 0;
         let pppoeOffline = 0;
-
-        if (currentUser.role === 'superadmin') {
-            const allSecrets = await client.write('/ppp/secret/print');
-            myTotalUsers = allSecrets.length;
-            const activeMap = new Set(activeConnections.map(a => a.name));
-            myActiveCount = allSecrets.filter(s => activeMap.has(s.name)).length;
-        } else {
-            const allSecrets = await client.write('/ppp/secret/print');
-            let filterWhere = {};
-            if (currentUser.role === 'admin' || currentUser.role === 'manager') {
-                filterWhere = { ownerId: currentUser.id };
-                if (currentUser.role === 'manager' && currentUser.ownerId) {
-                    filterWhere = { ownerId: currentUser.ownerId };
-                }
-            } else if (['agent', 'partner', 'technician', 'staff', 'editor'].includes(currentUser.role)) {
-                filterWhere = {
-                    OR: [ { agentId: currentUser.id }, { technicianId: currentUser.id } ]
-                };
-                if (currentUser.ownerId) {
-                    filterWhere = { AND: [{ ownerId: currentUser.ownerId }, filterWhere] };
-                }
-            } else {
-                filterWhere = { ownerId: 'impossible_id' };
-            }
-
-            let allowedUsernames = new Set();
-            if (Object.keys(filterWhere).length > 0 || (filterWhere.AND && filterWhere.AND.length > 0)) {
-                const dbCustomers = await db.customer.findMany({
-                    where: filterWhere,
-                    select: { username: true }
-                });
-                dbCustomers.forEach(c => allowedUsernames.add(c.username));
-            }
-            const mySecrets = allSecrets.filter(s => allowedUsernames.has(s.name));
-            myTotalUsers = mySecrets.length;
-            const activeMap = new Set(activeConnections.map(a => a.name));
-            myActiveCount = mySecrets.filter(s => activeMap.has(s.name)).length;
-        }
-
-        pppoeOffline = Math.max(0, myTotalUsers - myActiveCount);
-
-        const resources = await client.write('/system/resource/print');
-        const resource = resources[0] || {};
-
+        let cpuLoad = 0;
+        let memoryUsed = 0;
+        let memoryTotal = 0;
         let temperature = null;
         let voltage = null;
-        try {
-            const health = await client.write('/system/health/print');
-            const tempItem = health.find(h => h.name === 'temperature' || h.name === 'cpu-temperature' || h.name === 'board-temperature');
-            const voltageItem = health.find(h => h.name === 'voltage' || h.name === 'monitor-voltage');
-            if (tempItem) temperature = parseInt(tempItem.value);
-            if (voltageItem) voltage = parseFloat(voltageItem.value);
-        } catch (e) {}
-
+        let interfaceStats = [];
         let adminCount = 0;
         let totalCustomers = 0;
         let systemUserCount = 0;
+
+        try {
+            const client = await getMikrotikClient(effectiveConnectionId);
+            const activeConnections = await client.write('/ppp/active/print');
+            
+            let myTotalUsers = 0;
+            if (currentUser.role === 'superadmin') {
+                const allSecrets = await client.write('/ppp/secret/print');
+                myTotalUsers = allSecrets.length;
+                const activeMap = new Set(activeConnections.map(a => a.name));
+                myActiveCount = allSecrets.filter(s => activeMap.has(s.name)).length;
+            } else {
+                const allSecrets = await client.write('/ppp/secret/print');
+                let filterWhere = {};
+                if (currentUser.role === 'admin' || currentUser.role === 'manager') {
+                    filterWhere = { ownerId: currentUser.id };
+                    if (currentUser.role === 'manager' && currentUser.ownerId) {
+                        filterWhere = { ownerId: currentUser.ownerId };
+                    }
+                } else if (['agent', 'partner', 'technician', 'staff', 'editor'].includes(currentUser.role)) {
+                    filterWhere = {
+                        OR: [ { agentId: currentUser.id }, { technicianId: currentUser.id } ]
+                    };
+                    if (currentUser.ownerId) {
+                        filterWhere = { AND: [{ ownerId: currentUser.ownerId }, filterWhere] };
+                    }
+                } else {
+                    filterWhere = { ownerId: 'impossible_id' };
+                }
+
+                let allowedUsernames = new Set();
+                if (Object.keys(filterWhere).length > 0 || (filterWhere.AND && filterWhere.AND.length > 0)) {
+                    const dbCustomers = await db.customer.findMany({
+                        where: filterWhere,
+                        select: { username: true }
+                    });
+                    dbCustomers.forEach(c => allowedUsernames.add(c.username));
+                }
+                const mySecrets = allSecrets.filter(s => allowedUsernames.has(s.name));
+                myTotalUsers = mySecrets.length;
+                const activeMap = new Set(activeConnections.map(a => a.name));
+                myActiveCount = mySecrets.filter(s => activeMap.has(s.name)).length;
+            }
+
+            pppoeOffline = Math.max(0, myTotalUsers - myActiveCount);
+
+            const resources = await client.write('/system/resource/print');
+            const resource = resources[0] || {};
+            cpuLoad = parseInt(resource['cpu-load'] || 0);
+            memoryUsed = parseInt(resource['total-memory'] || 0) - parseInt(resource['free-memory'] || 0);
+            memoryTotal = parseInt(resource['total-memory'] || 0);
+
+            try {
+                const health = await client.write('/system/health/print');
+                const tempItem = health.find(h => h.name === 'temperature' || h.name === 'cpu-temperature' || h.name === 'board-temperature');
+                const voltageItem = health.find(h => h.name === 'voltage' || h.name === 'monitor-voltage');
+                if (tempItem) temperature = parseInt(tempItem.value);
+                if (voltageItem) voltage = parseFloat(voltageItem.value);
+            } catch (e) {}
+
+            const ifaces = await client.write('/interface/print', ['=stats']);
+            interfaceStats = ifaces
+                .filter(iface => {
+                    const name = iface.name || '';
+                    return !name.startsWith('pppoe-out') && !name.startsWith('<pppoe-');
+                })
+                .map(iface => ({
+                    name: iface.name,
+                    type: iface.type,
+                    running: iface.running === 'true',
+                    txRate: parseInt(iface['tx-bits-per-second'] || 0),
+                    rxRate: parseInt(iface['rx-bits-per-second'] || 0)
+                }));
+        } catch (routerErr) {
+            console.error('Active router connection failed:', routerErr.message);
+            // Default values already set to 0/empty
+        }
 
         if (currentUser.role === 'superadmin') {
             const [ac, tc, sc] = await Promise.all([
@@ -201,35 +223,21 @@ export async function GET(request) {
             }
         }
 
-        const ifaces = await client.write('/interface/print', ['=stats']);
-        const interfaceStats = ifaces
-            .filter(iface => {
-                const name = iface.name || '';
-                return !name.startsWith('pppoe-out') && !name.startsWith('<pppoe-');
-            })
-            .map(iface => ({
-                name: iface.name,
-                type: iface.type,
-                running: iface.running === 'true',
-                txRate: parseInt(iface['tx-bits-per-second'] || 0),
-                rxRate: parseInt(iface['rx-bits-per-second'] || 0)
-            }));
-
         return NextResponse.json({
             pppoeActive: myActiveCount,
             pppoeOffline: pppoeOffline,
-            cpuLoad: parseInt(resource['cpu-load'] || 0),
-            memoryUsed: parseInt(resource['total-memory'] || 0) - parseInt(resource['free-memory'] || 0),
-            memoryTotal: parseInt(resource['total-memory'] || 0),
-            serverCpuLoad,
-            serverMemoryUsed,
-            serverMemoryTotal,
+            cpuLoad,
+            memoryUsed,
+            memoryTotal,
             temperature,
             voltage,
             interfaces: interfaceStats,
             adminCount,
             totalCustomers,
             systemUserCount,
+            serverCpuLoad,
+            serverMemoryUsed,
+            serverMemoryTotal,
             routers: routerStats
         });
     } catch (error) {

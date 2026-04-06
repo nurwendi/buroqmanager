@@ -179,6 +179,7 @@ export async function GET(request: Request) {
             })),
             ...pendingPaymentList.map(p => ({
                 id: p.id,
+                invoiceNumber: p.invoiceNumber,
                 name: p.username,
                 customerName: p.username,
                 type: 'payment',

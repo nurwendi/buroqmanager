@@ -155,6 +155,7 @@ export async function GET(request) {
 
         const recentTransactions = recentPayments.map(p => ({
             id: p.id,
+            invoiceNumber: p.invoiceNumber,
             customerName: String(customerMap[p.username] || p.username || 'Unknown Customer'),
             amount: Number(p.amount),
             date: p.date,

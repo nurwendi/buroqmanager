@@ -201,8 +201,11 @@ export async function POST(request) {
                 where: { year: currentYear }
             });
             const seq = String(count + 1).padStart(6, '0');
-            const custId = customer?.customerId || 'CUST';
-            invoiceNumber = `INV/${yy}/${mm}/${custId}/${seq}`;
+            
+            // Fix: Guarantee Customer ID or fallback to 'CUST'
+            const custId = (customer?.customerId || 'CUST').replace(/\s+/g, '-');
+            const invoiceNumberStr = `INV/${yy}/${mm}/${custId}/${seq}`;
+            invoiceNumber = invoiceNumberStr;
         }
 
         // Strategy: Find pending invoice
