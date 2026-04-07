@@ -9,7 +9,7 @@ async function getCurrentUser(request) {
     return await verifyToken(token);
 }
 
-async function fetchWithTimeout(promise, ms = 8000) {
+async function fetchWithTimeout(promise, ms = 4000) {
     return Promise.race([
         promise,
         new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
@@ -29,7 +29,7 @@ export async function GET(request) {
         }
 
         const config = await getConfig();
-        const targetConnections = config.connections || [];
+        const targetConnections = (config.connections || []).filter(c => c && c.id && c.host);
 
         const natData = await Promise.all(targetConnections.map(async (conn) => {
             const result = {

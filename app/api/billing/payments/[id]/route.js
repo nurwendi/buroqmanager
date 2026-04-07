@@ -59,23 +59,18 @@ export async function PUT(request, { params }) {
                 const yy = String(nextYear).slice(-2);
                 const mm = String(nextMonth + 1).padStart(2, '0');
 
-                // Get customer number from DB or current invoice
-                let custNum = '0000';
-                if (currentPayment.invoiceNumber) {
-                    const parts = currentPayment.invoiceNumber.split('/');
-                    if (parts.length >= 4) custNum = parts[3];
-                }
+                const customer = await db.customer.findFirst({
+                    where: { username: currentPayment.username }
+                });
+                const custId = (customer?.customerId || 'CUST').replace(/\s+/g, '-');
 
                 // Get sequence
-                // We need to count invoices for that month globally to sequence properly or just generic seq.
-                // The old code used `payments.length + 2` which is unreliable.
-                // Let's use count of payments for that month/year.
                 const count = await db.payment.count({
-                    where: { month: nextMonth, year: nextYear }
+                    where: { year: nextYear }
                 });
-                const seq = String(count + 1).padStart(4, '0');
+                const seq = String(count + 1).padStart(6, '0');
 
-                const newInvoiceNumber = `INV/${yy}/${mm}/${custNum}/${seq}`;
+                const newInvoiceNumber = `INV/${yy}/${mm}/${custId}/${seq}`;
 
                 // Ensure unique invoice number just in case
                 // If it conflicts, Prisma throws. We might need retry logic or better generation.

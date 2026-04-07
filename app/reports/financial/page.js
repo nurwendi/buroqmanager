@@ -227,7 +227,7 @@ export default function FinancialReportPage() {
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black print:rounded-none print:overflow-visible">
                             <div className="bg-green-50 dark:bg-green-900/20 px-4 py-2 border-b border-green-100 dark:border-green-800 flex justify-between items-center">
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-green-700 dark:text-green-400">
-                                    {resolvedLanguage === 'id' ? 'Pembayaran Lunas (Masuk)' : 'Paid Payments (Revenue)'}
+                                    {resolvedLanguage === 'id' ? 'PENDAPATAN (LUNAS)' : 'REVENUE (PAID)'}
                                 </h3>
                                 <span className="text-xs font-bold text-green-700 dark:text-green-400">
                                     {formatCurrency(data.summary.totalRevenue)}
@@ -272,7 +272,7 @@ export default function FinancialReportPage() {
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black print:rounded-none print:overflow-visible">
                             <div className="bg-red-50 dark:bg-red-900/20 px-4 py-2 border-b border-red-100 dark:border-red-800 flex justify-between items-center">
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-red-700 dark:text-red-400">
-                                    {resolvedLanguage === 'id' ? 'Tagihan Belum Bayar (Piutang)' : 'Unpaid Bills (Pending)'}
+                                    {resolvedLanguage === 'id' ? 'BELUM BAYAR' : 'UNPAID'}
                                 </h3>
                                 <span className="text-xs font-bold text-red-700 dark:text-red-400">
                                     {formatCurrency(data.summary.totalUnpaid)}

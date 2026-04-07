@@ -435,13 +435,36 @@ export default function NatPage() {
                 </div>
             )}
 
-            {/* Error */}
             {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 rounded-xl p-4 flex items-center gap-3">
-                    <AlertTriangle size={18} className="text-red-500" />
-                    <span className="text-sm text-red-700 dark:text-red-400">{error}</span>
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 rounded-xl p-4 flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                        <AlertTriangle size={18} className="text-red-500" />
+                        <span className="text-sm text-red-700 dark:text-red-400">{error}</span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 pl-7 italic">
+                        {t('sidebar.troubleshootOffline')}
+                    </p>
                 </div>
             )}
+
+            {/* NAT vs NAS Info Card */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 rounded-2xl p-5"
+            >
+                <div className="flex items-start gap-4">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-lg shrink-0">
+                        <Info size={20} className="text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-blue-900 dark:text-blue-300 text-sm">{t('sidebar.natNasDistinctionTitle')}</h4>
+                        <p className="text-xs text-blue-700/70 dark:text-blue-400/60 mt-1 leading-relaxed">
+                            {t('sidebar.natNasDistinctionDesc')}
+                        </p>
+                    </div>
+                </div>
+            </motion.div>
 
             {/* Loading */}
             {loading && !data && (
