@@ -10,6 +10,13 @@ export async function GET(request) {
         const { searchParams } = new URL(request.url);
         const isLite = searchParams.get('lite') === 'true';
         const user = await getUserFromRequest(request); // Await the promise!
+        
+        if (user) {
+            console.log(`[CUSTOMER-API] Request from User: ${user.username}, Role: ${user.role}, ID: ${user.id}`);
+        } else {
+            console.warn(`[CUSTOMER-API] Unauthenticated request!`);
+        }
+
         let where = {};
 
         if (user) {
