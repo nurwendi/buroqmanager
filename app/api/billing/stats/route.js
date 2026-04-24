@@ -53,10 +53,21 @@ export async function GET(request) {
 
         let paymentWhere = {};
         if (currentUser.role !== 'superadmin') {
-            paymentWhere = {
-                username: { in: allowedUsernames },
-                ownerId: currentUser.role === 'admin' ? currentUser.id : currentUser.ownerId
-            };
+            const isAgentRole = ['agent', 'partner', 'staff', 'editor'].includes(currentUser.role);
+            if (isAgentRole) {
+                paymentWhere = {
+                    OR: [
+                        { username: { in: allowedUsernames } },
+                        { commissions: { some: { userId: currentUser.id } } }
+                    ],
+                    ownerId: currentUser.ownerId
+                };
+            } else {
+                paymentWhere = {
+                    username: { in: allowedUsernames },
+                    ownerId: currentUser.role === 'admin' ? currentUser.id : currentUser.ownerId
+                };
+            }
         } else {
             const activeConnection = config.connections?.find(c => c.id === effectiveConnectionId);
             if (activeConnection && activeConnection.ownerId) {
