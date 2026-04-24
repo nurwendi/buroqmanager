@@ -26,18 +26,15 @@ export async function GET(request) {
             } else if (user.role === 'superadmin') {
                 // No filter
             } else if (['agent', 'partner', 'technician', 'staff', 'editor'].includes(user.role)) {
-                // Combined restriction logic
-                if (user.role === 'technician') {
-                    where.technicianId = user.id;
-                } else if (user.role === 'staff' || user.role === 'editor') {
-                    // Staff and Editor should see all customers of their owner
-                    if (user.ownerId) where.ownerId = user.ownerId;
-                } else {
-                    // Agent or Partner -> explicitly their assigned ones
-                    where.agentId = user.id;
-                }
+                // Combined restriction logic (Matches api/pppoe/users mapping exactly)
+                where.OR = [
+                    { agentId: user.id },
+                    { technicianId: user.id }
+                ];
 
-                if (user.ownerId && !where.ownerId) where.ownerId = user.ownerId;
+                if (user.ownerId) {
+                    where.ownerId = user.ownerId;
+                }
             } else {
                 // Fallback (e.g. viewer)
                 if (user.ownerId) where.ownerId = user.ownerId;
