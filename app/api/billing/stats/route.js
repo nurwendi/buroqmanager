@@ -1,4 +1,7 @@
+import { NextResponse } from 'next/server';
+import db from '@/lib/db';
 import { getUserFromRequest } from '@/lib/api-auth';
+
 
 export async function GET(request) {
     try {
@@ -25,16 +28,18 @@ export async function GET(request) {
             effectiveConnectionId = config.connections[0].id; // Default to first if none selected
         }
 
+        const role = String(currentUser.role || '').toLowerCase();
+        
         // Apply filtering for Customers
-        if (currentUser.role === 'admin') {
-            customerWhere = { ownerId: currentUser.id };
-        } else if (currentUser.role === 'manager' && currentUser.ownerId) {
+        if (role === 'admin') {
+            customerWhere = { ownerId: currentUser.ownerId || currentUser.id };
+        } else if (role === 'manager' && currentUser.ownerId) {
             customerWhere = { ownerId: currentUser.ownerId };
-        } else if (currentUser.role === 'technician') {
+        } else if (role === 'technician') {
             customerWhere = { technicianId: currentUser.id, ownerId: currentUser.ownerId };
-        } else if (['agent', 'partner', 'staff', 'editor'].includes(currentUser.role)) {
+        } else if (['agent', 'partner', 'staff', 'editor'].includes(role)) {
             customerWhere = { agentId: currentUser.id, ownerId: currentUser.ownerId };
-        } else if (currentUser.role === 'superadmin') {
+        } else if (role === 'superadmin') {
             const activeConnection = config.connections?.find(c => c.id === effectiveConnectionId);
             if (activeConnection && activeConnection.ownerId) {
                 customerWhere = { ownerId: activeConnection.ownerId };
@@ -52,8 +57,8 @@ export async function GET(request) {
         const allowedUsernames = myCustomers.map(c => c.username);
 
         let paymentWhere = {};
-        if (currentUser.role !== 'superadmin') {
-            const isAgentRole = ['agent', 'partner', 'staff', 'editor'].includes(currentUser.role);
+        if (role !== 'superadmin') {
+            const isAgentRole = ['agent', 'partner', 'staff', 'editor'].includes(role);
             if (isAgentRole) {
                 paymentWhere = {
                     OR: [
@@ -62,10 +67,14 @@ export async function GET(request) {
                     ],
                     ownerId: currentUser.ownerId
                 };
+            } else if (role === 'admin') {
+                paymentWhere = {
+                    ownerId: currentUser.ownerId || currentUser.id
+                };
             } else {
                 paymentWhere = {
                     username: { in: allowedUsernames },
-                    ownerId: currentUser.role === 'admin' ? currentUser.id : currentUser.ownerId
+                    ownerId: currentUser.ownerId
                 };
             }
         } else {
@@ -111,14 +120,22 @@ export async function GET(request) {
 
         const grossRevenue = thisMonthPayments.reduce((sum, p) => sum + Number(p.amount), 0);
         
-        // Calculate commission specifically for the logged in staff/agent if applicable
+        // Calculate total staff commission (all commissions deducted from gross revenue)
+        // For agent/staff role: also compute their personal commission for display purposes
         const staffCommission = thisMonthPayments.reduce((sum, p) => {
+            const totalComm = (p.commissions || []).reduce((cSum, c) => cSum + c.amount, 0);
+            return sum + totalComm;
+        }, 0);
+
+        // Personal commission (for staff/agent individual view — available as a separate field)
+        const myCommission = thisMonthPayments.reduce((sum, p) => {
             const myComm = (p.commissions || []).find(c => c.userId === currentUser.id);
             return sum + (myComm ? myComm.amount : 0);
         }, 0);
 
         const netRevenue = grossRevenue - staffCommission;
         const thisMonthRevenue = grossRevenue; // Backward compatibility
+
 
         const pendingCount = payments.filter(p => p.status === 'pending').length;
 
@@ -182,6 +199,7 @@ export async function GET(request) {
             grossRevenue,
             netRevenue,
             staffCommission,
+            myCommission,  // personal commission for current user (agent/staff view)
             todaysRevenue,
             pendingCount,
             totalUnpaid,

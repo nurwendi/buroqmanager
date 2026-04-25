@@ -10,24 +10,26 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Determine target owner ID and scope
-        const ownerId = currentUser.role === 'admin' ? (currentUser.ownerId || currentUser.id) : currentUser.ownerId;
+        const role = String(currentUser.role || '').toLowerCase();
         
         let whereClause: any = {};
-        if (currentUser.role === 'superadmin') {
+        let ownerId = currentUser.ownerId;
+
+        if (role === 'superadmin') {
             whereClause = {};
-        } else if (currentUser.role === 'admin') {
-            whereClause = { ownerId: currentUser.ownerId || currentUser.id };
-        } else if (currentUser.role === 'technician') {
+        } else if (role === 'admin') {
+            ownerId = currentUser.ownerId || currentUser.id;
+            whereClause = { ownerId: ownerId };
+        } else if (role === 'technician') {
             whereClause = { technicianId: currentUser.id, ownerId: currentUser.ownerId };
-        } else if (['agent', 'staff', 'partner', 'editor'].includes(currentUser.role)) {
+        } else if (['agent', 'staff', 'partner', 'editor'].includes(role)) {
             whereClause = { agentId: currentUser.id, ownerId: currentUser.ownerId };
         } else {
             // viewer or unauthorized
             whereClause = { ownerId: currentUser.ownerId || 'impossible_id' };
         }
 
-        if (!ownerId && currentUser.role !== 'superadmin') {
+        if (!ownerId && role !== 'superadmin') {
            return NextResponse.json({
                totalCustomers: 0,
                activeCustomers: 0,
@@ -37,6 +39,7 @@ export async function GET(request: Request) {
                routers: []
            });
         }
+
         // 1. Get Customers counts
         const customersList = await db.customer.findMany({
             where: whereClause,
@@ -44,7 +47,9 @@ export async function GET(request: Request) {
         });
         const totalCustomers = customersList.length;
         const activeCustomers = totalCustomers; 
-        const allowedUsernames = new Set(customersList.map(c => c.username.toLowerCase()));
+        
+        // For router PPP active count (case insensitive string match usually needed)
+        const allowedUsernamesLower = new Set(customersList.map(c => c.username.toLowerCase()));
 
         // 2. Get Monthly Revenue (Scoped to current month)
         // Use Intl.DateTimeFormat for robust timezone-aware date components
@@ -55,9 +60,13 @@ export async function GET(request: Request) {
         const currentYear = parseInt(parts.find(p => p.type === 'year')?.value || '2026');
 
         let baseWhere: any = {};
-        if (currentUser.role !== 'superadmin') {
-            baseWhere.username = { in: Array.from(allowedUsernames) };
+        if (role !== 'superadmin') {
             baseWhere.ownerId = ownerId;
+            if (role !== 'admin') {
+                // Admins match all by ownerId, agents need exactly their subset of usernames
+                const rawUsernames = customersList.map(c => c.username);
+                baseWhere.username = { in: rawUsernames };
+            }
         }
 
         const paymentWhereClauseMonth: any = {
@@ -123,7 +132,7 @@ export async function GET(request: Request) {
 
                 // Count active sessions belonging to this user's scope
                 if (Array.isArray(pppActive)) {
-                    const routerActiveCount = pppActive.filter(a => a.name && allowedUsernames.has(a.name.toLowerCase())).length;
+                    const routerActiveCount = pppActive.filter(a => a.name && allowedUsernamesLower.has(a.name.toLowerCase())).length;
                     pppoeActive += routerActiveCount;
                 }
                 
@@ -133,7 +142,9 @@ export async function GET(request: Request) {
                     host: conn.host,
                     identity,
                     status: 'online',
-                    cpuLoad: parseInt(res['cpu-load'] || '0')
+                    cpuLoad: parseInt(res['cpu-load'] || '0'),
+                    memoryUsed: parseInt(res['total-memory'] || '0') - parseInt(res['free-memory'] || '0'),
+                    memoryTotal: parseInt(res['total-memory'] || '0'),
                 };
             } catch (err) {
                 return {
