@@ -153,36 +153,64 @@ export async function DELETE(request, { params }) {
 
         // B. Database Deletion (Transaction)
         // Find the customer to ensure they exist and belong to the tenant
+        // Fix: Allow admin to delete if ownerId matches OR if it's null (orphan) to prevent lock-in
         const customer = await db.customer.findFirst({
-            where: { username: username, ownerId: user.role === 'superadmin' ? undefined : ownerId }
+            where: { 
+                username: username,
+                ...(user.role !== 'superadmin' ? {
+                    OR: [
+                        { ownerId: ownerId },
+                        { ownerId: null }
+                    ]
+                } : {})
+            }
         });
 
         if (!customer && user.role !== 'superadmin') {
             return NextResponse.json({ error: 'Pelanggan tidak ditemukan atau Anda tidak memiliki akses' }, { status: 404 });
         }
 
-        // Clean up NotificationRecipient dependencies before deleting Customer to avoid Foreign Key violations
-        await db.notificationRecipient.deleteMany({
-            where: { customerId: customer.id }
-        });
+        // Clean up dependencies and delete
+        try {
+            await db.$transaction(async (tx) => {
+                // 1. Notification cleanup
+                await tx.notificationRecipient.deleteMany({
+                    where: { customerId: customer?.id }
+                });
 
-        // Clean up User's NotificationRecipient dependencies if we are deleting their customer portal login
-        const assocUser = await db.user.findFirst({ where: { username: username, role: 'customer' } });
-        if (assocUser) {
-            await db.notificationRecipient.deleteMany({
-                where: { userId: assocUser.id }
+                const assocUser = await tx.user.findFirst({ where: { username: username, role: 'customer' } });
+                if (assocUser) {
+                    await tx.notificationRecipient.deleteMany({
+                        where: { userId: assocUser.id }
+                    });
+                }
+
+                // 2. Radius cleanup
+                await tx.radCheck.deleteMany({ where: { username } });
+                await tx.radReply.deleteMany({ where: { username } });
+                await tx.radUserGroup.deleteMany({ where: { username } });
+
+                // 3. User & Customer cleanup
+                await tx.user.deleteMany({ where: { username, role: 'customer' } });
+                
+                // Use specific ID if found for safety, otherwise fallback to username-based delete
+                if (customer?.id) {
+                    await tx.customer.delete({ where: { id: customer.id } });
+                } else {
+                    await tx.customer.deleteMany({ 
+                        where: { 
+                            username, 
+                            ownerId: user.role === 'superadmin' ? undefined : ownerId 
+                        } 
+                    });
+                }
             });
+
+            return NextResponse.json({ success: true, message: "Pelanggan berhasil dihapus" });
+        } catch (txErr) {
+            console.error('Delete Transaction Error:', txErr);
+            return NextResponse.json({ error: `Gagal menghapus data: ${txErr.message}` }, { status: 500 });
         }
-
-        await db.$transaction([
-            db.radCheck.deleteMany({ where: { username } }),
-            db.radReply.deleteMany({ where: { username } }),
-            db.radUserGroup.deleteMany({ where: { username } }),
-            db.user.deleteMany({ where: { username, role: 'customer' } }), // Delete associated login safely
-            db.customer.deleteMany({ where: { username, ownerId: user.role === 'superadmin' ? undefined : ownerId } })
-        ]);
-
-        return NextResponse.json({ success: true, message: "Pelanggan berhasil dihapus" });
 
     } catch (error) {
         console.error('Delete Error:', error);

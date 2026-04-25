@@ -85,6 +85,9 @@ export async function GET(request) {
                 const method = p.method || 'cash';
                 methodBreakdown[method] = (methodBreakdown[method] || 0) + amount;
 
+                // Track users counted for this payment to avoid double revenue/count
+                const usersCounted = new Set();
+
                 // Commissions
                 for (const c of p.commissions) {
                     // If viewing as agent, we only sum OUR commissions for the "Total Expenses" field?
@@ -104,8 +107,12 @@ export async function GET(request) {
                         };
                     }
                     staffBreakdown[c.userId].commission += c.amount;
-                    staffBreakdown[c.userId].revenue += amount;
-                    staffBreakdown[c.userId].count += 1;
+
+                    if (!usersCounted.has(c.userId)) {
+                        staffBreakdown[c.userId].revenue += amount;
+                        staffBreakdown[c.userId].count += 1;
+                        usersCounted.add(c.userId);
+                    }
                 }
             } else if (p.status === 'pending') {
                 totalUnpaid += amount;
