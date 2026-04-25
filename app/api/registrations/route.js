@@ -491,34 +491,79 @@ export async function POST(request) {
                     console.error('Failed to resolve connection for delete:', e);
                 }
 
-                // Mikrotik
+                // --- 1. MIKROTIK REMOVAL ---
                 try {
                     const client = await getMikrotikClient(connectionId);
                     const users = await client.write('/ppp/secret/print', [`?name=${targetUsername}`]);
                     if (users.length > 0) {
                         await client.write('/ppp/secret/remove', [`=.id=${users[0]['.id']}`]);
+                        console.log(`[Mikrotik] Removed PPPoE secret: ${targetUsername}`);
+                    }
+                    
+                    // Kick active session
+                    const actives = await client.write('/ppp/active/print', [`?name=${targetUsername}`]);
+                    for (const active of actives) {
+                        await client.write('/ppp/active/remove', [`=.id=${active['.id']}`]);
                     }
                 } catch (err) {
-                    console.error("Failed to delete from Mikrotik:", err);
+                    console.error("Failed to delete from Mikrotik:", err.message);
+                    // We continue DB deletion even if Mikrotik fails
                 }
 
-                // DB
+                // --- 2. DATABASE DELETION (Transaction) ---
                 try {
-                    await db.customer.delete({
-                        where: {
-                            username_ownerId: {
-                                username: targetUsername,
-                                ownerId: registration.ownerId
-                            }
+                    // Find customer first to get ID for cleanup
+                    const customer = await db.customer.findFirst({
+                        where: { 
+                            username: targetUsername,
+                            ownerId: registration.ownerId
                         }
                     });
-                    await db.user.deleteMany({ where: { username: targetUsername } });
-                } catch (e) {
-                    console.log('Error deleting DB records:', e);
-                }
 
-                await db.registration.delete({ where: { id: registration.id } });
-                return NextResponse.json({ success: true, message: "Delete request approved and executed" });
+                    await db.$transaction(async (tx) => {
+                        if (customer) {
+                            // 1. Notification cleanup
+                            await tx.notificationRecipient.deleteMany({
+                                where: { customerId: customer.id }
+                            });
+
+                            const assocUser = await tx.user.findFirst({ where: { username: targetUsername, role: 'customer' } });
+                            if (assocUser) {
+                                await tx.notificationRecipient.deleteMany({
+                                    where: { userId: assocUser.id }
+                                });
+                            }
+                        }
+
+                        // 2. Radius cleanup
+                        await tx.radCheck.deleteMany({ where: { username: targetUsername } });
+                        await tx.radReply.deleteMany({ where: { username: targetUsername } });
+                        await tx.radUserGroup.deleteMany({ where: { username: targetUsername } });
+
+                        // 3. User & Customer cleanup
+                        await tx.user.deleteMany({ where: { username: targetUsername, role: 'customer' } });
+                        
+                        if (customer) {
+                            await tx.customer.delete({ where: { id: customer.id } });
+                        } else {
+                            // Fallback if findFirst failed for some reason but we still want to try deleting by unique key
+                            await tx.customer.deleteMany({
+                                where: {
+                                    username: targetUsername,
+                                    ownerId: registration.ownerId
+                                }
+                            });
+                        }
+
+                        // 4. Delete the registration request itself
+                        await tx.registration.delete({ where: { id: registration.id } });
+                    });
+
+                    return NextResponse.json({ success: true, message: "Permintaan hapus disetujui dan data pelanggan telah dibersihkan" });
+                } catch (dbErr) {
+                    console.error('Delete Approval DB Error:', dbErr);
+                    return NextResponse.json({ error: `Gagal memproses penghapusan di database: ${dbErr.message}` }, { status: 500 });
+                }
             }
         }
     } catch (error) {
