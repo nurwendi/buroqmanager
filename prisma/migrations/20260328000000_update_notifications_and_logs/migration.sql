@@ -49,11 +49,20 @@ CREATE INDEX IF NOT EXISTS "NotificationRecipient_notificationId_idx" ON "Notifi
 
 -- AddForeignKey
 ALTER TABLE "Log" DROP CONSTRAINT IF EXISTS "Notification_ownerId_fkey";
+ALTER TABLE "Log" DROP CONSTRAINT IF EXISTS "Log_ownerId_fkey";
 ALTER TABLE "Log" ADD CONSTRAINT "Log_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
+ALTER TABLE "Notification" DROP CONSTRAINT IF EXISTS "Notification_ownerId_fkey";
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE "Notification" DROP CONSTRAINT IF EXISTS "Notification_senderId_fkey";
 ALTER TABLE "Notification" ADD CONSTRAINT "Notification_senderId_fkey" FOREIGN KEY ("senderId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
+ALTER TABLE "NotificationRecipient" DROP CONSTRAINT IF EXISTS "NotificationRecipient_customerId_fkey";
 ALTER TABLE "NotificationRecipient" ADD CONSTRAINT "NotificationRecipient_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+ALTER TABLE "NotificationRecipient" DROP CONSTRAINT IF EXISTS "NotificationRecipient_notificationId_fkey";
 ALTER TABLE "NotificationRecipient" ADD CONSTRAINT "NotificationRecipient_notificationId_fkey" FOREIGN KEY ("notificationId") REFERENCES "Notification"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "NotificationRecipient" DROP CONSTRAINT IF EXISTS "NotificationRecipient_userId_fkey";
 ALTER TABLE "NotificationRecipient" ADD CONSTRAINT "NotificationRecipient_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
