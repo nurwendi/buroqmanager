@@ -95,7 +95,8 @@ export async function GET(request) {
                     // and totalCommissions should be what THEY earned.
                     if (agentId && c.userId !== agentId) continue;
                     
-                    totalCommissions += c.amount;
+                    const commAmount = Number(c.amount);
+                    totalCommissions += commAmount;
 
                     if (!staffBreakdown[c.userId]) {
                         staffBreakdown[c.userId] = {
@@ -106,7 +107,7 @@ export async function GET(request) {
                             count: 0
                         };
                     }
-                    staffBreakdown[c.userId].commission += c.amount;
+                    staffBreakdown[c.userId].commission += commAmount;
 
                     if (!usersCounted.has(c.userId)) {
                         staffBreakdown[c.userId].revenue += amount;
