@@ -123,14 +123,14 @@ export async function GET(request) {
         // Calculate total staff commission (all commissions deducted from gross revenue)
         // For agent/staff role: also compute their personal commission for display purposes
         const staffCommission = thisMonthPayments.reduce((sum, p) => {
-            const totalComm = (p.commissions || []).reduce((cSum, c) => cSum + c.amount, 0);
+            const totalComm = (p.commissions || []).reduce((cSum, c) => cSum + Number(c.amount), 0);
             return sum + totalComm;
         }, 0);
 
         // Personal commission (for staff/agent individual view — available as a separate field)
         const myCommission = thisMonthPayments.reduce((sum, p) => {
             const myComm = (p.commissions || []).find(c => c.userId === currentUser.id);
-            return sum + (myComm ? myComm.amount : 0);
+            return sum + (myComm ? Number(myComm.amount) : 0);
         }, 0);
 
         const netRevenue = grossRevenue - staffCommission;
