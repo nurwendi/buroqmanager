@@ -494,10 +494,10 @@ export async function POST(request) {
                 // --- 1. MIKROTIK REMOVAL ---
                 try {
                     const client = await getMikrotikClient(connectionId);
-                    const users = await client.write('/ppp/secret/print', [`?name=${targetUsername}`]);
-                    if (users.length > 0) {
-                        await client.write('/ppp/secret/remove', [`=.id=${users[0]['.id']}`]);
-                        console.log(`[Mikrotik] Removed PPPoE secret: ${targetUsername}`);
+                    const secrets = await client.write('/ppp/secret/print', [`?name=${targetUsername}`]);
+                    if (secrets.length > 0) {
+                        await client.write('/ppp/secret/remove', [`=.id=${secrets[0]['.id']}`]);
+                        console.log(`[RegApprove] Removed Mikrotik secret: ${targetUsername}`);
                     }
                     
                     // Kick active session
@@ -506,62 +506,70 @@ export async function POST(request) {
                         await client.write('/ppp/active/remove', [`=.id=${active['.id']}`]);
                     }
                 } catch (err) {
-                    console.error("Failed to delete from Mikrotik:", err.message);
-                    // We continue DB deletion even if Mikrotik fails
+                    console.error("[RegApprove] Mikrotik error:", err.message);
                 }
 
-                // --- 2. DATABASE DELETION (Transaction) ---
+                // --- 2. DATABASE DELETION ---
                 try {
-                    // Find customer first to get ID for cleanup
+                    // Find customer with more permissive criteria (allow ownerId to be null/orphan)
                     const customer = await db.customer.findFirst({
                         where: { 
                             username: targetUsername,
-                            ownerId: registration.ownerId
+                            OR: [
+                                { ownerId: registration.ownerId },
+                                { ownerId: null }
+                            ]
                         }
                     });
 
                     await db.$transaction(async (tx) => {
+                        // A. Cleanup Notifications for the Customer record
                         if (customer) {
-                            // 1. Notification cleanup
                             await tx.notificationRecipient.deleteMany({
                                 where: { customerId: customer.id }
                             });
-
-                            const assocUser = await tx.user.findFirst({ where: { username: targetUsername, role: 'customer' } });
-                            if (assocUser) {
-                                await tx.notificationRecipient.deleteMany({
-                                    where: { userId: assocUser.id }
-                                });
-                            }
                         }
 
-                        // 2. Radius cleanup
+                        // B. Cleanup Notifications for the User record (if exists)
+                        const assocUser = await tx.user.findFirst({ where: { username: targetUsername, role: 'customer' } });
+                        if (assocUser) {
+                            await tx.notificationRecipient.deleteMany({
+                                where: { userId: assocUser.id }
+                            });
+                        }
+
+                        // C. Radius Cleanup
                         await tx.radCheck.deleteMany({ where: { username: targetUsername } });
                         await tx.radReply.deleteMany({ where: { username: targetUsername } });
                         await tx.radUserGroup.deleteMany({ where: { username: targetUsername } });
 
-                        // 3. User & Customer cleanup
+                        // D. User record cleanup
                         await tx.user.deleteMany({ where: { username: targetUsername, role: 'customer' } });
                         
+                        // E. Customer record cleanup
                         if (customer) {
                             await tx.customer.delete({ where: { id: customer.id } });
                         } else {
-                            // Fallback if findFirst failed for some reason but we still want to try deleting by unique key
+                            // Fallback deleteMany if findFirst didn't catch it but it exists
                             await tx.customer.deleteMany({
                                 where: {
                                     username: targetUsername,
-                                    ownerId: registration.ownerId
+                                    OR: [
+                                        { ownerId: registration.ownerId },
+                                        { ownerId: null }
+                                    ]
                                 }
                             });
                         }
 
-                        // 4. Delete the registration request itself
+                        // F. Delete the registration request
                         await tx.registration.delete({ where: { id: registration.id } });
                     });
 
+                    console.log(`[RegApprove] Successfully deleted customer: ${targetUsername}`);
                     return NextResponse.json({ success: true, message: "Permintaan hapus disetujui dan data pelanggan telah dibersihkan" });
                 } catch (dbErr) {
-                    console.error('Delete Approval DB Error:', dbErr);
+                    console.error('[RegApprove] DB Error:', dbErr);
                     return NextResponse.json({ error: `Gagal memproses penghapusan di database: ${dbErr.message}` }, { status: 500 });
                 }
             }
