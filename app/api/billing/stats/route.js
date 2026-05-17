@@ -30,9 +30,12 @@ export async function GET(request) {
 
         const role = String(currentUser.role || '').toLowerCase();
         
-        // For admin users: ownerId is null because they ARE the owner.
-        // We use currentUser.id as the effective ownerId in that case.
-        const effectiveOwnerId = currentUser.ownerId || (role === 'admin' ? currentUser.id : null);
+        // IMPORTANT: For admin role, Customer.ownerId = admin's own id (currentUser.id).
+        // currentUser.ownerId points to the superadmin parent — NOT the admin themselves.
+        // For staff/agent roles, ownerId correctly points to their admin owner.
+        const effectiveOwnerId = role === 'admin'
+            ? currentUser.id
+            : (currentUser.ownerId || currentUser.id);
 
         // Apply filtering for Customers
         if (role === 'admin') {

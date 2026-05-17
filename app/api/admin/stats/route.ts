@@ -13,20 +13,21 @@ export async function GET(request: Request) {
         const role = String(currentUser.role || '').toLowerCase();
         
         let whereClause: any = {};
-        let ownerId = currentUser.ownerId;
+        // IMPORTANT: For admin role, Customer.ownerId = admin's own id (currentUser.id).
+        // currentUser.ownerId points to the superadmin parent — NOT the admin themselves.
+        let ownerId = role === 'admin' ? currentUser.id : currentUser.ownerId;
 
         if (role === 'superadmin') {
             whereClause = {};
         } else if (role === 'admin') {
-            ownerId = currentUser.ownerId || currentUser.id;
-            whereClause = { ownerId: ownerId };
+            whereClause = { ownerId: currentUser.id };
         } else if (role === 'technician') {
             whereClause = { technicianId: currentUser.id, ownerId: currentUser.ownerId };
         } else if (['agent', 'staff', 'partner', 'editor'].includes(role)) {
             whereClause = { agentId: currentUser.id, ownerId: currentUser.ownerId };
         } else {
             // viewer or unauthorized
-            whereClause = { ownerId: currentUser.ownerId || 'impossible_id' };
+            whereClause = { ownerId: ownerId || 'impossible_id' };
         }
 
         if (!ownerId && role !== 'superadmin') {
