@@ -44,6 +44,7 @@ export default function RecentTransactions({ transactions = [] }) {
                                         </p>
                                         <p className="text-[10px] font-mono text-gray-400 mt-0.5">
                                             {tx.invoiceNumber}
+                                            {tx.notes && <span className="ml-2 font-sans text-gray-500 truncate inline-block align-bottom max-w-[120px]"> • {tx.notes}</span>}
                                         </p>
                                         <div className="flex items-center gap-1.5 mt-1">
                                             <CheckCircle2 size={12} className="text-green-500" />

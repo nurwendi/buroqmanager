@@ -30,9 +30,13 @@ export async function GET(request) {
 
         const role = String(currentUser.role || '').toLowerCase();
         
+        // For admin users: ownerId is null because they ARE the owner.
+        // We use currentUser.id as the effective ownerId in that case.
+        const effectiveOwnerId = currentUser.ownerId || (role === 'admin' ? currentUser.id : null);
+
         // Apply filtering for Customers
         if (role === 'admin') {
-            customerWhere = { ownerId: currentUser.ownerId || currentUser.id };
+            customerWhere = { ownerId: effectiveOwnerId };
         } else if (role === 'manager' && currentUser.ownerId) {
             customerWhere = { ownerId: currentUser.ownerId };
         } else if (role === 'technician') {
@@ -47,7 +51,7 @@ export async function GET(request) {
                 customerWhere = {};
             }
         } else {
-            customerWhere = { ownerId: currentUser.ownerId || 'impossible_id' };
+            customerWhere = { ownerId: effectiveOwnerId || 'impossible_id' };
         }
 
         const myCustomers = await db.customer.findMany({
@@ -69,12 +73,12 @@ export async function GET(request) {
                 };
             } else if (role === 'admin') {
                 paymentWhere = {
-                    ownerId: currentUser.ownerId || currentUser.id
+                    ownerId: effectiveOwnerId
                 };
             } else {
                 paymentWhere = {
                     username: { in: allowedUsernames },
-                    ownerId: currentUser.ownerId
+                    ownerId: effectiveOwnerId
                 };
             }
         } else {
@@ -187,7 +191,8 @@ export async function GET(request) {
             customerName: String(customerMap[p.username] || p.username || 'Unknown Customer'),
             amount: Number(p.amount),
             date: p.date,
-            method: p.method || 'cash'
+            method: p.method || 'cash',
+            notes: p.notes || ''
         }));
 
         const activeCustomers = 0; // Handled client-side via live Mikrotik query or ignored
