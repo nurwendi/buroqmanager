@@ -126,30 +126,35 @@ export async function DELETE(request, { params }) {
 
         // --- 2. IMMEDIATE DELETION (Admin/Manager/Superadmin) ---
         
-        // A. Resolve Mikrotik Router
-        try {
-            const { getConfig, getUserConnectionId } = await import('@/lib/config');
-            const config = await getConfig();
-            const connectionId = getUserConnectionId(user, config);
-            
-            if (connectionId) {
+        // A. Mikrotik Cleanup — fire-and-forget with 4s timeout so it never blocks DB deletion
+        // If Mikrotik is offline/slow the PPPoE secret becomes orphaned (acceptable trade-off)
+        const mikrotikCleanup = (async () => {
+            try {
+                const { getConfig, getUserConnectionId } = await import('@/lib/config');
+                const config = await getConfig();
+                const connectionId = getUserConnectionId(user, config);
+                if (!connectionId) return;
+
                 const client = await getMikrotikClient(connectionId);
                 const secrets = await client.write('/ppp/secret/print', [`?name=${username}`]);
                 if (secrets.length > 0) {
                     await client.write('/ppp/secret/remove', [`=.id=${secrets[0]['.id']}`]);
                     console.log(`[Mikrotik] Removed PPPoE secret: ${username}`);
                 }
-                
-                // Also kick active session if any
                 const actives = await client.write('/ppp/active/print', [`?name=${username}`]);
                 for (const active of actives) {
                     await client.write('/ppp/active/remove', [`=.id=${active['.id']}`]);
                 }
+            } catch (mErr) {
+                console.error('[Mikrotik] Cleanup error (non-fatal):', mErr.message);
             }
-        } catch (mErr) {
-            console.error("[Mikrotik] Error during secret removal:", mErr.message);
-            // We continue DB deletion even if Mikrotik fails (orphaned secret is better than stuck DB record)
-        }
+        })();
+
+        // Race: if Mikrotik takes > 4s we skip it and proceed to DB deletion immediately
+        await Promise.race([
+            mikrotikCleanup,
+            new Promise(resolve => setTimeout(resolve, 4000))
+        ]);
 
         // B. Database Deletion (Transaction)
         // Find the customer to ensure they exist and belong to the tenant
