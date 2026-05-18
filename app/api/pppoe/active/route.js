@@ -60,11 +60,22 @@ export async function GET(request) {
         // 3. Scan All Routers in Parallel
         const results = await Promise.all(connectionsToScan.map(async (conn) => {
             try {
-                const client = await getMikrotikClient(conn.id);
-                const [activeConnections, interfaces] = await Promise.all([
-                    client.write('/ppp/active/print'),
-                    client.write('/interface/print')
+                // Wrap Mikrotik connection and read in a 4-second timeout
+                const scanPromise = (async () => {
+                    const client = await getMikrotikClient(conn.id);
+                    return Promise.all([
+                        client.write('/ppp/active/print'),
+                        client.write('/interface/print')
+                    ]);
+                })();
+                
+                // If it takes more than 4s, throw timeout error to catch block
+                const mikrotikResult = await Promise.race([
+                    scanPromise,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Mikrotik Connection Timeout')), 4000))
                 ]);
+                
+                const [activeConnections, interfaces] = mikrotikResult;
 
                 const interfaceMap = new Map();
                 interfaces.forEach(i => { if (i.name) interfaceMap.set(i.name, i); });

@@ -492,22 +492,30 @@ export async function POST(request) {
                 }
 
                 // --- 1. MIKROTIK REMOVAL ---
-                try {
-                    const client = await getMikrotikClient(connectionId);
-                    const secrets = await client.write('/ppp/secret/print', [`?name=${targetUsername}`]);
-                    if (secrets.length > 0) {
-                        await client.write('/ppp/secret/remove', [`=.id=${secrets[0]['.id']}`]);
-                        console.log(`[RegApprove] Removed Mikrotik secret: ${targetUsername}`);
+                const mikrotikCleanup = (async () => {
+                    try {
+                        const client = await getMikrotikClient(connectionId);
+                        const secrets = await client.write('/ppp/secret/print', [`?name=${targetUsername}`]);
+                        if (secrets.length > 0) {
+                            await client.write('/ppp/secret/remove', [`=.id=${secrets[0]['.id']}`]);
+                            console.log(`[RegApprove] Removed Mikrotik secret: ${targetUsername}`);
+                        }
+                        
+                        // Kick active session
+                        const actives = await client.write('/ppp/active/print', [`?name=${targetUsername}`]);
+                        for (const active of actives) {
+                            await client.write('/ppp/active/remove', [`=.id=${active['.id']}`]);
+                        }
+                    } catch (err) {
+                        console.error("[RegApprove] Mikrotik error:", err.message);
                     }
-                    
-                    // Kick active session
-                    const actives = await client.write('/ppp/active/print', [`?name=${targetUsername}`]);
-                    for (const active of actives) {
-                        await client.write('/ppp/active/remove', [`=.id=${active['.id']}`]);
-                    }
-                } catch (err) {
-                    console.error("[RegApprove] Mikrotik error:", err.message);
-                }
+                })();
+
+                // Race: if Mikrotik takes > 4s we skip it and proceed to DB deletion immediately
+                await Promise.race([
+                    mikrotikCleanup,
+                    new Promise(resolve => setTimeout(resolve, 4000))
+                ]);
 
                 // --- 2. DATABASE DELETION ---
                 try {
