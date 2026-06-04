@@ -128,7 +128,7 @@ export default function SuperadminUsersPage() {
                                     {t('users.username')}
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    {t('sidebar.routers')} / Owner
+                                    {t('sidebar.routers')}
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     {t('users.profile')}
