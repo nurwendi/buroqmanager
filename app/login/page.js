@@ -75,10 +75,8 @@ export default function LoginPage() {
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                 }}
             >
-                <div className="flex flex-col items-center mb-8">
-                    <div className="relative p-4 bg-white/5 rounded-2xl border border-white/5 shadow-inner">
-                        <img src={logoUrl} alt="Logo" className="h-16 w-auto object-contain max-w-[200px]" />
-                    </div>
+                <div className="flex justify-center mb-8">
+                    <img src={logoUrl} alt="Logo" className="h-16 w-auto object-contain max-w-[200px]" />
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
