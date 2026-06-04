@@ -55,7 +55,6 @@ export default function BottomDock() {
         { href: '/superadmin/users', icon: Users, hoverIcon: Globe, label: t('sidebar.allUsers'), roles: ['superadmin'] },
         { href: '/system-admin', icon: Shield, hoverIcon: UserCheck, label: t('sidebar.owners'), roles: ['superadmin'] },
         { href: '/routers', icon: Server, hoverIcon: HardDrive, label: t('sidebar.routers'), roles: ['admin', 'manager'] },
-        { href: '/nat', icon: ArrowLeftRight, hoverIcon: Network, label: t('sidebar.nat'), roles: ['superadmin'] },
 
         { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
         { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin'] },
@@ -80,7 +79,6 @@ export default function BottomDock() {
         { href: '/superadmin/users', icon: Users, label: t('sidebar.allUsers'), roles: ['superadmin'] },
         { href: '/system-admin', icon: Shield, label: t('sidebar.owners'), roles: ['superadmin'] },
         { href: '/routers', icon: Server, label: t('sidebar.routers'), roles: ['admin', 'manager'] },
-        { href: '/nat', icon: ArrowLeftRight, label: t('sidebar.nat'), roles: ['superadmin'] },
 
         { href: '/genieacs', icon: Wifi, label: t('sidebar.genieacs'), roles: ['superadmin'] },
         { href: '/admin/notifications/blast', icon: Megaphone, label: t('sidebar.broadcast'), roles: ['admin', 'superadmin', 'manager'] },
