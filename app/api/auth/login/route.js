@@ -2,7 +2,52 @@ import { NextResponse } from 'next/server';
 import { verifyPassword } from '@/lib/auth';
 import { signToken } from '@/lib/security';
 
+const ipCache = new Map();
+
+// Helper to get client IP address
+function getClientIp(request) {
+    const xForwardedFor = request.headers.get('x-forwarded-for');
+    if (xForwardedFor) {
+        return xForwardedFor.split(',')[0].trim();
+    }
+    return '127.0.0.1';
+}
+
+// Cleanup interval to avoid memory leaks
+if (typeof global !== 'undefined' && !global._ipCacheCleanupSet) {
+    global._ipCacheCleanupSet = true;
+    setInterval(() => {
+        const now = Date.now();
+        for (const [ip, data] of ipCache.entries()) {
+            if (now > data.resetTime) {
+                ipCache.delete(ip);
+            }
+        }
+    }, 10 * 60 * 1000); // Cleanup every 10 minutes
+}
+
 export async function POST(request) {
+    const ip = getClientIp(request);
+    const now = Date.now();
+    const maxAttempts = 5;
+    const windowMs = 15 * 60 * 1000; // 15 minutes lock
+
+    let rateLimitData = ipCache.get(ip) || { attempts: 0, resetTime: now + windowMs };
+
+    // Reset attempts if the block window has expired
+    if (now > rateLimitData.resetTime) {
+        rateLimitData.attempts = 0;
+        rateLimitData.resetTime = now + windowMs;
+    }
+
+    // Check if the IP is currently rate limited
+    if (rateLimitData.attempts >= maxAttempts) {
+        const minutesLeft = Math.ceil((rateLimitData.resetTime - now) / 60000);
+        return NextResponse.json({
+            error: `Terlalu banyak percobaan login gagal dari IP Anda. Silakan coba lagi dalam ${minutesLeft} menit.`
+        }, { status: 429 });
+    }
+
     try {
         const body = await request.json();
         const { username, password } = body;
@@ -69,6 +114,9 @@ export async function POST(request) {
         }
 
         if (user) {
+            // Clear rate limit entries on successful login
+            ipCache.delete(ip);
+
             const payload = {
                 username: user.username,
                 role: user.role,
@@ -90,6 +138,10 @@ export async function POST(request) {
 
             return response;
         }
+
+        // Record failed attempt
+        rateLimitData.attempts += 1;
+        ipCache.set(ip, rateLimitData);
 
         return NextResponse.json({ error: 'ID Pelanggan atau password salah.' }, { status: 401 });
     } catch (error) {
