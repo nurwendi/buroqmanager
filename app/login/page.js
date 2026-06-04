@@ -76,15 +76,9 @@ export default function LoginPage() {
                 }}
             >
                 <div className="flex flex-col items-center mb-8">
-                    <div className="relative p-4 bg-white/5 rounded-2xl border border-white/5 mb-4 shadow-inner">
+                    <div className="relative p-4 bg-white/5 rounded-2xl border border-white/5 shadow-inner">
                         <img src={logoUrl} alt="Logo" className="h-16 w-auto object-contain max-w-[200px]" />
                     </div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight text-center">
-                        Buroq Billing System
-                    </h2>
-                    <p className="text-sm text-slate-400 mt-1 text-center">
-                        Masukkan akun Anda untuk melanjutkan
-                    </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
