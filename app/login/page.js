@@ -52,28 +52,16 @@ export default function LoginPage() {
 
     return (
         <div
-            className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-slate-950 transition-colors"
+            className="relative min-h-screen flex items-center justify-center p-4 bg-slate-100 transition-colors"
             style={loginBgUrl
                 ? { backgroundImage: `url(${loginBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
                 : {}
             }
         >
-            {/* Animated Background Orbs for Premium Mesh Gradient Effect (only if no custom background image) */}
-            {!loginBgUrl && (
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-600/20 blur-[120px] animate-pulse duration-[6000ms]" />
-                    <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-600/20 blur-[120px] animate-pulse duration-[8000ms]" />
-                    <div className="absolute top-[30%] right-[20%] w-[30%] h-[30%] rounded-full bg-violet-600/15 blur-[100px] animate-pulse duration-[7000ms]" />
-                </div>
-            )}
-
-            {loginBgUrl && <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />}
+            {loginBgUrl && <div className="absolute inset-0 bg-slate-950/60" />}
 
             <div 
-                className="relative z-10 w-full max-w-md bg-white/[0.04] dark:bg-slate-900/40 backdrop-blur-xl p-8 md:p-10 rounded-3xl border border-white/10 transition-all duration-300"
-                style={{
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
-                }}
+                className="relative z-10 w-full max-w-md bg-white p-8 md:p-10 rounded-2xl border border-slate-200 shadow-xl"
             >
                 <div className="flex justify-center mb-8">
                     <img src={logoUrl} alt="Logo" className="h-16 w-auto object-contain max-w-[200px]" />
@@ -81,7 +69,7 @@ export default function LoginPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">
                             Username / ID Pelanggan
                         </label>
                         <div className="relative">
@@ -92,7 +80,7 @@ export default function LoginPage() {
                                 type="text"
                                 required
                                 placeholder="Username atau ID Pelanggan"
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-white placeholder-slate-500 backdrop-blur-sm transition-all text-sm font-medium"
+                                className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-950 placeholder-slate-400 transition-all text-sm font-medium"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                             />
@@ -100,7 +88,7 @@ export default function LoginPage() {
                     </div>
 
                     <div>
-                        <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">
                             {t('login.password')}
                         </label>
                         <div className="relative">
@@ -111,14 +99,14 @@ export default function LoginPage() {
                                 type={showPassword ? 'text' : 'password'}
                                 required
                                 placeholder="Masukkan password Anda"
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-12 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 text-white placeholder-slate-500 backdrop-blur-sm transition-all text-sm font-medium"
+                                className="w-full bg-slate-50 border border-slate-300 rounded-xl pl-12 pr-12 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-slate-950 placeholder-slate-400 transition-all text-sm font-medium"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
@@ -126,16 +114,16 @@ export default function LoginPage() {
                     </div>
 
                     {error && (
-                        <div className="p-4 bg-red-500/10 text-red-200 rounded-2xl text-xs border border-red-500/20 backdrop-blur-sm flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
-                            <span>{error}</span>
+                        <div className="p-4 bg-red-50 text-red-700 rounded-xl text-xs border border-red-200 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                            <span className="font-medium">{error}</span>
                         </div>
                     )}
 
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-3.5 px-4 rounded-2xl transition-all duration-200 disabled:opacity-50 shadow-lg shadow-blue-500/10 mt-6 tracking-wide text-sm active:scale-[0.99]"
+                        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 disabled:opacity-50 shadow-md mt-6 tracking-wide text-sm active:scale-[0.99]"
                     >
                         {loading ? (
                             <>
