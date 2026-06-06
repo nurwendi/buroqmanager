@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Wifi, RefreshCw, CreditCard, Activity, AlertCircle, CheckCircle, LogOut, Signal, Lock, X, Router } from 'lucide-react';
+import { Wifi, RefreshCw, CreditCard, Activity, AlertCircle, CheckCircle, LogOut, Signal, Lock, X, Router, MessageSquare, Send, Plus, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRouter } from 'next/navigation';
 
@@ -27,6 +27,18 @@ export default function CustomerDashboard() {
     const [wifiForm, setWifiForm] = useState({ ssid: '', password: '' });
     const [wifiLoading, setWifiLoading] = useState(false);
 
+    // Support Tickets State
+    const [tickets, setTickets] = useState([]);
+    const [selectedTicket, setSelectedTicket] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [chatModal, setChatModal] = useState(false);
+    const [createModal, setCreateModal] = useState(false);
+    const [newTicket, setNewTicket] = useState({ title: '', category: 'teknis', description: '', priority: 'medium' });
+    const [replyText, setReplyText] = useState('');
+    const [chatLoading, setChatLoading] = useState(false);
+    const chatEndRef = useRef(null);
+    const pollingIntervalRef = useRef(null);
+
     const fetchStats = async () => {
         try {
             setLoading(true);
@@ -36,6 +48,9 @@ export default function CustomerDashboard() {
                 const data = await res.json();
                 setStats(data);
             }
+
+            // Fetch Support Tickets
+            fetchTickets();
 
             // Also fetch GenieACS Device
             const acsRes = await fetch('/api/genieacs/devices'); // Backend handles filtering for customer
@@ -54,6 +69,87 @@ export default function CustomerDashboard() {
         }
     };
 
+    const fetchTickets = async () => {
+        try {
+            const res = await fetch('/api/tickets');
+            if (res.ok) {
+                const data = await res.json();
+                setTickets(data);
+            }
+        } catch {}
+    };
+
+    const fetchMessages = async (ticketId, isSilent = false) => {
+        if (!isSilent) setChatLoading(true);
+        try {
+            const res = await fetch(`/api/tickets/${ticketId}/messages`);
+            if (res.ok) {
+                const data = await res.json();
+                setMessages(data);
+            }
+        } catch {} finally {
+            if (!isSilent) setChatLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedTicket && chatModal) {
+            fetchMessages(selectedTicket.id);
+            if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = setInterval(() => fetchMessages(selectedTicket.id, true), 5000);
+        } else {
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+            }
+        }
+    }, [selectedTicket, chatModal]);
+
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    const handleCreateTicket = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch('/api/tickets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newTicket)
+            });
+            if (res.ok) {
+                setCreateModal(false);
+                setNewTicket({ title: '', category: 'teknis', description: '', priority: 'medium' });
+                fetchTickets();
+            } else {
+                const data = await res.json();
+                alert('Gagal membuat tiket: ' + data.error);
+            }
+        } catch {
+            alert('Kesalahan jaringan.');
+        }
+    };
+
+    const handleSendMessage = async (e) => {
+        e.preventDefault();
+        if (!replyText.trim() || !selectedTicket) return;
+
+        const text = replyText;
+        setReplyText('');
+
+        try {
+            const res = await fetch(`/api/tickets/${selectedTicket.id}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+            if (res.ok) {
+                const newMsg = await res.json();
+                setMessages(prev => [...prev, newMsg]);
+            }
+        } catch {}
+    };
+
     useEffect(() => {
         // Initial fetch
         fetchStats();
@@ -63,7 +159,8 @@ export default function CustomerDashboard() {
         // Auto-refresh interval (stats only to save bandwidth on ACS)
         const interval = setInterval(() => {
             fetch('/api/customer/stats').then(res => res.ok && res.json()).then(data => setStats(prev => ({ ...prev, ...data })));
-        }, 5000);
+            fetchTickets();
+        }, 8000);
 
         return () => clearInterval(interval);
     }, []);
@@ -406,6 +503,71 @@ export default function CustomerDashboard() {
 
             </div>
 
+                {/* Support Tickets Section */}
+                <motion.div variants={itemVariants} className="md:col-span-2 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-white/5 shadow-xl">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl">
+                                <MessageSquare className="text-red-600 dark:text-red-400" size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Tiket Bantuan & Komplain</h2>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Hubungi teknisi (masalah teknis) atau agen (masalah tagihan)</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setCreateModal(true)}
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all"
+                        >
+                            <Plus size={14} />
+                            Buat Aduan
+                        </button>
+                    </div>
+
+                    <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                        {tickets.length === 0 ? (
+                            <div className="p-8 text-center text-gray-400 text-sm italic">
+                                Belum ada riwayat pengaduan.
+                            </div>
+                        ) : (
+                            tickets.map(ticket => (
+                                <button
+                                    key={ticket.id}
+                                    onClick={() => {
+                                        setSelectedTicket(ticket);
+                                        setChatModal(true);
+                                    }}
+                                    className="w-full py-4 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-gray-700/20 px-2 rounded-xl transition-all"
+                                >
+                                    <div className="text-left space-y-1 pr-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-mono font-bold text-gray-400">{ticket.ticketId}</span>
+                                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                                                ticket.category === 'teknis' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                                            }`}>
+                                                {ticket.category}
+                                            </span>
+                                        </div>
+                                        <h3 className="font-semibold text-sm text-gray-800 dark:text-white truncate">{ticket.title}</h3>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                                            ticket.status === 'open' ? 'bg-blue-100 text-blue-700' :
+                                            ticket.status === 'in_progress' ? 'bg-amber-100 text-amber-700' :
+                                            'bg-emerald-100 text-emerald-700'
+                                        }`}>
+                                            {ticket.status === 'open' ? 'Baru' : ticket.status === 'in_progress' ? 'Diproses' : 'Selesai'}
+                                        </span>
+                                        <ChevronRight size={16} className="text-gray-400" />
+                                    </div>
+                                </button>
+                            ))
+                        )}
+                    </div>
+                </motion.div>
+
+            </div>
+
             {/* Wi-Fi Edit Modal */}
             {wifiModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
@@ -466,6 +628,161 @@ export default function CustomerDashboard() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Create Ticket Modal */}
+            {createModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Buat Aduan / Komplain</h3>
+                            <button onClick={() => setCreateModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateTicket} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Kategori Masalah</label>
+                                <select
+                                    value={newTicket.category}
+                                    onChange={e => setNewTicket({ ...newTicket, category: e.target.value })}
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-750 text-sm text-gray-900 dark:text-white"
+                                >
+                                    <option value="teknis">Masalah Teknis (Router, Kabel, Loss internet)</option>
+                                    <option value="tagihan">Masalah Tagihan / Pembayaran (Billing)</option>
+                                    <option value="umum">Lainnya (Umum)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Subjek Masalah</label>
+                                <input
+                                    type="text"
+                                    placeholder="Contoh: Lampu Router Merah, Internet Lambat..."
+                                    value={newTicket.title}
+                                    onChange={e => setNewTicket({ ...newTicket, title: e.target.value })}
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-750 text-sm text-gray-900 dark:text-white"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1">Penjelasan Singkat</label>
+                                <textarea
+                                    rows={4}
+                                    placeholder="Tulis kronologi atau kendala secara detail..."
+                                    value={newTicket.description}
+                                    onChange={e => setNewTicket({ ...newTicket, description: e.target.value })}
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-750 text-sm text-gray-900 dark:text-white"
+                                    required
+                                />
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setCreateModal(false)}
+                                    className="flex-1 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl font-medium"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium"
+                                >
+                                    Kirim Aduan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Chat Modal */}
+            {chatModal && selectedTicket && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col h-[550px]">
+                        {/* Header */}
+                        <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+                            <div>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-xs font-mono font-bold text-gray-400">{selectedTicket.ticketId}</span>
+                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded capitalize ${
+                                        selectedTicket.status === 'open' ? 'bg-blue-100 text-blue-700' :
+                                        selectedTicket.status === 'in_progress' ? 'bg-amber-100 text-amber-700' :
+                                        'bg-emerald-100 text-emerald-700'
+                                    }`}>
+                                        {selectedTicket.status === 'open' ? 'Baru' : selectedTicket.status === 'in_progress' ? 'Diproses' : 'Selesai'}
+                                    </span>
+                                </div>
+                                <h3 className="font-bold text-sm text-gray-800 dark:text-white truncate max-w-[280px]">{selectedTicket.title}</h3>
+                            </div>
+                            <button onClick={() => setChatModal(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Description banner */}
+                        <div className="bg-amber-50/50 dark:bg-amber-950/10 border-b border-amber-100/50 dark:border-amber-950/20 px-4 py-2 text-[10px] text-amber-800 dark:text-amber-300">
+                            <span className="font-bold">Deskripsi:</span> {selectedTicket.description}
+                        </div>
+
+                        {/* Messages Area */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50 dark:bg-gray-900/30">
+                            {chatLoading ? (
+                                <div className="text-center text-xs text-gray-400 pt-8">Memuat obrolan...</div>
+                            ) : messages.length === 0 ? (
+                                <div className="text-center text-xs text-gray-400 pt-8">Mulai obrolan baru dengan staf di bawah.</div>
+                            ) : (
+                                messages.map(msg => {
+                                    const isMe = msg.senderType === 'customer';
+                                    const isSupervisor = msg.senderType === 'admin';
+                                    return (
+                                        <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                                            <span className="text-[8px] text-gray-400 mb-0.5">
+                                                {msg.senderName} {isSupervisor && '(Supervisor)'}
+                                            </span>
+                                            <div className={`max-w-[85%] rounded-2xl px-3 py-1.5 text-xs shadow-sm ${
+                                                isMe 
+                                                    ? 'bg-indigo-600 text-white rounded-tr-none' 
+                                                    : isSupervisor
+                                                        ? 'bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 rounded-tl-none font-medium'
+                                                        : 'bg-white dark:bg-gray-750 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none'
+                                            }`}>
+                                                {msg.message}
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                            <div ref={chatEndRef} />
+                        </div>
+
+                        {/* Input Footer */}
+                        {selectedTicket.status !== 'closed' && selectedTicket.status !== 'resolved' ? (
+                            <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-100 dark:border-gray-700 flex gap-2">
+                                <input
+                                    type="text"
+                                    placeholder="Tulis balasan Anda..."
+                                    value={replyText}
+                                    onChange={e => setReplyText(e.target.value)}
+                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-650 rounded-xl bg-white dark:bg-gray-750 text-xs focus:outline-none"
+                                />
+                                <button
+                                    type="submit"
+                                    className="p-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow transition-all"
+                                >
+                                    <Send size={14} />
+                                </button>
+                            </form>
+                        ) : (
+                            <div className="p-3 bg-gray-50 dark:bg-gray-900 border-t text-center text-xs text-gray-400 italic">
+                                Tiket ini telah ditutup / terselesaikan.
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

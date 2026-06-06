@@ -81,7 +81,7 @@ export default function BottomDock() {
         { href: '/routers', icon: Server, label: t('sidebar.routers'), roles: ['admin', 'manager'] },
 
         { href: '/genieacs', icon: Wifi, label: t('sidebar.genieacs'), roles: ['superadmin'] },
-        { href: '/admin/notifications/blast', icon: Megaphone, label: t('sidebar.broadcast'), roles: ['admin', 'superadmin', 'manager'] },
+        { href: '/admin/tickets', icon: MessageSquare, label: t('sidebar.tickets'), roles: ['admin', 'superadmin', 'manager', 'technician', 'agent'] },
         { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
         { href: '/app-settings', icon: Settings, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
@@ -97,7 +97,7 @@ export default function BottomDock() {
     const mobileNavItems = userRole === 'superadmin' ? [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
         { href: '/system-admin', icon: Shield, label: t('sidebar.owners') },
-        { href: '/admin/notifications/blast', icon: Megaphone, label: t('sidebar.broadcast') },
+        { href: '/admin/tickets', icon: MessageSquare, label: t('sidebar.tickets') },
         { href: '/app-settings', icon: Settings, label: t('sidebar.settings') || t('sidebar.appSettings') },
     ] : [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
