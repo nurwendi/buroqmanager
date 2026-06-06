@@ -42,6 +42,7 @@ model User {
   gatewayConfig          PaymentGatewayConfig?   @relation("GatewayOwner")
   profiles               Profile[]               @relation("ProfileOwner")
   registrations          Registration[]          @relation("RegistrationOwner")
+  assignedTickets        Ticket[]                @relation("TechnicianTickets")
   owner                  User?                   @relation("UserOwner", fields: [ownerId], references: [id])
   users                  User[]                  @relation("UserOwner")
 }
@@ -81,8 +82,10 @@ model Customer {
   profile       Profile?                @relation(fields: [profileId], references: [id])
   technician    User?                   @relation("TechnicianCustomers", fields: [technicianId], references: [id])
   notifications NotificationRecipient[] @relation("NotificationCustomerRecipient")
+  tickets       Ticket[]
 
   @@unique([username, ownerId])
+  @@map("Customer")
 }
 
 model Payment {
@@ -306,10 +309,14 @@ model Notification {
   message    String
   senderId   String?
   ownerId    String?
+  ticketId   String?
   createdAt  DateTime                @default(now())
   owner      User?                   @relation("NotificationOwner", fields: [ownerId], references: [id])
   sender     User?                   @relation("NotificationSender", fields: [senderId], references: [id])
+  ticket     Ticket?                 @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   recipients NotificationRecipient[]
+
+  @@index([ticketId])
 }
 
 model NotificationRecipient {
@@ -327,3 +334,44 @@ model NotificationRecipient {
   @@index([customerId])
   @@index([notificationId])
 }
+
+model Ticket {
+  id           String          @id @default(cuid())
+  ticketId     String          @unique
+  title        String
+  category     String          @default("umum")
+  description  String
+  status       String          @default("open")
+  priority     String          @default("medium")
+  customerId   String
+  technicianId String?
+  ownerId      String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  resolvedAt   DateTime?
+  customer     Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  technician   User?           @relation("TechnicianTickets", fields: [technicianId], references: [id])
+  messages     TicketMessage[]
+  notifications Notification[]
+
+  @@index([customerId])
+  @@index([technicianId])
+  @@index([status])
+}
+
+model TicketMessage {
+  id         String    @id @default(cuid())
+  ticketId   String
+  senderType String
+  senderId   String
+  senderName String
+  message    String
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+  ticket     Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([isRead])
+}
+
