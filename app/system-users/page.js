@@ -30,12 +30,16 @@ export default function SystemUsersPage() {
     const [error, setError] = useState('');
 
     const [currentUserRole, setCurrentUserRole] = useState(null);
+    const [userSuffix, setUserSuffix] = useState('');
 
     useEffect(() => {
         fetchUsers();
         fetch('/api/auth/me')
             .then(res => res.json())
-            .then(data => setCurrentUserRole(data.user.role))
+            .then(data => {
+                setCurrentUserRole(data.user.role);
+                setUserSuffix(data.user.suffix || '');
+            })
             .catch(err => console.error('Failed to fetch user role', err));
     }, []);
 
@@ -430,14 +434,27 @@ export default function SystemUsersPage() {
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('systemUsers.username')}</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={formData.username ?? ''}
-                                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                                        className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:opacity-50"
-                                        disabled={editMode && currentUserRole !== 'admin' && currentUserRole !== 'superadmin'}
-                                    />
+                                    <div className="flex">
+                                        <input
+                                            type="text"
+                                            required
+                                            value={formData.username ? (userSuffix && formData.username.endsWith(userSuffix) ? formData.username.slice(0, -userSuffix.length) : formData.username) : ''}
+                                            onChange={(e) => {
+                                                const rawVal = e.target.value;
+                                                const cleanVal = rawVal.replace(/@/g, '');
+                                                setFormData({ ...formData, username: userSuffix ? `${cleanVal}${userSuffix}` : cleanVal });
+                                            }}
+                                            className={`flex-1 border border-gray-300 dark:border-gray-600 p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:opacity-50 ${
+                                                userSuffix ? 'rounded-l border-r-0' : 'rounded'
+                                            }`}
+                                            disabled={editMode && currentUserRole !== 'admin' && currentUserRole !== 'superadmin'}
+                                        />
+                                        {userSuffix && (
+                                            <span className="inline-flex items-center px-3 rounded-r border border-l-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-sm font-mono select-none">
+                                                {userSuffix}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('systemUsers.fullName')}</label>

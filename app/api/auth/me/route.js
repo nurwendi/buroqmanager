@@ -38,11 +38,25 @@ export async function GET(request) {
         ownerId: true,
         language: true,
         avatar: true,
+        owner: {
+          select: {
+            username: true
+          }
+        }
       },
     });
   }
 
   if (!freshUser) return unauthorizedResponse();
+
+  // Determine suffix
+  let suffix = '';
+  if (freshUser.role === 'admin' || freshUser.role === 'superadmin') {
+    suffix = `@${freshUser.username}`;
+  } else if (freshUser.owner) {
+    suffix = `@${freshUser.owner.username}`;
+  }
+  freshUser.suffix = suffix;
 
   const { signToken } = await import("@/lib/security");
   const token = await signToken({
@@ -53,6 +67,7 @@ export async function GET(request) {
     ownerId: freshUser.ownerId,
     language: freshUser.language,
     avatar: freshUser.avatar,
+    suffix: freshUser.suffix,
   });
 
   return NextResponse.json({ user: freshUser, token });

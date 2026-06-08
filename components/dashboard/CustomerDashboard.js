@@ -253,17 +253,17 @@ export default function CustomerDashboard() {
             {/* Premium Header with Banner & Overlapping Avatar */}
             <motion.div variants={itemVariants} className="relative mb-12 sm:mb-14 w-screen left-1/2 -translate-x-1/2 -mt-20 md:-mt-24">
                 {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
-                <div className="relative h-40 sm:h-56 w-full overflow-hidden border-0 shadow-none">
+                <div className="relative h-44 sm:h-48 w-full overflow-hidden border-0 shadow-none">
                     <img 
                         src="/dashboard-bg.png" 
                         alt="Banner" 
                         className="w-full h-full object-cover scale-110"
                     />
                     <div className="absolute inset-0 bg-indigo-900/10 mix-blend-multiply"></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-transparent via-black/10 to-black/50"></div>
                     
                     {/* Header Actions (Refresh & Logout) - Absolute Positioned on Banner */}
-                    <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+                    <div className="absolute top-20 md:top-24 right-6 md:right-8 flex items-center gap-2 z-20">
                         <button
                             onClick={handleRefresh}
                             className={`p-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/40 transition-all ${refreshing ? 'animate-spin' : ''}`}
@@ -279,7 +279,6 @@ export default function CustomerDashboard() {
                             <LogOut size={18} />
                         </button>
                     </div>
-
                 </div>
 
                 {/* Overlapping Profile Section */}

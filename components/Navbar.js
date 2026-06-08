@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, ClipboardList, ShieldAlert, Activity, ChevronDown, Router, Megaphone, Bell, MessageSquare, CreditCard, WifiOff, UserCog, Shield, Sun, Moon } from 'lucide-react';
+import { MapPin, Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, ClipboardList, ShieldAlert, Activity, ChevronDown, Router, Megaphone, Bell, MessageSquare, CreditCard, WifiOff, UserCog, Shield, Sun, Moon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -13,6 +13,7 @@ export default function Navbar() {
     const router = useRouter();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isPppoeOpen, setIsPppoeOpen] = useState(false);
+    const [isBillingOpen, setIsBillingOpen] = useState(false);
     const [appSettings, setAppSettings] = useState({ appName: 'Mikrotik Manager', logoUrl: '' });
     const [userRole, setUserRole] = useState(null);
     const { t, resolvedLanguage, setLanguage } = useLanguage();
@@ -64,14 +65,19 @@ export default function Navbar() {
     const closeMobileMenu = () => {
         setIsMobileMenuOpen(false);
         setIsPppoeOpen(false);
+        setIsBillingOpen(false);
     };
 
     const navItems = [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
-        { href: '/billing', icon: CreditCard, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/reports/financial', icon: Activity, label: t('sidebar.reports'), roles: ['admin', 'manager', 'partner', 'staff', 'agent'] },
         { href: '/tickets', icon: MessageSquare, label: t('sidebar.tickets'), roles: ['admin', 'superadmin', 'manager', 'technician', 'agent'] },
+        { href: '/maps', icon: MapPin, label: t('maps.navTitle') || 'Peta', roles: ['admin', 'superadmin', 'manager'] },
         { href: '/genieacs', icon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
+    ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
+
+    const billingReportItems = [
+        { href: '/billing', icon: CreditCard, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/reports/financial', icon: FileText, label: t('sidebar.reports'), roles: ['admin', 'manager', 'partner', 'staff', 'agent'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
     const pppoeItems = [
@@ -118,13 +124,16 @@ export default function Navbar() {
                         <div className={`w-10 h-10 bg-accent rounded-2xl flex items-center justify-center font-bold text-xl text-white ${appSettings.logoUrl ? 'hidden' : ''}`}>
                             {appSettings.appName ? appSettings.appName.charAt(0).toUpperCase() : 'M'}
                         </div>
-                        <span className="text-xl font-bold hidden sm:block text-gray-900 dark:text-white">{appSettings.appName}</span>
+                        {!appSettings.logoUrl && (
+                            <span className="text-xl font-bold hidden sm:block text-gray-900 dark:text-white">{appSettings.appName}</span>
+                        )}
                     </Link>
 
 
                     {/* Desktop Navigation */}
                     <div className="hidden lg:flex items-center gap-1">
-                        {navItems.map((item) => (
+                        {/* Dashboard */}
+                        {navItems.filter(item => item.href === '/').map((item) => (
                             <Link
                                 key={item.href}
                                 href={item.href}
@@ -137,6 +146,43 @@ export default function Navbar() {
                                 <span>{item.label}</span>
                             </Link>
                         ))}
+
+                        {/* Billing & Reports Dropdown */}
+                        {billingReportItems.length > 0 && (
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsBillingOpen(!isBillingOpen)}
+                                    onBlur={() => setTimeout(() => setIsBillingOpen(false), 200)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-2xl transition-all duration-200 ${billingReportItems.some(item => pathname === item.href)
+                                        ? 'bg-accent text-white shadow-md'
+                                        : 'text-gray-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
+                                        }`}
+                                >
+                                    <CreditCard size={18} />
+                                    <span>{t('sidebar.billing') || 'Billing'}</span>
+                                    <ChevronDown size={16} className={`transition-transform ${isBillingOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {isBillingOpen && (
+                                    <div className="absolute top-full mt-2 bg-white/90 dark:bg-gray-900 rounded-2xl shadow-2xl py-2 min-w-[200px] border-[4px] border-black/5 dark:border-white/10 backdrop-blur-xl">
+                                        {billingReportItems.map((item) => (
+                                            <Link
+                                                key={item.href}
+                                                href={item.href}
+                                                onClick={() => setIsBillingOpen(false)}
+                                                className={`flex items-center gap-2 px-4 py-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors rounded-xl ${pathname === item.href
+                                                    ? 'text-accent-solid font-medium'
+                                                    : 'text-gray-650 dark:text-slate-350'
+                                                    }`}
+                                            >
+                                                <item.icon size={16} />
+                                                <span className="text-sm">{item.label}</span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* PPPoE Dropdown */}
                         {userRole !== 'customer' && userRole !== 'superadmin' && (
@@ -162,9 +208,9 @@ export default function Navbar() {
                                                 key={item.href}
                                                 href={item.href}
                                                 onClick={() => setIsPppoeOpen(false)}
-                                                className={`flex items-center gap-2 px-4 py-2 hover:bg-white/5 transition-colors ${pathname === item.href
-                                                    ? 'text-accent font-medium'
-                                                    : 'text-gray-600 dark:text-slate-300'
+                                                className={`flex items-center gap-2 px-4 py-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors rounded-xl ${pathname === item.href
+                                                    ? 'text-accent-solid font-medium'
+                                                    : 'text-gray-650 dark:text-slate-350'
                                                     }`}
                                             >
                                                 <item.icon size={16} />
@@ -175,6 +221,21 @@ export default function Navbar() {
                                 )}
                             </div>
                         )}
+
+                        {/* Rest of Desktop Nav Items */}
+                        {navItems.filter(item => item.href !== '/').map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-2xl transition-all duration-200 ${pathname === item.href
+                                    ? 'bg-accent text-white shadow-md'
+                                    : 'text-gray-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
+                                    }`}
+                            >
+                                <item.icon size={18} />
+                                <span>{item.label}</span>
+                            </Link>
+                        ))}
 
                         {/* Settings Items */}
                         {userRole !== 'customer' && settingsItems.map((item) => (
@@ -292,14 +353,64 @@ export default function Navbar() {
                 {/* Mobile Menu */}
                 {isMobileMenuOpen && (
                     <div className="lg:hidden pb-4">
-                        {navItems.map((item) => (
+                        {navItems.filter(item => item.href === '/').map((item) => (
                             <Link
                                 key={item.href}
                                 href={item.href}
                                 onClick={closeMobileMenu}
                                 className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-colors ${pathname === item.href
                                     ? 'bg-accent text-white shadow-md'
-                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent dark:hover:text-accent'
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent-solid dark:hover:text-accent-solid'
+                                    }`}
+                            >
+                                <item.icon size={18} />
+                                <span>{item.label}</span>
+                            </Link>
+                        ))}
+
+                        {/* Mobile Billing & Reports Dropdown */}
+                        {billingReportItems.length > 0 && (
+                            <div>
+                                <button
+                                    onClick={() => setIsBillingOpen(!isBillingOpen)}
+                                    className="flex items-center justify-between w-full px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent-solid dark:hover:text-accent-solid transition-colors"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <CreditCard size={18} />
+                                        <span>{t('sidebar.billing') || 'Billing'}</span>
+                                    </div>
+                                    <ChevronDown size={16} className={`transition-transform ${isBillingOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {isBillingOpen && (
+                                    <div className="ml-6 mt-1">
+                                        {billingReportItems.map((item) => (
+                                            <Link
+                                                key={item.href}
+                                                href={item.href}
+                                                onClick={closeMobileMenu}
+                                                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${pathname === item.href
+                                                    ? 'bg-accent text-white shadow-md'
+                                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent-solid dark:hover:text-accent-solid'
+                                                    }`}
+                                            >
+                                                <item.icon size={16} />
+                                                <span className="text-sm">{item.label}</span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {navItems.filter(item => item.href !== '/').map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                onClick={closeMobileMenu}
+                                className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-colors ${pathname === item.href
+                                    ? 'bg-accent text-white shadow-md'
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent-solid dark:hover:text-accent-solid'
                                     }`}
                             >
                                 <item.icon size={18} />
@@ -312,7 +423,7 @@ export default function Navbar() {
                             <div>
                             <button
                                 onClick={() => setIsPppoeOpen(!isPppoeOpen)}
-                                className="flex items-center justify-between w-full px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent dark:hover:text-accent transition-colors"
+                                className="flex items-center justify-between w-full px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent-solid dark:hover:text-accent-solid transition-colors"
                             >
                                 <div className="flex items-center gap-2">
                                     <Network size={18} />
@@ -330,7 +441,7 @@ export default function Navbar() {
                                             onClick={closeMobileMenu}
                                             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${pathname === item.href
                                                 ? 'bg-accent text-white shadow-md'
-                                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent dark:hover:text-accent'
+                                                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent-solid dark:hover:text-accent-solid'
                                                 }`}
                                         >
                                             <item.icon size={16} />
@@ -350,7 +461,7 @@ export default function Navbar() {
                                 onClick={closeMobileMenu}
                                 className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-colors ${pathname === item.href
                                     ? 'bg-accent text-white shadow-md'
-                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent dark:hover:text-accent'
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent-solid dark:hover:text-accent-solid'
                                     }`}
                             >
                                 <item.icon size={18} />
@@ -366,7 +477,7 @@ export default function Navbar() {
                                     onClick={closeMobileMenu}
                                     className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-colors ${pathname === '/notifications'
                                         ? 'bg-accent text-white shadow-md'
-                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent dark:hover:text-accent'
+                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent-solid dark:hover:text-accent-solid'
                                         }`}
                                 >
                                     <Bell size={18} />
@@ -377,7 +488,7 @@ export default function Navbar() {
                                     onClick={closeMobileMenu}
                                     className={`flex items-center gap-2 px-4 py-3 rounded-lg transition-colors ${pathname === '/app-settings'
                                         ? 'bg-accent text-white shadow-md'
-                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent dark:hover:text-accent'
+                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-accent-solid dark:hover:text-accent-solid'
                                         }`}
                                 >
                                     <Settings size={18} />

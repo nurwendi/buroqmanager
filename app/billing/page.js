@@ -5,6 +5,7 @@ import { DollarSign, CreditCard, Calendar, Plus, Search, FileText, Settings, Pri
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function BillingPage() {
     const { t, resolvedLanguage } = useLanguage();
@@ -33,6 +34,8 @@ export default function BillingPage() {
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [showMonthModal, setShowMonthModal] = useState(false);
+    const [showAutoDropConfirm, setShowAutoDropConfirm] = useState(false);
+    const [autoDropResult, setAutoDropResult] = useState(null);
     const [userRole, setUserRole] = useState(null);
 
     const [formData, setFormData] = useState({
@@ -43,6 +46,7 @@ export default function BillingPage() {
         status: 'completed'
     });
 
+    const [bgUrl, setBgUrl] = useState('/dashboard-bg.png');
     const [origin, setOrigin] = useState('');
     const [rowsPerPage, setRowsPerPage] = useState(25);
     const [currentPage, setCurrentPage] = useState(1);
@@ -55,6 +59,15 @@ export default function BillingPage() {
         if (typeof window !== 'undefined') {
             setOrigin(window.location.origin);
         }
+        
+        fetch('/api/app-settings')
+            .then(res => res.json())
+            .then(data => {
+                if (data.dashboardBgUrl) {
+                    setBgUrl(data.dashboardBgUrl);
+                }
+            })
+            .catch(err => console.error('Failed to fetch app settings', err));
     }, []);
 
 
@@ -181,9 +194,12 @@ export default function BillingPage() {
         }
     };
 
-    const handleAutoDrop = async () => {
-        if (!confirm(t('billing.confirmAutoDrop'))) return;
+    const handleAutoDrop = () => {
+        setShowAutoDropConfirm(true);
+    };
 
+    const executeAutoDrop = async () => {
+        setShowAutoDropConfirm(false);
         setLoading(true);
         try {
             const res = await fetch('/api/billing/auto-drop', {
@@ -193,13 +209,23 @@ export default function BillingPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert(`${data.message}\n\nDropped users: ${data.droppedUsers.join(', ') || 'None'}`);
+                setAutoDropResult({
+                    success: true,
+                    message: data.message,
+                    droppedUsers: data.droppedUsers || []
+                });
             } else {
-                alert(t('billing.saveError') + ': ' + data.error);
+                setAutoDropResult({
+                    success: false,
+                    error: t('billing.saveError') + ': ' + data.error
+                });
             }
         } catch (error) {
             console.error('Error auto-drop:', error);
-            alert('Error processing auto-drop');
+            setAutoDropResult({
+                success: false,
+                error: 'Error processing auto-drop: ' + error.message
+            });
         } finally {
             setLoading(false);
         }
@@ -588,9 +614,59 @@ Terima Kasih
 
     return (
         <div>
-            <div className="space-y-6 print:hidden">
-                <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('billing.title')}</h1>
+            {/* Global Header Banner */}
+            <HeaderBanner
+                title={t('billing.title')}
+                description="Kelola rekap pembayaran pelanggan, tagihan jatuh tempo, dan komisi agen secara langsung."
+                icon={CreditCard}
+            >
+                <select
+                    value={`${selectedYear}-${selectedMonth}`}
+                    onChange={(e) => {
+                        const [year, month] = e.target.value.split('-');
+                        setSelectedYear(parseInt(year));
+                        setSelectedMonth(parseInt(month));
+                    }}
+                    className="px-3 py-1.5 border border-white/30 rounded-lg bg-black/40 backdrop-blur-md text-white font-semibold focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm outline-none cursor-pointer"
+                >
+                    {getAvailableMonths().map(({ year, month }) => (
+                        <option key={`${year}-${month}`} value={`${year}-${month}`} className="text-gray-900 bg-white">
+                            {new Date(year, month, 1).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', { month: 'long', year: 'numeric' })}
+                        </option>
+                    ))}
+                </select>
+
+                {(userRole === 'admin' || userRole === 'superadmin') && (
+                    <>
+                        <button
+                            onClick={handleGenerateInvoices}
+                            className="bg-purple-600/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:bg-purple-700 transition-colors shadow-md text-xs sm:text-sm font-semibold border border-purple-500/30"
+                        >
+                            <FileText size={16} /> <span className="hidden sm:inline">{t('billing.generateInvoices')}</span><span className="sm:hidden">Invoices</span>
+                        </button>
+
+                        <button
+                            onClick={handleAutoDrop}
+                            className="bg-red-600/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:bg-red-700 transition-colors shadow-md text-xs sm:text-sm font-semibold border border-red-500/30"
+                        >
+                            <UserX size={16} /> <span className="hidden sm:inline">{t('billing.autoDropUnpaid')}</span><span className="sm:hidden">Auto Drop</span>
+                        </button>
+                    </>
+                )}
+                <button
+                    onClick={() => setShowModal(true)}
+                    className="bg-accent/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs sm:text-sm font-semibold border border-accent-500/30"
+                >
+                    <Plus size={16} /> <span>{t('billing.recordPayment')}</span>
+                </button>
+            </HeaderBanner>
+
+            {/* Mobile Controls Section (Visible only on mobile) */}
+            <div className="flex flex-wrap items-center gap-2 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <div className="w-full text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-0.5">
+                    {t('common.actions') || 'Aksi Cepat'}
+                </div>
+                <div className="flex gap-2 w-full">
                     <select
                         value={`${selectedYear}-${selectedMonth}`}
                         onChange={(e) => {
@@ -598,42 +674,43 @@ Terima Kasih
                             setSelectedYear(parseInt(year));
                             setSelectedMonth(parseInt(month));
                         }}
-                        className="w-full md:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 min-w-[120px] px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-xs font-semibold outline-none cursor-pointer"
                     >
                         {getAvailableMonths().map(({ year, month }) => (
-                            <option key={`${year}-${month}`} value={`${year}-${month}`}>
+                            <option key={`${year}-${month}`} value={`${year}-${month}`} className="text-gray-900 bg-white">
                                 {new Date(year, month, 1).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', { month: 'long', year: 'numeric' })}
                             </option>
                         ))}
                     </select>
 
-                    <div className="flex flex-col gap-2 md:flex-row md:gap-2">
-                        {(userRole === 'admin' || userRole === 'superadmin') && (
-                            <>
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="flex-1 bg-accent text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs font-semibold"
+                    >
+                        <Plus size={16} /> <span>{t('billing.recordPayment')}</span>
+                    </button>
+                </div>
 
-                                <button
-                                    onClick={handleGenerateInvoices}
-                                    className="w-full md:w-auto bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors shadow-sm"
-                                >
-                                    <FileText size={20} /> {t('billing.generateInvoices')}
-                                </button>
-
-                                <button
-                                    onClick={handleAutoDrop}
-                                    className="w-full md:w-auto bg-red-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-red-700 transition-colors shadow-sm"
-                                >
-                                    <UserX size={20} /> {t('billing.autoDropUnpaid')}
-                                </button>
-                            </>
-                        )}
+                {(userRole === 'admin' || userRole === 'superadmin') && (
+                    <div className="grid grid-cols-2 gap-2 w-full mt-1">
                         <button
-                            onClick={() => setShowModal(true)}
-                            className="w-full md:w-auto bg-accent text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-sm"
+                            onClick={handleGenerateInvoices}
+                            className="bg-purple-600/80 backdrop-blur-sm text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:bg-purple-700 transition-colors shadow-md text-xs font-semibold border border-purple-500/30"
                         >
-                            <Plus size={20} /> {t('billing.recordPayment')}
+                            <FileText size={16} /> <span>{t('billing.generateInvoices') || 'Invoice'}</span>
+                        </button>
+
+                        <button
+                            onClick={handleAutoDrop}
+                            className="bg-red-600/80 backdrop-blur-sm text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:bg-red-700 transition-colors shadow-md text-xs font-semibold border border-red-500/30"
+                        >
+                            <UserX size={16} /> <span>{t('billing.autoDropUnpaid') || 'Auto Drop'}</span>
                         </button>
                     </div>
-                </div>
+                )}
+            </div>
+
+            <div className="space-y-6 print:hidden">
 
 
 
@@ -1007,9 +1084,9 @@ Terima Kasih
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
+                            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md text-gray-900 dark:text-gray-100"
                         >
-                            <h2 className="text-xl font-bold mb-4 text-gray-800">
+                            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">
                                 {lastRecordedPayment ? t('billing.paymentRecorded') : t('billing.recordPayment')}
                             </h2>
 
@@ -1021,8 +1098,8 @@ Terima Kasih
                                         </div>
                                     </div>
                                     <div>
-                                        <p className="text-lg font-semibold text-gray-800">{t('billing.successMessage')}</p>
-                                        <p className="text-gray-500 mt-1">
+                                        <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{t('billing.successMessage')}</p>
+                                        <p className="text-gray-500 dark:text-gray-400 mt-1">
                                             {formatCurrency(lastRecordedPayment.amount)} - {lastRecordedPayment.username}
                                         </p>
                                     </div>
@@ -1049,13 +1126,13 @@ Terima Kasih
                                                 setLastRecordedPayment(null);
                                                 setShowModal(false);
                                             }}
-                                            className="w-full px-4 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium transition-colors"
+                                            className="w-full px-4 py-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 font-medium transition-colors"
                                         >
                                             {t('billing.close')}
                                         </button>
                                         <button
                                             onClick={() => setLastRecordedPayment(null)}
-                                            className="w-full px-4 py-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                            className="w-full px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
                                         >
                                             {t('billing.inputAnother')}
                                         </button>
@@ -1069,7 +1146,7 @@ Terima Kasih
                                         </div>
                                     )}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('billing.user')}</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('billing.user')}</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
@@ -1087,17 +1164,17 @@ Terima Kasih
                                                     }
                                                 }}
                                                 placeholder={t('billing.searchUser')}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                             />
                                             {showUserDropdown && (
-                                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                                                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
                                                     {users.filter(u => (u.name || '').toLowerCase().includes(userSearchTerm.toLowerCase())).length === 0 ? (
-                                                        <div className="px-4 py-2 text-gray-500 text-sm">{t('billing.noUsersFound')}</div>
+                                                        <div className="px-4 py-2 text-gray-500 dark:text-gray-400 text-sm">{t('billing.noUsersFound')}</div>
                                                     ) : (
                                                         users.filter(u => (u.name || '').toLowerCase().includes(userSearchTerm.toLowerCase())).map(user => (
                                                             <div
                                                                 key={user['.id']}
-                                                                className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-900"
+                                                                className="px-4 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/40 cursor-pointer text-gray-900 dark:text-gray-100"
                                                                 onClick={() => {
                                                                     // Selection Logic
                                                                     const selectedUser = user;
@@ -1127,7 +1204,7 @@ Terima Kasih
                                                                 }}
                                                             >
                                                                 <div className="font-medium">{user.name}</div>
-                                                                {user.profile && <div className="text-xs text-gray-500">{user.profile}</div>}
+                                                                {user.profile && <div className="text-xs text-gray-500 dark:text-gray-400">{user.profile}</div>}
                                                             </div>
                                                         ))
                                                     )}
@@ -1147,7 +1224,7 @@ Terima Kasih
 
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('billing.amountIdr')}</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('billing.amountIdr')}</label>
                                         <input
                                             type="number"
                                             value={formData.amount}
@@ -1156,17 +1233,17 @@ Terima Kasih
                                                 // If user manually changes amount, we might want to uncheck the box or handle it differently
                                                 // For now, let's just let them edit it
                                             }}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                             placeholder="150000"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('billing.notes')}</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('billing.notes')}</label>
                                         <textarea
                                             value={formData.notes}
                                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                             rows="3"
                                             placeholder={t('billing.optionalNotes')}
                                         />
@@ -1200,9 +1277,9 @@ Terima Kasih
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"
+                            className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md"
                         >
-                            <h2 className="text-xl font-bold mb-4 text-gray-800">{t('billing.generateTitle')}</h2>
+                            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">{t('billing.generateTitle')}</h2>
                             <div className="space-y-3">
                                 <button
                                     onClick={() => {
@@ -1239,7 +1316,7 @@ Terima Kasih
                             </div>
                             <button
                                 onClick={() => setShowMonthModal(false)}
-                                className="w-full mt-4 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                className="w-full mt-4 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
                             >
                                 {t('common.cancel')}
                             </button>
@@ -1255,21 +1332,21 @@ Terima Kasih
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className={`bg-white rounded-lg shadow-xl w-full max-w-2xl print:shadow-none print:w-full print:max-w-none print:rounded-none ${printFormat === 'thermal' ? 'max-w-[350px] mx-auto print:max-w-[80mm] print:mx-0' : 'p-8'}`}
+                                className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl print:shadow-none print:w-full print:max-w-none print:rounded-none print:bg-white print:text-black ${printFormat === 'thermal' ? 'max-w-[350px] mx-auto print:max-w-[80mm] print:mx-0' : 'p-8'}`}
                             >
                                 {/* Print Controls */}
                                 <div className="flex justify-between items-center mb-6 print:hidden p-6 pb-0">
-                                    <h2 className="text-xl font-bold text-gray-800">{t('billing.invoicePreview')}</h2>
-                                    <div className="flex bg-gray-100 rounded-lg p-1">
+                                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-150">{t('billing.invoicePreview')}</h2>
+                                    <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                                         <button
                                             onClick={() => setPrintFormat('a4')}
-                                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${printFormat === 'a4' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${printFormat === 'a4' ? 'bg-white dark:bg-gray-600 shadow text-blue-600 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
                                         >
                                             A4
                                         </button>
                                         <button
                                             onClick={() => setPrintFormat('thermal')}
-                                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${printFormat === 'thermal' ? 'bg-white shadow text-blue-600' : 'text-gray-600 hover:text-gray-900'}`}
+                                            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${printFormat === 'thermal' ? 'bg-white dark:bg-gray-600 shadow text-blue-600 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
                                         >
                                             {t('billing.thermalMini')}
                                         </button>
@@ -1279,11 +1356,11 @@ Terima Kasih
                                 {/* Invoice Content */}
                                 <div className={`print:p-0 ${printFormat === 'thermal' ? 'p-6 text-sm' : ''}`}>
                                     {/* Header */}
-                                    <div className={`flex ${printFormat === 'thermal' ? 'flex-col text-center' : 'justify-between items-start'} mb-8 border-b border-gray-200 pb-6`}>
+                                    <div className={`flex ${printFormat === 'thermal' ? 'flex-col text-center' : 'justify-between items-start'} mb-8 border-b border-gray-200 dark:border-gray-700 pb-6`}>
                                         <div className={`flex ${printFormat === 'thermal' ? 'flex-col justify-center' : 'items-center gap-4'}`}>
                                             <div>
-                                                <h2 className={`${printFormat === 'thermal' ? 'text-xl' : 'text-3xl'} font-bold text-gray-900`}>{t('billing.invoice').toUpperCase()}</h2>
-                                                <p className="text-gray-500">#{selectedInvoice.invoiceNumber || selectedInvoice.id}</p>
+                                                <h2 className={`${printFormat === 'thermal' ? 'text-xl' : 'text-3xl'} font-bold text-gray-900 dark:text-white`}>{t('billing.invoice').toUpperCase()}</h2>
+                                                <p className="text-gray-500 dark:text-gray-400">#{selectedInvoice.invoiceNumber || selectedInvoice.id}</p>
                                             </div>
                                         </div>
                                         <div className={`${printFormat === 'thermal' ? 'mt-4 text-center' : 'text-right'}`}>
@@ -1292,31 +1369,31 @@ Terima Kasih
                                                     <img src={invoiceSettings.logoUrl} alt="Company Logo" className="h-16 object-contain" />
                                                 </div>
                                             )}
-                                            <h3 className="font-bold text-xl text-gray-800">{invoiceSettings.companyName}</h3>
-                                            <p className="text-sm text-gray-500 whitespace-pre-line">{invoiceSettings.companyAddress}</p>
-                                            {invoiceSettings.companyContact && <p className="text-sm text-gray-500">{invoiceSettings.companyContact}</p>}
+                                            <h3 className="font-bold text-xl text-gray-800 dark:text-gray-200">{invoiceSettings.companyName}</h3>
+                                            <p className="text-sm text-gray-500 dark:text-gray-450 whitespace-pre-line">{invoiceSettings.companyAddress}</p>
+                                            {invoiceSettings.companyContact && <p className="text-sm text-gray-500 dark:text-gray-450">{invoiceSettings.companyContact}</p>}
                                         </div>
                                     </div>
 
                                     {/* Details */}
                                     <div className={`${printFormat === 'thermal' ? 'space-y-4' : 'grid grid-cols-2 gap-8'} mb-8`}>
                                         <div className={printFormat === 'thermal' ? 'text-center' : ''}>
-                                            <p className="text-sm font-medium text-gray-500 mb-1">{t('billing.billTo')}</p>
-                                            <p className="text-lg font-bold text-gray-900">
+                                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{t('billing.billTo')}</p>
+                                            <p className="text-lg font-bold text-gray-900 dark:text-white">
                                                 {customersData[selectedInvoice.username]?.name || selectedInvoice.username}
                                             </p>
                                             {customersData[selectedInvoice.username]?.address && (
-                                                <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">{customersData[selectedInvoice.username].address}</p>
+                                                <p className="text-sm text-gray-650 dark:text-gray-300 mt-1 whitespace-pre-line">{customersData[selectedInvoice.username].address}</p>
                                             )}
                                             {customersData[selectedInvoice.username]?.phone && (
-                                                <p className="text-sm text-gray-600 mt-1">{customersData[selectedInvoice.username].phone}</p>
+                                                <p className="text-sm text-gray-650 dark:text-gray-300 mt-1">{customersData[selectedInvoice.username].phone}</p>
                                             )}
 
                                         </div>
                                         <div className={printFormat === 'thermal' ? 'text-center' : 'text-right'}>
-                                            <p className="text-sm font-medium text-gray-500 mb-1">{t('common.date')}:</p>
-                                            <p className="text-gray-900">{formatDate(selectedInvoice.date)}</p>
-                                            <p className="text-sm font-medium text-gray-500 mt-2 mb-1">{t('common.status')}:</p>
+                                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{t('common.date')}:</p>
+                                            <p className="text-gray-900 dark:text-gray-300">{formatDate(selectedInvoice.date)}</p>
+                                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-2 mb-1">{t('common.status')}:</p>
                                             <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${selectedInvoice.status === 'completed' ? 'bg-green-100 text-green-800 print:bg-transparent print:text-black print:border print:border-black' :
                                                 selectedInvoice.status === 'postponed' ? 'bg-orange-100 text-orange-800 print:bg-transparent print:text-black print:border print:border-black' :
                                                     selectedInvoice.status === 'merged' ? 'bg-gray-100 text-gray-500 print:bg-transparent print:text-black print:border print:border-black' :
@@ -1331,24 +1408,24 @@ Terima Kasih
                                     </div>
 
                                     {/* Items */}
-                                    <div className={`${printFormat === 'thermal' ? 'border-t border-b border-dashed py-4' : 'bg-gray-50 rounded-lg p-6 print:bg-transparent print:border print:border-gray-200'} mb-8`}>
+                                    <div className={`${printFormat === 'thermal' ? 'border-t border-b border-dashed py-4' : 'bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 print:bg-transparent print:border print:border-gray-200'} mb-8`}>
                                         <div className="flex justify-between items-center mb-4">
-                                            <span className="text-gray-600">{t('billing.description')}</span>
-                                            <span className="text-gray-600 font-medium">{t('billing.amount')}</span>
+                                            <span className="text-gray-600 dark:text-gray-400">{t('billing.description')}</span>
+                                            <span className="text-gray-600 dark:text-gray-400 font-medium">{t('billing.amount')}</span>
                                         </div>
-                                        <div className="flex justify-between items-center py-4 border-t border-gray-200">
-                                            <span className="text-gray-900 font-medium">{t('billing.internetService')}</span>
-                                            <span className="text-gray-900 font-bold">{formatCurrency(selectedInvoice.amount)}</span>
+                                        <div className="flex justify-between items-center py-4 border-t border-gray-200 dark:border-gray-750">
+                                            <span className="text-gray-900 dark:text-gray-200 font-medium">{t('billing.internetService')}</span>
+                                            <span className="text-gray-900 dark:text-white font-bold">{formatCurrency(selectedInvoice.amount)}</span>
                                         </div>
-                                        <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                                            <span className="text-lg font-bold text-gray-900">{t('common.total')}</span>
-                                            <span className="text-lg font-bold text-blue-600 print:text-black">{formatCurrency(selectedInvoice.amount)}</span>
+                                        <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-750">
+                                            <span className="text-lg font-bold text-gray-900 dark:text-white">{t('common.total')}</span>
+                                            <span className="text-lg font-bold text-blue-600 dark:text-blue-400 print:text-black">{formatCurrency(selectedInvoice.amount)}</span>
                                         </div>
                                     </div>
 
                                     {/* Footer */}
                                     {invoiceSettings.invoiceFooter && (
-                                        <div className="text-center text-sm text-gray-500 mt-8 pt-4 border-t border-gray-100">
+                                        <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-8 pt-4 border-t border-gray-100 dark:border-gray-700">
                                             <p>{invoiceSettings.invoiceFooter}</p>
                                         </div>
                                     )}
@@ -1441,6 +1518,105 @@ Terima Kasih
                     </div >
                 )
             }
+
+            {/* Auto Drop Confirmation Modal */}
+            {showAutoDropConfirm && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md text-gray-900 dark:text-gray-100 border border-gray-100 dark:border-gray-700"
+                    >
+                        <div className="flex items-center gap-3 text-red-650 dark:text-red-400 mb-4">
+                            <div className="p-2 bg-red-100 dark:bg-red-950/40 rounded-full">
+                                <UserX size={24} />
+                            </div>
+                            <h2 className="text-xl font-bold">{t('billing.autoDropUnpaid') || 'Jalankan Auto Drop'}</h2>
+                        </div>
+                        <p className="text-sm text-gray-650 dark:text-gray-300 mb-6">
+                            {t('billing.confirmAutoDrop') || 'Apakah Anda yakin ingin menonaktifkan pengguna dengan tagihan jatuh tempo yang belum dibayar? Tindakan ini akan mengisolasi pengguna tersebut di sistem MikroTik.'}
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => setShowAutoDropConfirm(false)}
+                                className="px-4 py-2 text-gray-600 dark:text-gray-350 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                            >
+                                {t('common.cancel') || 'Batal'}
+                            </button>
+                            <button
+                                onClick={executeAutoDrop}
+                                className="px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:opacity-90 transition-opacity font-semibold"
+                            >
+                                {t('billing.runAutoDrop') || 'Ya, Jalankan'}
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+
+            {/* Auto Drop Result Modal */}
+            {autoDropResult && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md text-gray-900 dark:text-gray-100 border border-gray-100 dark:border-gray-700"
+                    >
+                        {autoDropResult.success ? (
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3 text-green-650 dark:text-green-400">
+                                    <div className="p-2 bg-green-100 dark:bg-green-950/40 rounded-full">
+                                        <DollarSign size={24} />
+                                    </div>
+                                    <h2 className="text-xl font-bold">{t('billing.autoDropSuccess') || 'Auto Drop Selesai'}</h2>
+                                </div>
+                                <p className="text-sm text-gray-650 dark:text-gray-300">
+                                    {autoDropResult.message}
+                                </p>
+                                <div className="border-t border-gray-100 dark:border-gray-700 pt-3">
+                                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-2">
+                                        {t('billing.droppedUsers') || 'Pelanggan Terisolir:'}
+                                    </span>
+                                    {autoDropResult.droppedUsers.length > 0 ? (
+                                        <div className="max-h-36 overflow-y-auto space-y-1.5 pr-2">
+                                            {autoDropResult.droppedUsers.map((user, idx) => (
+                                                <div key={idx} className="flex items-center justify-between text-xs bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300 px-2.5 py-1.5 rounded border border-red-100 dark:border-red-900/30">
+                                                    <span className="font-mono">{user}</span>
+                                                    <span className="text-[10px] bg-red-150 dark:bg-red-900 text-red-800 dark:text-red-200 px-1.5 py-0.5 rounded uppercase font-semibold">Isolir</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                            {t('billing.noUsersDropped') || 'Tidak ada pelanggan yang diisolasi.'}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3 text-red-655 dark:text-red-400">
+                                    <div className="p-2 bg-red-100 dark:bg-red-950/40 rounded-full">
+                                        <X size={24} />
+                                    </div>
+                                    <h2 className="text-xl font-bold">{t('common.error') || 'Kesalahan'}</h2>
+                                </div>
+                                <p className="text-sm text-gray-650 dark:text-gray-300">
+                                    {autoDropResult.error}
+                                </p>
+                            </div>
+                        )}
+                        <div className="flex justify-end pt-4">
+                            <button
+                                onClick={() => setAutoDropResult(null)}
+                                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-semibold text-sm"
+                            >
+                                {t('common.close') || 'Tutup'}
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div >
     );
 }

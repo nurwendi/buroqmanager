@@ -37,7 +37,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { username, action, updatedData, type, targetUsername, newValues, agentId } = body;
+        const { username, action, updatedData, type, targetUsername, newValues, agentId, identityNumber } = body;
 
         // Auth check
         const user = await getUserFromRequest(request);
@@ -78,6 +78,7 @@ export async function POST(request) {
                         name: body.name,
                         address: body.address,
                         phone: body.phone,
+                        identityNumber: body.identityNumber,
                         agentId: agentId,
                         ownerId: ownerId, // Save Owner
                         password: body.password,
@@ -244,6 +245,7 @@ export async function POST(request) {
                                 password: passwordHash, // Save hashed password to Customer table
                                 name: finalData.name || '',
                                 phone: finalData.phone || '',
+                                identityNumber: finalData.identityNumber || null,
                                 address: finalData.address || '',
                                 agentId: finalData.agentId,
                                 technicianId: finalData.technicianId,

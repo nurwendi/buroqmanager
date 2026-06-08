@@ -302,7 +302,7 @@ export default function DashboardContent() {
       {/* Premium Header with Banner & Overlapping Avatar */}
       <motion.div variants={itemVariants} className="relative mb-8 sm:mb-12 -mx-2 md:-mx-8 -mt-20 md:-mt-24">
         {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
-        <div className="relative h-48 sm:h-64 w-full overflow-hidden border-0 shadow-none outline-none">
+        <div className="relative h-44 sm:h-48 w-full overflow-hidden border-0 shadow-none outline-none">
           <img 
             src={bgUrl} 
             alt="Dashboard Background" 
@@ -310,10 +310,10 @@ export default function DashboardContent() {
             style={{ imageRendering: "high-quality" }}
           />
           <div className="absolute inset-0 bg-blue-900/10 mix-blend-multiply"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-transparent via-black/10 to-black/50"></div>
           
           {/* Header Action: Refresh */}
-          <div className="absolute top-6 right-6 z-20">
+          <div className="absolute top-20 md:top-24 right-6 md:right-8 z-20">
             <button
               onClick={fetchStats}
               className="p-2.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/40 transition-all shadow-lg group"

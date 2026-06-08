@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { ShieldAlert, ShieldCheck, RefreshCw, AlertTriangle, CheckCircle } from 'lucide-react';
+import Link from 'next/link';
+
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function DropUsersPage() {
     const [activeTab, setActiveTab] = useState('unpaid'); // 'unpaid', 'dropped', 'inactive'
@@ -12,11 +15,24 @@ export default function DropUsersPage() {
     const [loading, setLoading] = useState(true);
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [processing, setProcessing] = useState(false);
+    const [appSettings, setAppSettings] = useState({ appName: 'Buroq Manager', logoUrl: '', dashboardBgUrl: '' });
 
     useEffect(() => {
         fetchData();
         fetchInactiveUsers();
+        fetchAppSettings();
     }, []);
+
+    const fetchAppSettings = async () => {
+        try {
+            const res = await fetch('/api/app-settings');
+            if (res.ok) {
+                setAppSettings(await res.json());
+            }
+        } catch (error) {
+            console.error('Failed to fetch app settings');
+        }
+    };
 
     const fetchData = async () => {
         setLoading(true);
@@ -28,7 +44,6 @@ export default function DropUsersPage() {
             setSelectedIds(new Set());
         } catch (error) {
             console.error('Failed to fetch data', error);
-            // alert('Gagal mengambil data user.');
         } finally {
             setLoading(false);
         }
@@ -118,10 +133,10 @@ export default function DropUsersPage() {
     };
 
     const renderTable = (data, type) => (
-        <div className="glass shadow-md rounded-2xl overflow-hidden">
+        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-white/5 overflow-hidden shadow-lg">
             <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-border">
-                    <thead className="bg-muted/50 text-muted-foreground border-b border-border">
+                <table className="min-w-full divide-y divide-gray-200/50 dark:divide-white/10">
+                    <thead className="bg-black/5 dark:bg-white/5 text-gray-700 dark:text-gray-300 border-b border-gray-200/50 dark:border-white/10">
                         <tr>
                             <th className="px-6 py-3 text-left">
                                 <input
@@ -144,10 +159,10 @@ export default function DropUsersPage() {
                             )}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-border">
+                    <tbody className="divide-y divide-gray-200/50 dark:divide-white/10 bg-transparent text-gray-900 dark:text-gray-100">
                         {data.length === 0 ? (
                             <tr>
-                                <td colSpan={type === 'inactive' ? 4 : 4} className="px-6 py-4 text-center text-muted-foreground">Tidak ada data.</td>
+                                <td colSpan={4} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400 italic">Tidak ada data.</td>
                             </tr>
                         ) : (
                             data.map((user) => (
@@ -164,11 +179,11 @@ export default function DropUsersPage() {
 
                                     {type === 'inactive' ? (
                                         <>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                                                 {user.lastSeen === 'Never' ? 'Never' : new Date(user.lastSeen).toLocaleDateString()}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
                                                     {user.status}
                                                 </span>
                                             </td>
@@ -177,17 +192,17 @@ export default function DropUsersPage() {
                                         <>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 {type === 'drop' ? (
-                                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-300">
                                                         {user.currentProfile}
                                                     </span>
                                                 ) : (
-                                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-300">
                                                         {user.originalProfile}
                                                     </span>
                                                 )}
                                             </td>
                                             {type === 'drop' && (
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{user.name}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{user.name}</td>
                                             )}
                                         </>
                                     )}
@@ -201,18 +216,19 @@ export default function DropUsersPage() {
     );
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
+        <div>
             <Navbar />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold flex items-center">
-                        <ShieldAlert className="w-8 h-8 mr-2 text-red-600" />
-                        Manajemen Isolir (Drop Users)
-                    </h1>
-                    <button onClick={() => { fetchData(); fetchInactiveUsers(); }} className="p-2 glass rounded-full shadow hover:bg-muted/50 transition-colors">
-                        <RefreshCw className={`w-5 h-5 text-muted-foreground ${loading ? 'animate-spin' : ''}`} />
-                    </button>
-                </div>
+            {/* Global Header Banner */}
+            <HeaderBanner
+                title="Manajemen Isolir (Drop Users)"
+                description="Isolasi pelanggan dengan tagihan belum lunas atau kembalikan profil mereka ke semula."
+                icon={ShieldAlert}
+            >
+                <button onClick={() => { fetchData(); fetchInactiveUsers(); }} className="p-2.5 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-white shadow-lg hover:bg-white/30 transition-all">
+                    <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+            </HeaderBanner>
+
 
                 {/* Tabs */}
                 <div className="flex space-x-4 mb-6 border-b border-border overflow-x-auto">
@@ -315,7 +331,6 @@ export default function DropUsersPage() {
                         activeTab === 'dropped' ? renderTable(droppedUsers, 'restore') :
                             renderTable(inactiveUsers, 'inactive')
                 )}
-            </div>
         </div>
     );
 }

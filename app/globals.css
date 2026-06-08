@@ -30,6 +30,14 @@
     color: transparent;
   }
 
+  .text-accent-solid {
+    color: var(--accent-color);
+  }
+
+  .hover\:text-accent-solid:hover {
+    color: var(--accent-color);
+  }
+
   /* Fallback for text accent if gradient fails or is not supported/wanted in some contexts: 
      Actually, let's keep it simple. If gradient text causes issues, we can revert or make it optional. 
      For now, we enforce it. 
@@ -187,4 +195,40 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+}
+
+.dark * {
+  scrollbar-color: rgba(156, 163, 175, 0.2) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.6);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.4);
 }

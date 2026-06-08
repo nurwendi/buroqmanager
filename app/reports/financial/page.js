@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+import HeaderBanner from '@/components/HeaderBanner';
+
 export default function FinancialReportPage() {
     const { t, resolvedLanguage } = useLanguage();
     const [loading, setLoading] = useState(true);
@@ -77,50 +79,79 @@ export default function FinancialReportPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-4 pb-20 print:p-0 print:m-0 print:space-y-0">
-            {/* Header Controls */}
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-4 print:hidden">
-                <div className="flex items-center gap-4">
-                    <Link href="/billing" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        <ArrowLeft size={24} className="text-gray-600 dark:text-gray-300" />
+        <div className="space-y-6 pb-20 print:p-0 print:m-0 print:space-y-0 w-full">
+            {/* Global Header Banner */}
+            <HeaderBanner
+                title={t('billing.reports.title')}
+                description={data?.isAgentView 
+                    ? `${resolvedLanguage === 'id' ? 'Laporan Agen:' : 'Agent Report:'} ${data.ownerName}` 
+                    : 'Pantau analisis arus kas, pendapatan penagihan, komisi staff, dan laba bersih.'
+                }
+                icon={() => (
+                    <Link href="/billing" className="text-white hover:opacity-80 transition-opacity">
+                        <ArrowLeft size={24} />
                     </Link>
-                    <div>
-                        <h1 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">{t('billing.reports.title')}</h1>
-                        {data?.isAgentView && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                                {resolvedLanguage === 'id' ? 'Agen:' : 'Agent:'} {data.ownerName}
-                            </p>
-                        )}
-                    </div>
-                </div>
+                )}
+            >
+                <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                    className="px-3 py-1.5 border border-white/30 rounded-lg bg-black/40 backdrop-blur-md text-white font-semibold focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm outline-none cursor-pointer"
+                >
+                    {months.map((m, i) => (
+                        <option key={i} value={i} className="text-gray-900 bg-white">{m}</option>
+                    ))}
+                </select>
+                <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                    className="px-3 py-1.5 border border-white/30 rounded-lg bg-black/40 backdrop-blur-md text-white font-semibold focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm outline-none cursor-pointer"
+                >
+                    {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(y => (
+                        <option key={y} value={y} className="text-gray-900 bg-white">{y}</option>
+                    ))}
+                </select>
+                <button
+                    onClick={handlePrint}
+                    className="bg-accent/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs sm:text-sm font-semibold border border-accent-500/30"
+                >
+                    <Printer size={16} />
+                    <span>{t('billing.reports.printReport')}</span>
+                </button>
+            </HeaderBanner>
 
-                <div className="flex flex-wrap gap-2">
+            {/* Mobile Controls Section (Visible only on mobile) */}
+            <div className="flex flex-wrap items-center gap-2 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <div className="w-full text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-0.5">
+                    {t('common.actions') || 'Aksi Cepat'}
+                </div>
+                <div className="grid grid-cols-2 gap-2 w-full mb-2">
                     <select
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                        className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-xs font-semibold outline-none cursor-pointer"
                     >
                         {months.map((m, i) => (
-                            <option key={i} value={i}>{m}</option>
+                            <option key={i} value={i} className="text-gray-900 bg-white">{m}</option>
                         ))}
                     </select>
                     <select
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                        className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-slate-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-xs font-semibold outline-none cursor-pointer"
                     >
                         {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(y => (
-                            <option key={y} value={y}>{y}</option>
+                            <option key={y} value={y} className="text-gray-900 bg-white">{y}</option>
                         ))}
                     </select>
-                    <button
-                        onClick={handlePrint}
-                        className="flex items-center gap-2 bg-accent text-white px-4 py-1.5 rounded-lg hover:bg-accent/90 transition-all font-medium text-sm"
-                    >
-                        <Printer size={16} />
-                        <span>{t('billing.reports.printReport')}</span>
-                    </button>
                 </div>
+                <button
+                    onClick={handlePrint}
+                    className="w-full bg-accent text-white px-3 py-2.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs font-semibold"
+                >
+                    <Printer size={16} />
+                    <span>{t('billing.reports.printReport') || 'Cetak Laporan'}</span>
+                </button>
             </div>
 
             {/* Print Header (Only visible on print) */}
@@ -162,17 +193,17 @@ export default function FinancialReportPage() {
                 <div className="space-y-6 print:space-y-4">
                     {/* Summary Row */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 print:grid-cols-4 print:gap-0 print:border-t print:border-l print:border-black">
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl p-3 rounded-lg shadow border border-white/20 dark:border-white/5 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
                             <p className="text-[10px] font-medium text-gray-500 uppercase print:text-black print:font-bold">
                                 {data.isAgentView ? (resolvedLanguage === 'id' ? 'TOTAL PENAGIHAN' : 'TOTAL BILLING') : t('billing.reports.revenue')}
                             </p>
                             <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 print:text-black">{formatCurrency(data.summary.totalRevenue)}</h3>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl p-3 rounded-lg shadow border border-white/20 dark:border-white/5 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
                             <p className="text-[10px] font-medium text-gray-500 uppercase print:text-black print:font-bold">{t('billing.reports.unpaid')}</p>
                             <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 print:text-black">{formatCurrency(data.summary.totalUnpaid)}</h3>
                         </div>
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border border-gray-100 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl p-3 rounded-lg shadow border border-white/20 dark:border-white/5 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
                             <p className="text-[10px] font-medium text-gray-500 uppercase print:text-black print:font-bold">
                                 {data.isAgentView ? (resolvedLanguage === 'id' ? 'STATUS LAPORAN' : 'REPORT STATUS') : t('billing.reports.expenses')}
                             </p>
@@ -180,7 +211,7 @@ export default function FinancialReportPage() {
                                 {data.isAgentView ? (resolvedLanguage === 'id' ? 'DRAFT' : 'DRAFT') : formatCurrency(data.summary.totalCommissions)}
                             </h3>
                         </div>
-                        <div className="bg-accent/10 dark:bg-accent/20 p-3 rounded-lg shadow border border-accent/20 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
+                        <div className="bg-accent/10 dark:bg-accent/20 backdrop-blur-xl p-3 rounded-lg shadow border border-accent/20 dark:border-accent/10 print:shadow-none print:bg-white print:border-b print:border-r print:border-black print:rounded-none">
                             <p className="text-[10px] font-medium text-gray-700 dark:text-gray-300 uppercase print:text-black print:font-bold">
                                 {data.isAgentView ? (resolvedLanguage === 'id' ? 'PENDAPATAN SAYA' : 'MY EARNINGS') : t('billing.reports.netIncome')}
                             </p>
@@ -190,13 +221,13 @@ export default function FinancialReportPage() {
 
                     {/* Staff Performance Table (Compact) - Hide for Agents */}
                     {!data.isAgentView && data.staffBreakdown && data.staffBreakdown.length > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black print:rounded-none print:overflow-visible">
-                            <div className="bg-gray-50 dark:bg-gray-900/50 px-4 py-2 border-b border-gray-100">
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow border border-white/20 dark:border-white/5 overflow-hidden print:shadow-none print:border-black print:rounded-none print:overflow-visible">
+                            <div className="bg-black/5 dark:bg-white/5 px-4 py-2 border-b border-white/20 dark:border-white/5">
                                 <h3 className="text-xs font-bold uppercase tracking-wider">{t('billing.reports.staffPerformance')}</h3>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="min-w-full text-xs">
-                                    <thead className="bg-gray-50 dark:bg-gray-900/50">
+                                    <thead className="bg-black/5 dark:bg-white/5">
                                         <tr>
                                             <th className="px-4 py-2 text-left text-gray-500">{t('billing.reports.staff')}</th>
                                             <th className="px-4 py-2 text-center text-gray-500">{t('billing.reports.transactionsCount')}</th>
@@ -205,7 +236,7 @@ export default function FinancialReportPage() {
                                             <th className="px-4 py-2 text-right text-gray-500">{t('billing.reports.netProfit')}</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                    <tbody className="divide-y divide-gray-200/50 dark:divide-white/10">
                                         {data.staffBreakdown.map((s, i) => (
                                             <tr key={i}>
                                                 <td className="px-4 py-1.5 font-medium">{s.name}</td>
@@ -224,8 +255,8 @@ export default function FinancialReportPage() {
                     {/* All Payments Table (Detail) */}
                     <div className="space-y-6 print:space-y-4">
                         {/* Paid Payments */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black print:rounded-none print:overflow-visible">
-                            <div className="bg-green-50 dark:bg-green-900/20 px-4 py-2 border-b border-green-100 dark:border-green-800 flex justify-between items-center">
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow border border-white/20 dark:border-white/5 overflow-hidden print:shadow-none print:border-black print:rounded-none print:overflow-visible">
+                            <div className="bg-green-500/10 dark:bg-green-500/20 px-4 py-2 border-b border-green-500/20 dark:border-green-500/10 flex justify-between items-center">
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-green-700 dark:text-green-400">
                                     {resolvedLanguage === 'id' ? 'PENDAPATAN (LUNAS)' : 'REVENUE (PAID)'}
                                 </h3>
@@ -235,7 +266,7 @@ export default function FinancialReportPage() {
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="min-w-full text-xs print:text-[10px]">
-                                    <thead className="bg-gray-50 dark:bg-gray-900/50">
+                                    <thead className="bg-black/5 dark:bg-white/5">
                                         <tr>
                                             <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.no')}</th>
                                             <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.customerId')}</th>
@@ -246,7 +277,7 @@ export default function FinancialReportPage() {
                                             <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.description')}</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                    <tbody className="divide-y divide-gray-200/50 dark:divide-white/10">
                                         {data.allPayments.filter(p => p.status === 'completed').map((p, i) => (
                                             <tr key={i}>
                                                 <td className="px-3 py-1 font-mono text-gray-400 print:text-black">{i + 1}</td>
@@ -269,8 +300,8 @@ export default function FinancialReportPage() {
                         </div>
 
                         {/* Unpaid / Pending Payments */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-100 overflow-hidden print:shadow-none print:border-black print:rounded-none print:overflow-visible">
-                            <div className="bg-red-50 dark:bg-red-900/20 px-4 py-2 border-b border-red-100 dark:border-red-800 flex justify-between items-center">
+                        <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow border border-white/20 dark:border-white/5 overflow-hidden print:shadow-none print:border-black print:rounded-none print:overflow-visible">
+                            <div className="bg-red-500/10 dark:bg-red-500/20 px-4 py-2 border-b border-red-500/20 dark:border-red-500/10 flex justify-between items-center">
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-red-700 dark:text-red-400">
                                     {resolvedLanguage === 'id' ? 'BELUM BAYAR' : 'UNPAID'}
                                 </h3>
@@ -280,7 +311,7 @@ export default function FinancialReportPage() {
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="min-w-full text-xs print:text-[10px]">
-                                    <thead className="bg-gray-50 dark:bg-gray-900/50">
+                                    <thead className="bg-black/5 dark:bg-white/5">
                                         <tr>
                                             <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.no')}</th>
                                             <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.customerId')}</th>
@@ -291,7 +322,7 @@ export default function FinancialReportPage() {
                                             <th className="px-3 py-2 text-left text-gray-500">{t('billing.reports.description')}</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                                    <tbody className="divide-y divide-gray-200/50 dark:divide-white/10">
                                         {data.allPayments.filter(p => p.status !== 'completed').map((p, i) => (
                                             <tr key={i} className="bg-gray-50/50 dark:bg-gray-800/50 italic">
                                                 <td className="px-3 py-1 font-mono text-gray-400 print:text-black">{i + 1}</td>
@@ -401,7 +432,7 @@ export default function FinancialReportPage() {
                     }
 
                     /* Ensure report starts on first page */
-                    .max-w-7xl {
+                    .w-full {
                         padding-top: 0 !important;
                         margin-top: 0 !important;
                     }

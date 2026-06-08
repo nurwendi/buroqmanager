@@ -52,6 +52,7 @@ export async function GET(request) {
                 address: true,
                 avatar: true,
                 email: true,
+                identityNumber: true,
                 agentId: true,
                 technicianId: true,
                 ownerId: true,
@@ -131,7 +132,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { username, name, address, phone, email, password, profileId, profile, coordinates, comment, disabled, service } = body; // Extract extra fields, IGNORE customerId
+        const { username, name, address, phone, email, password, profileId, profile, coordinates, comment, disabled, service, identityNumber } = body; // Extract extra fields, IGNORE customerId
 
 
         // Radius Sync Flags
@@ -289,6 +290,7 @@ export async function POST(request) {
                     phone: phone,
                     email: email,
                     customerId: finalCustomerId,
+                    identityNumber: identityNumber !== undefined ? identityNumber : undefined,
                     agentId: agentId,
                     technicianId: technicianId,
                     ownerId: ownerId,
@@ -307,6 +309,7 @@ export async function POST(request) {
                     phone: phone || "",
                     email: email || "",
                     customerId: finalCustomerId,
+                    identityNumber: identityNumber || null,
                     agentId: agentId,
                     technicianId: technicianId,
                     ownerId: ownerId,

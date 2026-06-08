@@ -8,6 +8,7 @@ import { useDashboard } from '@/contexts/DashboardContext';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 import { useLanguage } from '@/contexts/LanguageContext';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function UsersPage() {
     const { t } = useLanguage();
@@ -76,7 +77,8 @@ export default function UsersPage() {
         technicianId: '',
         coordinates: '',
         ownerId: '',
-        id: ''
+        id: '',
+        identityNumber: ''
     });
 
     const formatCurrency = (amount) => {
@@ -690,7 +692,8 @@ export default function UsersPage() {
                             agentId: effectiveAgentId,
                             technicianId: effectiveTechnicianId,
                             coordinates: formData.coordinates,
-                            comment: formData.comment
+                            comment: formData.comment,
+                            identityNumber: formData.identityNumber
                         },
                         agentId: currentUserId
                     }),
@@ -730,7 +733,8 @@ export default function UsersPage() {
                     customerPhone: formData.customerPhone,
                     customerEmail: formData.customerEmail,
                     agentId: effectiveAgentId,
-                    technicianId: effectiveTechnicianId
+                    technicianId: effectiveTechnicianId,
+                    identityNumber: formData.identityNumber
                 }),
             });
 
@@ -762,7 +766,8 @@ export default function UsersPage() {
                         comment: formData.comment,
                         profile: formData.profile,
                         password: formData.password,
-                        service: formData.service || 'pppoe'
+                        service: formData.service || 'pppoe',
+                        identityNumber: formData.identityNumber
                     })
                 });
 
@@ -825,7 +830,8 @@ export default function UsersPage() {
                 ownerId: customerData.ownerId || '',
                 coordinates: customerData.coordinates || '',
                 comment: customerData.comment || '',
-                id: customerData.id || ''
+                id: customerData.id || '',
+                identityNumber: customerData.identityNumber || ''
             });
         } catch (error) {
             setFormData({
@@ -844,7 +850,8 @@ export default function UsersPage() {
                 agentId: '',
                 technicianId: '',
                 ownerId: '',
-                id: ''
+                id: '',
+                identityNumber: ''
             });
         }
 
@@ -1024,25 +1031,46 @@ export default function UsersPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('users.title')}</h1>
-                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                    {selectedUsers.size > 0 && !['staff', 'editor', 'agent', 'technician'].includes(userRole) && (
-                        <button
-                            onClick={() => setShowBulkEditModal(true)}
-                            className="bg-purple-600 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors shadow-lg animate-pulse text-sm font-medium"
-                        >
-                            <UsersIcon size={18} /> {t('pppoe.bulkEdit')} ({selectedUsers.size})
-                        </button>
-                    )}
-
+            {/* Global Header Banner */}
+            <HeaderBanner
+                title={t('users.title')}
+                description="Manajemen pelanggan PPPoE, monitoring status koneksi, alokasi profile, agen/teknisi, dan sinkronisasi router."
+                icon={UsersIcon}
+            >
+                {selectedUsers.size > 0 && !['staff', 'editor', 'agent', 'technician'].includes(userRole) && (
                     <button
-                        onClick={() => { setShowModal(true); fetchRouterIdentities(connections); }}
-                        className="bg-accent text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all text-sm font-medium shadow-lg shadow-accent/20"
+                        onClick={() => setShowBulkEditModal(true)}
+                        className="bg-purple-600/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:bg-purple-700 transition-colors shadow-md text-xs sm:text-sm font-semibold border border-purple-500/30 animate-pulse"
                     >
-                        <Plus size={18} /> {t('pppoe.addUser')}
+                        <UsersIcon size={16} /> {t('pppoe.bulkEdit')} ({selectedUsers.size})
                     </button>
-                </div>
+                )}
+
+                <button
+                    onClick={() => { setShowModal(true); fetchRouterIdentities(connections); }}
+                    className="bg-accent/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs sm:text-sm font-semibold border border-accent-500/30"
+                >
+                    <Plus size={16} /> {t('pppoe.addUser')}
+                </button>
+            </HeaderBanner>
+
+            {/* Mobile Actions Container (stacked cleanly below banner on mobile) */}
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:hidden mb-4 print:hidden">
+                {selectedUsers.size > 0 && !['staff', 'editor', 'agent', 'technician'].includes(userRole) && (
+                    <button
+                        onClick={() => setShowBulkEditModal(true)}
+                        className="w-full bg-purple-600 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors shadow-lg text-sm font-medium"
+                    >
+                        <UsersIcon size={18} /> {t('pppoe.bulkEdit')} ({selectedUsers.size})
+                    </button>
+                )}
+
+                <button
+                    onClick={() => { setShowModal(true); fetchRouterIdentities(connections); }}
+                    className="w-full bg-accent text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all text-sm font-medium shadow-lg"
+                >
+                    <Plus size={18} /> {t('pppoe.addUser')}
+                </button>
             </div>
 
             {/* Pending Registrations (Admin & Staff) */}
@@ -1951,6 +1979,18 @@ export default function UsersPage() {
                                                 onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
                                                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                                                 placeholder={t('users.emailPlaceholder')}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+                                                <User size={16} /> {t('users.identityNumber')}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.identityNumber || ''}
+                                                onChange={(e) => setFormData({ ...formData, identityNumber: e.target.value })}
+                                                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                                                placeholder="317xxxxxxxxxxxxx"
                                             />
                                         </div>
                                         <div className="md:col-span-2">

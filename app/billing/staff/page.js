@@ -6,6 +6,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
+import HeaderBanner from '@/components/HeaderBanner';
+
 export default function StaffBillingPage() {
     const { t, resolvedLanguage } = useLanguage();
     const [stats, setStats] = useState(null);
@@ -127,41 +129,31 @@ export default function StaffBillingPage() {
 
     return (
         <div className="space-y-8 pb-12">
-            {/* Premium Header with Banner & Overlapping Avatar */}
-            <div className="relative mb-12 sm:mb-14 -mx-2 md:-mx-8 -mt-20 md:-mt-24">
-                {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
-                <div className="relative h-48 sm:h-64 w-full overflow-hidden border-0 shadow-none outline-none">
-                    <img 
-                        src="/dashboard-bg.png" 
-                        alt="Banner" 
-                        className="w-full h-full object-cover scale-110"
-                    />
-                    <div className="absolute inset-0 bg-indigo-900/10 mix-blend-multiply"></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-                    
-                    {/* Date Selector - Absolute Positioned on Banner */}
-                    <div className="absolute top-6 right-6 z-20">
-                        <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md border border-white/30 text-white p-2 rounded-xl shadow-lg">
-                            <div className="p-1 px-2 text-xs font-bold uppercase tracking-widest opacity-80 border-r border-white/20">
-                                {selectedYear}
-                            </div>
-                            <select
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                                className="bg-transparent outline-none font-bold cursor-pointer text-sm appearance-none pr-1"
-                            >
-                                {months.map((m, i) => (
-                                    <option key={i} value={i} className="text-gray-900 dark:text-white dark:bg-gray-800">{m}</option>
-                                ))}
-                            </select>
-                        </div>
+            {/* Global Header Banner */}
+            <HeaderBanner
+                title={t('billing.staffDashboardTitle')}
+                description="Dashboard penagihan staf dan monitoring performa koleksi komisi."
+            >
+                <div className="flex items-center gap-3 bg-white/20 backdrop-blur-md border border-white/30 text-white p-2 rounded-xl shadow-lg">
+                    <div className="p-1 px-2 text-xs font-bold uppercase tracking-widest opacity-80 border-r border-white/20">
+                        {selectedYear}
                     </div>
-
-
+                    <select
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                        className="bg-transparent outline-none font-bold cursor-pointer text-sm appearance-none pr-1"
+                    >
+                        {months.map((m, i) => (
+                            <option key={i} value={i} className="text-gray-900 dark:text-white dark:bg-gray-800">{m}</option>
+                        ))}
+                    </select>
                 </div>
+            </HeaderBanner>
 
+            {/* Profile Section Wrapper for positioning adjustment */}
+            <div className="relative mb-12 sm:mb-14">
                 {/* Overlapping Profile Section */}
-                <div className="relative -mt-20 sm:-mt-24 flex flex-col items-center z-10 px-4">
+                <div className="relative -mt-24 sm:-mt-28 flex flex-col items-center z-10 px-4">
                     <div className="relative group">
                         <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full border-[6px] border-white dark:border-gray-900 shadow-xl bg-gradient-to-br from-indigo-500 to-blue-700 flex items-center justify-center overflow-hidden transition-all duration-500">
                             {user.avatar ? (

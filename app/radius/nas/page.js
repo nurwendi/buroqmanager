@@ -1,7 +1,8 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Server, Save } from 'lucide-react';
+import { Plus, Trash2, Server } from 'lucide-react';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function NasPage() {
     const [nasList, setNasList] = useState([]);
@@ -36,18 +37,20 @@ export default function NasPage() {
     };
 
     return (
-        <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <Server /> NAS List (Network Access Servers)
-                </h1>
+        <div>
+            {/* Global Header Banner */}
+            <HeaderBanner
+                title="NAS List (Network Access Servers)"
+                description="Daftar router NAS yang terhubung dan terautentikasi dengan sistem Radius."
+                icon={Server}
+            >
                 <button
                     onClick={() => setShowModal(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700"
+                    className="bg-accent/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs sm:text-sm font-semibold border border-accent-500/30"
                 >
-                    <Plus size={18} /> Add NAS
+                    <Plus size={16} /> Add NAS
                 </button>
-            </div>
+            </HeaderBanner>
 
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 <table className="w-full text-left">

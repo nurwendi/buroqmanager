@@ -66,6 +66,7 @@ model Customer {
   address       String                  @default("")
   phone         String                  @default("")
   email         String                  @default("")
+  identityNumber String?
   agentId       String?
   technicianId  String?
   coordinates   String?
@@ -143,6 +144,7 @@ model Registration {
   name           String?
   address        String?
   phone          String?
+  identityNumber String?
   agentId        String?
   password       String?
   profile        String?
