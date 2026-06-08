@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Activity, RefreshCcw } from 'lucide-react';
-import { formatBytes } from '@/lib/utils-format';
+import { formatBytes } from '@/lib/utils';
 
 export default function AccountingPage() {
     const [sessions, setSessions] = useState([]);

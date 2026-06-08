@@ -1,12 +1,8 @@
-'use client';
-
 import { useState, useEffect } from 'react';
-import { Save, ArrowLeft, Building, MapPin, Phone, FileText, Image, Calendar, Mail, FileCheck } from 'lucide-react';
+import { Save, Building, Mail, FileText, Calendar, FileCheck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
-export default function InvoiceSettingsPage() {
+export default function InvoiceSettings() {
     const { t } = useLanguage();
     const [settings, setSettings] = useState({
         companyName: '',
@@ -26,27 +22,9 @@ export default function InvoiceSettingsPage() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [logoFile, setLogoFile] = useState(null);
-    const [uploading, setUploading] = useState(false);
-    const [userRole, setUserRole] = useState(null);
-    const router = useRouter();
-
     useEffect(() => {
-        // Strict Role Check
-        fetch('/api/auth/me')
-            .then(res => {
-                if (res.ok) return res.json();
-                throw new Error('Failed to fetch user');
-            })
-            .then(data => {
-                if (data.user.role !== 'superadmin') {
-                    router.push('/'); // Redirect if not superadmin
-                } else {
-                    setUserRole(data.user.role);
-                    fetchSettings(); // Only fetch settings if allowed
-                }
-            })
-            .catch(() => router.push('/login'));
-    }, [router]);
+        fetchSettings();
+    }, []);
 
     const fetchSettings = async () => {
         try {
@@ -110,24 +88,15 @@ export default function InvoiceSettingsPage() {
         }
     };
 
-    if (userRole !== 'superadmin') {
-        return null; // Don't render anything while checking/redirecting
-    }
-
     return (
         <div className="w-full space-y-6">
-            <div className="flex items-center gap-4 mb-6">
-                <Link href="/" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                    <ArrowLeft size={24} className="text-gray-600 dark:text-gray-300" />
-                </Link>
-                <div className="flex items-center gap-3">
-                    <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
-                        <FileCheck size={28} />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('billing.centralizedSettings')}</h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('billing.settingsSubtitle')}</p>
-                    </div>
+            <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
+                    <FileCheck size={24} />
+                </div>
+                <div>
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-white">{t('billing.centralizedSettings')}</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('billing.settingsSubtitle')}</p>
                 </div>
             </div>
 

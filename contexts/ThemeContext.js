@@ -26,7 +26,7 @@ export const accentGradients = {
 
 export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState({
-        mode: 'light', // Default to light
+        mode: 'system', // Default to system
         glass: false,   // Glassmorphism effect
         accentColor: accentColors.blue,
         accentName: 'blue'

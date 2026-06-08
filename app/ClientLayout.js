@@ -37,12 +37,21 @@ export default function ClientLayout({ children }) {
     return (
         <LanguageProvider>
             <DashboardProvider>
-                <div className="relative min-h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+                <div className="relative min-h-screen overflow-hidden bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-300">
+                    {/* Animated Background Orbs for Premium Mesh Gradient Effect */}
+                    {!isLoginPage && (
+                        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 hidden dark:block">
+                            <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-blue-600/20 blur-[120px] animate-pulse duration-[6000ms]" />
+                            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-600/20 blur-[120px] animate-pulse duration-[8000ms]" />
+                            <div className="absolute top-[30%] right-[20%] w-[30%] h-[30%] rounded-full bg-violet-600/15 blur-[100px] animate-pulse duration-[7000ms]" />
+                        </div>
+                    )}
+                    
                     <SessionTimeoutHandler />
 
                     {!isPublicPage && (
                         <>
-                            <BottomDock />
+                            <Navbar />
                         </>
                     )}
 
@@ -54,7 +63,7 @@ export default function ClientLayout({ children }) {
                             animate="enter"
                             exit="exit"
                             transition={{ type: "tween", ease: "easeInOut", duration: 0.3 }}
-                            className={`min-h-screen ${!isPublicPage ? 'pt-2 px-2 md:pt-8 md:px-8 pb-24 md:pb-32' : ''}`}
+                            className={`relative z-10 min-h-screen ${!isPublicPage ? 'pt-20 px-2 md:pt-24 md:px-8 pb-8 md:pb-12' : ''}`}
                         >
                             {children}
                         </motion.div>

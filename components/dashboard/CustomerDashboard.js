@@ -251,9 +251,9 @@ export default function CustomerDashboard() {
             animate="visible"
         >
             {/* Premium Header with Banner & Overlapping Avatar */}
-            <motion.div variants={itemVariants} className="relative mb-12 sm:mb-14 -mx-4 sm:-mx-0">
+            <motion.div variants={itemVariants} className="relative mb-12 sm:mb-14 w-screen left-1/2 -translate-x-1/2 -mt-20 md:-mt-24">
                 {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
-                <div className="relative h-40 sm:h-56 w-full overflow-hidden sm:rounded-2xl border-0 shadow-none">
+                <div className="relative h-40 sm:h-56 w-full overflow-hidden border-0 shadow-none">
                     <img 
                         src="/dashboard-bg.png" 
                         alt="Banner" 
@@ -280,8 +280,6 @@ export default function CustomerDashboard() {
                         </button>
                     </div>
 
-                    {/* Upward Curve Effect - More Pronounced & Perfectly Seamless */}
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[200%] h-28 bg-background border-none rounded-[100%] translate-y-16 shadow-none"></div>
                 </div>
 
                 {/* Overlapping Profile Section */}
@@ -322,7 +320,7 @@ export default function CustomerDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 {/* Connection Status */}
-                <motion.div variants={itemVariants} className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-white/5 shadow-xl">
+                <motion.div variants={itemVariants} className="bg-white/90 dark:bg-white/[0.04] backdrop-blur-xl rounded-3xl p-8 border border-black/5 dark:border-white/10 shadow-lg dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
@@ -370,7 +368,7 @@ export default function CustomerDashboard() {
                 </motion.div>
 
                 {/* Billing Status */}
-                <motion.div variants={itemVariants} className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-white/5 shadow-xl">
+                <motion.div variants={itemVariants} className="bg-white/90 dark:bg-white/[0.04] backdrop-blur-xl rounded-3xl p-8 border border-black/5 dark:border-white/10 shadow-lg dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
@@ -493,7 +491,7 @@ export default function CustomerDashboard() {
                                 </button>
                             </div>
                         ) : (
-                            <div className="text-center md:text-right p-4 bg-white/50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300">
+                            <div className="text-center md:text-right p-6 bg-white/50 dark:bg-white/[0.04] rounded-2xl border border-dashed border-black/10 dark:border-white/20">
                                 <p className="text-gray-500 text-sm">{t('customerDashboard.routerNotFound')}</p>
                                 <p className="text-xs text-gray-400 mt-1">{t('customerDashboard.contactAdmin')}</p>
                             </div>
@@ -501,10 +499,8 @@ export default function CustomerDashboard() {
                     </div>
                 </motion.div>
 
-            </div>
-
                 {/* Support Tickets Section */}
-                <motion.div variants={itemVariants} className="md:col-span-2 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-white/5 shadow-xl">
+                <motion.div variants={itemVariants} className="md:col-span-2 bg-white/90 dark:bg-white/[0.04] backdrop-blur-xl rounded-3xl p-8 border border-black/5 dark:border-white/10 shadow-lg dark:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl">

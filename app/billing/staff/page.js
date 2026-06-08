@@ -126,9 +126,9 @@ export default function StaffBillingPage() {
     }
 
     return (
-        <div className="space-y-8 pb-12 bg-background min-h-screen -m-6 p-6">
+        <div className="space-y-8 pb-12">
             {/* Premium Header with Banner & Overlapping Avatar */}
-            <div className="relative mb-12 sm:mb-14 -mx-6 -mt-6">
+            <div className="relative mb-12 sm:mb-14 -mx-2 md:-mx-8 -mt-20 md:-mt-24">
                 {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
                 <div className="relative h-48 sm:h-64 w-full overflow-hidden border-0 shadow-none outline-none">
                     <img 
@@ -151,14 +151,13 @@ export default function StaffBillingPage() {
                                 className="bg-transparent outline-none font-bold cursor-pointer text-sm appearance-none pr-1"
                             >
                                 {months.map((m, i) => (
-                                    <option key={i} value={i} className="text-gray-900">{m}</option>
+                                    <option key={i} value={i} className="text-gray-900 dark:text-white dark:bg-gray-800">{m}</option>
                                 ))}
                             </select>
                         </div>
                     </div>
 
-                    {/* Upward Curve Effect - Perfectly Seamless */}
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[200%] h-32 bg-background border-none rounded-[100%] translate-y-20 shadow-none"></div>
+
                 </div>
 
                 {/* Overlapping Profile Section */}
@@ -247,17 +246,17 @@ export default function StaffBillingPage() {
                     {/* Paid Customers */}
                     <motion.div
                         variants={itemVariants}
-                        className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-md border border-gray-100 group hover:border-violet-200 transition-colors"
+                        className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-md border border-gray-100 dark:border-gray-700 group hover:border-violet-200 dark:hover:border-violet-800 transition-colors"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <div className="p-3 bg-violet-50 text-violet-600 rounded-xl group-hover:bg-violet-100 transition-colors">
+                            <div className="p-3 bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-xl group-hover:bg-violet-100 transition-colors">
                                 <UserCheck size={24} />
                             </div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-gray-400">{t('billing.paid')}</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">{t('billing.paid')}</span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-gray-500 text-sm font-medium">{t('billing.paid')} {t('billing.customer')}</p>
-                            <h3 className="text-3xl font-bold text-gray-900">{stats.paidCount}</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{t('billing.paid')} {t('billing.customer')}</p>
+                            <h3 className="text-3xl font-bold text-gray-900 dark:text-white">{stats.paidCount}</h3>
                         </div>
                         <div className="absolute bottom-0 right-0 h-1 w-full bg-gradient-to-r from-violet-500 to-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                     </motion.div>
@@ -265,17 +264,17 @@ export default function StaffBillingPage() {
                     {/* Unpaid Customers */}
                     <motion.div
                         variants={itemVariants}
-                        className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-md border border-gray-100 group hover:border-rose-200 transition-colors"
+                        className="relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-md border border-gray-100 dark:border-gray-700 group hover:border-rose-200 dark:hover:border-rose-800 transition-colors"
                     >
                         <div className="flex items-center justify-between mb-6">
-                            <div className="p-3 bg-rose-50 text-rose-600 rounded-xl group-hover:bg-rose-100 transition-colors">
+                            <div className="p-3 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-xl group-hover:bg-rose-100 transition-colors">
                                 <UserX size={24} />
                             </div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-gray-400">{t('billing.unpaid')}</span>
+                            <span className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">{t('billing.unpaid')}</span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-gray-500 text-sm font-medium">{t('billing.unpaid')}</p>
-                            <h3 className="text-3xl font-bold text-gray-900">{stats.unpaidCount}</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{t('billing.unpaid')}</p>
+                            <h3 className="text-3xl font-bold text-gray-900 dark:text-white">{stats.unpaidCount}</h3>
                         </div>
                         <div className="absolute bottom-0 right-0 h-1 w-full bg-gradient-to-r from-rose-500 to-red-500 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
                     </motion.div>
@@ -287,15 +286,15 @@ export default function StaffBillingPage() {
                 variants={itemVariants}
                 initial="hidden"
                 animate="visible"
-                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+                className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700"
             >
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             <BarChart2 size={20} className="text-blue-600" />
                             {t('billing.performance')} {selectedYear}
                         </h2>
-                        <p className="text-sm text-gray-500">{t('billing.performanceSub')}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('billing.performanceSub')}</p>
                     </div>
                 </div>
 
@@ -348,15 +347,15 @@ export default function StaffBillingPage() {
                 variants={itemVariants}
                 initial="hidden"
                 animate="visible"
-                className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100"
+                className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700"
             >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
-                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             <FileText size={20} className="text-blue-600" />
                             {t('billing.invoiceList')}
                         </h2>
-                        <p className="text-sm text-gray-500">{t('billing.invoiceListSub')}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('billing.invoiceListSub')}</p>
                     </div>
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -365,7 +364,7 @@ export default function StaffBillingPage() {
                             placeholder={t('billing.searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64"
+                            className="pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64"
                         />
                     </div>
                 </div>
@@ -373,43 +372,43 @@ export default function StaffBillingPage() {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-gray-100">
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('billing.invoice')}</th>
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('billing.customer')}</th>
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('common.date')}</th>
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('common.status')}</th>
-                                <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">{t('common.amount')}</th>
+                            <tr className="border-b border-gray-100 dark:border-gray-700">
+                                <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('billing.invoice')}</th>
+                                <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('billing.customer')}</th>
+                                <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('common.date')}</th>
+                                <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('common.status')}</th>
+                                <th className="p-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">{t('common.amount')}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
                             {filteredPayments.length > 0 ? (
                                 filteredPayments.map((payment) => (
-                                    <tr key={payment.id} className="hover:bg-gray-50/50 transition-colors">
+                                    <tr key={payment.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
                                         <td className="p-4">
-                                            <span className="font-mono text-sm text-gray-600">{payment.invoiceNumber}</span>
+                                            <span className="font-mono text-sm text-gray-600 dark:text-gray-400">{payment.invoiceNumber}</span>
                                         </td>
                                         <td className="p-4">
-                                            <div className="font-medium text-gray-900">{payment.username}</div>
+                                            <div className="font-medium text-gray-900 dark:text-white">{payment.username}</div>
                                         </td>
-                                        <td className="p-4 text-sm text-gray-500">
+                                        <td className="p-4 text-sm text-gray-500 dark:text-gray-400">
                                             {new Date(payment.date).toLocaleDateString(resolvedLanguage === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                         </td>
                                         <td className="p-4">
                                             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${payment.status === 'completed'
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-red-100 text-red-700'
+                                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                                                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                                                 }`}>
                                                 {payment.status === 'completed' ? t('billing.paid') : t('billing.unpaid')}
                                             </span>
                                         </td>
-                                        <td className="p-4 text-right font-medium text-gray-900">
+                                        <td className="p-4 text-right font-medium text-gray-900 dark:text-white">
                                             {formatCurrency(payment.amount)}
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="5" className="p-8 text-center text-gray-500">
+                                    <td colSpan="5" className="p-8 text-center text-gray-500 dark:text-gray-400">
                                         {t('billing.noCommissions')}
                                     </td>
                                 </tr>

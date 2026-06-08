@@ -38,8 +38,8 @@ export default function IsolirPage() {
     const contactLabel = contact?.name ? contact.name : 'Admin';
 
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden border-t-4 border-red-600">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4 text-foreground">
+            <div className="glass shadow-xl max-w-md w-full overflow-hidden border-t-4 border-t-red-600 rounded-2xl">
                 <div className="p-8 text-center">
                     <div className="flex justify-center mb-6">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -53,8 +53,8 @@ export default function IsolirPage() {
                         <WifiOff size={48} className="text-red-600" />
                     </div>
 
-                    <h1 className="text-2xl font-bold text-gray-800 mb-2">Layanan Terisolir</h1>
-                    <p className="text-gray-600 mb-6">
+                    <h1 className="text-2xl font-bold text-foreground mb-2">Layanan Terisolir</h1>
+                    <p className="text-muted-foreground mb-6">
                         Maaf, layanan internet Anda saat ini dinonaktifkan sementara karena ada tagihan yang belum terselesaikan.
                     </p>
 
@@ -81,7 +81,7 @@ export default function IsolirPage() {
                             {loading ? 'Memuat Kontak...' : `Hubungi ${contactLabel} via WhatsApp`}
                         </a>
 
-                        <p className="text-xs text-gray-500 mt-4">
+                        <p className="text-xs text-muted-foreground mt-4">
                             Jika Anda sudah melakukan pembayaran namun halaman ini masih muncul, silakan restart modem/router Anda.
                         </p>
                     </div>

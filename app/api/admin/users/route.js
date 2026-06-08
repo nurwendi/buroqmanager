@@ -102,14 +102,14 @@ export async function POST(request) {
                         select: { agentNumber: true }
                     });
 
-                    let maxNum = 100; // Start at 100
+                    let maxNum = 1; // Start at 01
                     for (const a of admins) {
                         const n = parseInt(a.agentNumber);
                         if (!isNaN(n) && n >= maxNum) {
                             maxNum = n + 1;
                         }
                     }
-                    body.agentNumber = String(maxNum);
+                    body.agentNumber = String(maxNum).padStart(2, '0');
                 }
             }
         }

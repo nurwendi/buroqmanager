@@ -7,7 +7,7 @@ export default function OldSettingsRedirect() {
     const router = useRouter();
 
     useEffect(() => {
-        router.push('/invoice-settings'); // Redirect everyone to new page (which handles auth)
+        router.push('/app-settings'); // Redirect to App Settings
     }, [router]);
 
     return null;

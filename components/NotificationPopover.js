@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, Check, Trash2, X, Info, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function NotificationPopover({ isBadgeOnly = false, position = 'bottom' }) {
+    const { t } = useLanguage();
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -129,8 +131,8 @@ export default function NotificationPopover({ isBadgeOnly = false, position = 'b
                 <div className={`absolute right-0 w-80 md:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden z-[100] ${popoverPositionClass} duration-200`}>
                     <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
                         <h3 className="font-semibold text-gray-800 dark:text-white flex items-center gap-2">
-                            Pemberitahuan
-                            {unreadCount > 0 && <span className="text-[10px] px-2 py-0.5 bg-accent/20 text-accent rounded-full">{unreadCount} baru</span>}
+                            {t("notifications.popoverTitle")}
+                            {unreadCount > 0 && <span className="text-[10px] px-2 py-0.5 bg-accent/20 text-accent rounded-full">{unreadCount} {t("notifications.popoverNew")}</span>}
                         </h3>
                         {unreadCount > 0 && (
                             <button
@@ -146,7 +148,7 @@ export default function NotificationPopover({ isBadgeOnly = false, position = 'b
                         {notifications.length === 0 ? (
                             <div className="p-8 text-center">
                                 <Bell className="mx-auto text-gray-300 dark:text-gray-600 mb-2" size={32} />
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Belum ada notifikasi.</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">{t("notifications.popoverEmpty")}</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -194,7 +196,7 @@ export default function NotificationPopover({ isBadgeOnly = false, position = 'b
                         onClick={() => setIsOpen(false)}
                         className="block p-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-accent dark:hover:text-accent border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50"
                     >
-                        Lihat Semua Notifikasi
+                        {t("notifications.popoverViewAll")}
                     </Link>
                 </div>
             )}

@@ -22,8 +22,8 @@ export default function PendingRegistrationStats({ stats }) {
     // Let's show it always so they know where to look.
 
     return (
-        <motion.div variants={itemVariants}>
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+        <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
                 <div className="p-2 bg-gradient-to-br from-orange-100 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/20 rounded-lg shadow-lg shadow-orange-500/20 text-orange-600 dark:text-orange-400">
                     <UserPlus size={20} />
                 </div>

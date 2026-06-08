@@ -51,9 +51,9 @@ export default function PppoePieChart({ active = 0, offline = 0, total = 0 }) {
   return (
     <div
       onClick={handleClick}
-      className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all cursor-pointer h-full flex flex-col relative group overflow-hidden"
+      className="bg-gray-50 dark:bg-gray-900/40 rounded-xl p-6 border border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all cursor-pointer h-full flex flex-col relative group overflow-hidden"
     >
-      <div className="absolute inset-0 bg-blue-50/0 group-hover:bg-blue-50/50 dark:group-hover:bg-blue-900/10 transition-colors duration-300 pointer-events-none" />
+      <div className="absolute inset-0 bg-blue-50/0 group-hover:bg-blue-50/50 dark:group-hover:bg-blue-900/20 transition-colors duration-300 pointer-events-none" />
 
       <div className="flex items-center justify-between mb-4 relative z-10 w-full">
         <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">

@@ -118,10 +118,10 @@ export default function DropUsersPage() {
     };
 
     const renderTable = (data, type) => (
-        <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
+        <div className="glass shadow-md rounded-2xl overflow-hidden">
             <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-50 dark:bg-gray-700">
+                <table className="min-w-full divide-y divide-border">
+                    <thead className="bg-muted/50 text-muted-foreground border-b border-border">
                         <tr>
                             <th className="px-6 py-3 text-left">
                                 <input
@@ -144,14 +144,14 @@ export default function DropUsersPage() {
                             )}
                         </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody className="divide-y divide-border">
                         {data.length === 0 ? (
                             <tr>
-                                <td colSpan={type === 'inactive' ? 4 : 4} className="px-6 py-4 text-center text-gray-500">Tidak ada data.</td>
+                                <td colSpan={type === 'inactive' ? 4 : 4} className="px-6 py-4 text-center text-muted-foreground">Tidak ada data.</td>
                             </tr>
                         ) : (
                             data.map((user) => (
-                                <tr key={user.username} className={selectedIds.has(user.username) ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}>
+                                <tr key={user.username} className={selectedIds.has(user.username) ? 'bg-accent/5' : ''}>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <input
                                             type="checkbox"
@@ -160,14 +160,14 @@ export default function DropUsersPage() {
                                             className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                         />
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{user.username}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{user.username}</td>
 
                                     {type === 'inactive' ? (
                                         <>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                                 {user.lastSeen === 'Never' ? 'Never' : new Date(user.lastSeen).toLocaleDateString()}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
                                                     {user.status}
                                                 </span>
@@ -175,7 +175,7 @@ export default function DropUsersPage() {
                                         </>
                                     ) : (
                                         <>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 {type === 'drop' ? (
                                                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                                         {user.currentProfile}
@@ -187,7 +187,7 @@ export default function DropUsersPage() {
                                                 )}
                                             </td>
                                             {type === 'drop' && (
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{user.name}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{user.name}</td>
                                             )}
                                         </>
                                     )}
@@ -201,26 +201,26 @@ export default function DropUsersPage() {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen bg-background text-foreground">
             <Navbar />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                    <h1 className="text-2xl font-bold flex items-center">
                         <ShieldAlert className="w-8 h-8 mr-2 text-red-600" />
                         Manajemen Isolir (Drop Users)
                     </h1>
-                    <button onClick={() => { fetchData(); fetchInactiveUsers(); }} className="p-2 bg-white dark:bg-gray-800 rounded-full shadow hover:bg-gray-100 transition-colors">
-                        <RefreshCw className={`w-5 h-5 text-gray-600 dark:text-gray-300 ${loading ? 'animate-spin' : ''}`} />
+                    <button onClick={() => { fetchData(); fetchInactiveUsers(); }} className="p-2 glass rounded-full shadow hover:bg-muted/50 transition-colors">
+                        <RefreshCw className={`w-5 h-5 text-muted-foreground ${loading ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex space-x-4 mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+                <div className="flex space-x-4 mb-6 border-b border-border overflow-x-auto">
                     <button
                         onClick={() => { setActiveTab('unpaid'); setSelectedIds(new Set()); }}
                         className={`pb-2 px-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'unpaid'
                             ? 'text-red-600 border-b-2 border-red-600'
-                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                            : 'text-muted-foreground hover:text-foreground'
                             }`}
                     >
                         <div className="flex items-center">
@@ -235,7 +235,7 @@ export default function DropUsersPage() {
                         onClick={() => { setActiveTab('dropped'); setSelectedIds(new Set()); }}
                         className={`pb-2 px-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'dropped'
                             ? 'text-green-600 border-b-2 border-green-600'
-                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                            : 'text-muted-foreground hover:text-foreground'
                             }`}
                     >
                         <div className="flex items-center">
@@ -249,8 +249,8 @@ export default function DropUsersPage() {
                     <button
                         onClick={() => { setActiveTab('inactive'); setSelectedIds(new Set()); }}
                         className={`pb-2 px-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'inactive'
-                            ? 'text-gray-800 dark:text-white border-b-2 border-gray-800 dark:border-white'
-                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                            ? 'text-foreground border-b-2 border-foreground'
+                            : 'text-muted-foreground hover:text-foreground'
                             }`}
                     >
                         <div className="flex items-center">
@@ -265,8 +265,8 @@ export default function DropUsersPage() {
 
                 {/* Toolbar */}
                 {selectedIds.size > 0 && (
-                    <div className="mb-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg flex items-center justify-between animate-fade-in-up">
-                        <span className="text-sm font-medium text-indigo-800 dark:text-indigo-200">
+                    <div className="mb-4 p-4 bg-accent/10 rounded-2xl flex items-center justify-between animate-fade-in-up border border-accent/20">
+                        <span className="text-sm font-medium text-accent">
                             {selectedIds.size} user terpilih
                         </span>
                         <div className="flex space-x-2">

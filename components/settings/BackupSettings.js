@@ -1,11 +1,8 @@
-'use client';
-
 import { useState, useEffect } from 'react';
-import { Save, Download, RotateCcw, Trash2, ArrowLeft, Database, AlertCircle, Upload } from 'lucide-react';
-import Link from 'next/link';
+import { Save, Download, RotateCcw, Trash2, Database, AlertCircle, Upload } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-export default function BackupPage() {
+export default function BackupSettings() {
     const { t } = useLanguage();
     const [backups, setBackups] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -14,16 +11,7 @@ export default function BackupPage() {
     const [confirmRestore, setConfirmRestore] = useState(null);
 
     useEffect(() => {
-        fetch('/api/auth/me')
-            .then(res => res.json())
-            .then(data => {
-                if (data.user?.role !== 'superadmin') {
-                    window.location.href = '/';
-                } else {
-                    fetchBackups();
-                }
-            })
-            .catch(() => window.location.href = '/');
+        fetchBackups();
     }, []);
 
     const fetchBackups = async () => {
@@ -162,12 +150,12 @@ export default function BackupPage() {
     return (
         <div className="max-w-6xl mx-auto space-y-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
-                <div className="flex items-center gap-4">
-                    <Link href="/settings" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        <ArrowLeft size={24} className="text-gray-600 dark:text-gray-300" />
-                    </Link>
+                <div className="flex items-center gap-3">
+                    <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400">
+                        <Database size={24} />
+                    </div>
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('backup.title')}</h1>
+                        <h2 className="text-xl font-bold text-gray-800 dark:text-white">{t('backup.title')}</h2>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Kelola backup data aplikasi Anda</p>
                     </div>
                 </div>

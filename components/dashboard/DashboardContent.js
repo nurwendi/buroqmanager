@@ -300,7 +300,7 @@ export default function DashboardContent() {
       animate="visible"
     >
       {/* Premium Header with Banner & Overlapping Avatar */}
-      <motion.div variants={itemVariants} className="relative mb-8 sm:mb-12 -mx-4 md:-mx-8 -mt-4 md:-mt-8">
+      <motion.div variants={itemVariants} className="relative mb-8 sm:mb-12 -mx-2 md:-mx-8 -mt-20 md:-mt-24">
         {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
         <div className="relative h-48 sm:h-64 w-full overflow-hidden border-0 shadow-none outline-none">
           <img 
@@ -322,9 +322,6 @@ export default function DashboardContent() {
               <RefreshCw size={18} className="group-active:rotate-180 transition-transform duration-500" />
             </button>
           </div>
-
-          {/* Upward Curve Effect - More Pronounced & Perfectly Seamless */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[200%] h-32 bg-background border-none rounded-[100%] translate-y-20 shadow-none"></div>
         </div>
 
         {/* Overlapping Profile Section */}
@@ -388,12 +385,11 @@ export default function DashboardContent() {
             <PendingRegistrationStats key="pending" stats={stats} />
 
             {/* New Unified Top Cards */}
-            <motion.div variants={itemVariants}>
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                <Activity
-                  size={20}
-                  className="text-indigo-600 dark:text-indigo-400"
-                />
+            <motion.div variants={itemVariants} className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
+                <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+                  <Activity size={20} />
+                </div>
                 {t("dashboard.systemOverview") || "General Overview"}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -405,13 +401,13 @@ export default function DashboardContent() {
                 />
 
                 {/* System Users */}
-                <Link href="/system-users" className="block">
-                  <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow h-full cursor-pointer">
+                <Link href="/system-users" className="block h-full">
+                  <div className="bg-gray-50 dark:bg-gray-900/40 rounded-xl p-6 border border-gray-100 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors h-full flex flex-col justify-center">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase">
                         {t("sidebar.systemUsers") || "System Users"}
                       </h3>
-                      <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg text-indigo-600 dark:text-indigo-400">
+                      <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg text-indigo-600 dark:text-indigo-400">
                         <Users size={20} />
                       </div>
                     </div>

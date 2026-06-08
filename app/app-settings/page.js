@@ -25,6 +25,8 @@ import {
   Sun,
   Moon,
   Shield,
+  FileText,
+  Database,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -32,6 +34,8 @@ import { useDashboard } from "@/contexts/DashboardContext";
 import { useTheme, accentColors } from "@/contexts/ThemeContext";
 import { motion } from "framer-motion";
 import PaymentGatewaySettings from "@/components/settings/PaymentGatewaySettings";
+import InvoiceSettings from "@/components/settings/InvoiceSettings";
+import BackupSettings from "@/components/settings/BackupSettings";
 
 export default function AppSettingsPage() {
   const { language, setLanguage, t } = useLanguage();
@@ -83,10 +87,22 @@ export default function AppSettingsPage() {
       hidden: !isSuperAdmin,
     },
     {
+      id: "invoice",
+      label: "Invoice",
+      icon: FileText,
+      hidden: !isSuperAdmin,
+    },
+    {
       id: "security",
       label: t("appSettings.securitySettings"),
       icon: Shield,
       hidden: !isSuperAdmin,
+    },
+    {
+      id: "backup",
+      label: t('sidebar.backup') || "Backup & Restore",
+      icon: Database,
+      hidden: !['superadmin', 'admin', 'manager'].includes(userRole),
     },
   ].filter((tab) => !tab.hidden);
 
@@ -1679,6 +1695,14 @@ export default function AppSettingsPage() {
                 </button>
               </form>
             </div>
+          )}
+
+          {activeTab === "invoice" && isSuperAdmin && (
+             <InvoiceSettings />
+          )}
+
+          {activeTab === "backup" && ['superadmin', 'admin', 'manager'].includes(userRole) && (
+             <BackupSettings />
           )}
         </div>
       </div>
