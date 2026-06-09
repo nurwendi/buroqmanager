@@ -232,7 +232,7 @@ export default function AdminTicketsPage() {
                 {/* Content Area */}
                 <>
                         {/* Stats */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                             <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
                                 <div className="p-3 bg-blue-100 dark:bg-blue-950/40 text-blue-600 rounded-lg">
                                     <AlertCircle size={20} />
