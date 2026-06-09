@@ -93,23 +93,32 @@ export async function POST(request, { params }) {
             senderName = ticket.customer.name;
         } else if (user.role === 'technician') {
             senderType = 'technician';
-            // Only allow assigned technician or admin/superadmin to chat
-            if (ticket.technicianId !== user.id) {
+            // Only allow assigned technician or admin/superadmin to chat (or unassigned if customer belongs to them)
+            if (ticket.technicianId !== user.id && !(ticket.technicianId === null && ticket.customer?.technicianId === user.id)) {
                 return NextResponse.json({ error: 'Ticket not assigned to you' }, { status: 403 });
             }
         } else if (user.role === 'agent' || user.role === 'partner') {
-            senderType = 'technician'; // treat agent/partner as technical responder in logs/type for simplicity
-            if (ticket.technicianId !== user.id) {
+            senderType = 'technician'; // treat agent/partner as responder in logs/type for simplicity
+            if (ticket.technicianId !== user.id && !(ticket.technicianId === null && (ticket.customer?.agentId === user.id || ticket.customer?.technicianId === user.id))) {
                 return NextResponse.json({ error: 'Ticket not assigned to you' }, { status: 403 });
             }
         }
 
-        // If the ticket was open, automatically update status to in_progress upon staff reply
-        if (senderType !== 'customer' && ticket.status === 'open') {
-            await db.ticket.update({
-                where: { id: ticketId },
-                data: { status: 'in_progress' }
-            });
+        // Auto-assign and update status upon staff reply
+        if (senderType !== 'customer') {
+            const updateData = {};
+            if (ticket.status === 'open') {
+                updateData.status = 'in_progress';
+            }
+            if (ticket.technicianId === null) {
+                updateData.technicianId = user.id;
+            }
+            if (Object.keys(updateData).length > 0) {
+                await db.ticket.update({
+                    where: { id: ticketId },
+                    data: updateData
+                });
+            }
         }
 
         // Create message

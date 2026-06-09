@@ -20,7 +20,9 @@ export async function GET(request, { params }) {
                         name: true,
                         phone: true,
                         address: true,
-                        email: true
+                        email: true,
+                        agentId: true,
+                        technicianId: true
                     }
                 },
                 technician: {
@@ -48,8 +50,11 @@ export async function GET(request, { params }) {
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
 
-        if (user.role === 'technician' && ticket.technicianId !== user.id && ticket.category === 'teknis' && ticket.technicianId !== null) {
-            // Unassigned technical tickets can be accessed, but not ones assigned to other technicians
+        if (user.role === 'technician' && ticket.technicianId !== user.id && ticket.category === 'teknis' && ticket.technicianId !== null && ticket.customer?.technicianId !== user.id) {
+            return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+        }
+
+        if ((user.role === 'agent' || user.role === 'partner') && ticket.technicianId !== user.id && ticket.customer?.agentId !== user.id && ticket.customer?.technicianId !== user.id && !(ticket.category === 'tagihan' && ticket.technicianId === null)) {
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
 

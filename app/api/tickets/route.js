@@ -19,15 +19,18 @@ export async function GET(request) {
         if (user.role === 'customer') {
             where.customerId = user.id;
         } else if (user.role === 'technician') {
-            // Show tickets assigned to this technician or unassigned technical tickets
+            // Show tickets assigned to this technician, tickets for their customers, or unassigned technical tickets
             where.OR = [
                 { technicianId: user.id },
+                { customer: { technicianId: user.id } },
                 { AND: [{ category: 'teknis' }, { technicianId: null }] }
             ];
         } else if (user.role === 'agent' || user.role === 'partner') {
-            // Show tickets assigned to this agent or unassigned billing tickets
+            // Show tickets assigned to this agent/partner, tickets for their customers, or unassigned billing tickets
             where.OR = [
                 { technicianId: user.id },
+                { customer: { agentId: user.id } },
+                { customer: { technicianId: user.id } },
                 { AND: [{ category: 'tagihan' }, { technicianId: null }] }
             ];
         } else if (user.role === 'admin' || user.role === 'superadmin') {
