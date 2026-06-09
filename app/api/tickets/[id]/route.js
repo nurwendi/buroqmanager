@@ -109,7 +109,7 @@ export async function PATCH(request, { params }) {
         }
 
         // If a technician wants to mark a ticket as in-progress or resolved
-        if (user.role === 'technician' || user.role === 'agent') {
+        if (user.role === 'technician' || user.role === 'agent' || user.role === 'partner') {
             if (ticket.technicianId !== user.id) {
                 return NextResponse.json({ error: 'Ticket is not assigned to you' }, { status: 403 });
             }

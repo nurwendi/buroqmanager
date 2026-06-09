@@ -70,7 +70,7 @@ export default function Navbar() {
 
     const navItems = [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
-        { href: '/tickets', icon: MessageSquare, label: t('sidebar.tickets'), roles: ['admin', 'superadmin', 'manager', 'technician', 'agent'] },
+        { href: '/tickets', icon: MessageSquare, label: t('sidebar.tickets'), roles: ['admin', 'superadmin', 'manager', 'technician', 'agent', 'partner'] },
         { href: '/maps', icon: MapPin, label: t('maps.navTitle') || 'Peta', roles: ['admin', 'superadmin', 'manager', 'agent', 'technician'] },
         { href: '/genieacs', icon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));

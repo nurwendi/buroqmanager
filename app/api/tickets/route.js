@@ -24,7 +24,7 @@ export async function GET(request) {
                 { technicianId: user.id },
                 { AND: [{ category: 'teknis' }, { technicianId: null }] }
             ];
-        } else if (user.role === 'agent') {
+        } else if (user.role === 'agent' || user.role === 'partner') {
             // Show tickets assigned to this agent or unassigned billing tickets
             where.OR = [
                 { technicianId: user.id },

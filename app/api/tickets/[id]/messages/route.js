@@ -97,8 +97,8 @@ export async function POST(request, { params }) {
             if (ticket.technicianId !== user.id) {
                 return NextResponse.json({ error: 'Ticket not assigned to you' }, { status: 403 });
             }
-        } else if (user.role === 'agent') {
-            senderType = 'technician'; // treat agent as technical responder in logs/type for simplicity
+        } else if (user.role === 'agent' || user.role === 'partner') {
+            senderType = 'technician'; // treat agent/partner as technical responder in logs/type for simplicity
             if (ticket.technicianId !== user.id) {
                 return NextResponse.json({ error: 'Ticket not assigned to you' }, { status: 403 });
             }
