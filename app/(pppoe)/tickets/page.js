@@ -86,7 +86,7 @@ export default function AdminTicketsPage() {
 
     const fetchStaffList = async () => {
         try {
-            const res = await fetch('/api/system-users');
+            const res = await fetch('/api/admin/users');
             if (res.ok) {
                 const data = await res.json();
                 // Filter users who are technicians or agents
