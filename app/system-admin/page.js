@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Edit2, Plus, Trash2, Shield, ShieldAlert, User, Lock } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function SystemAdminPage() {
     const { t } = useLanguage();
@@ -149,19 +150,33 @@ export default function SystemAdminPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('sidebar.systemUsers')}</h1>
-                    <p className="text-gray-500 dark:text-gray-400">{t('sidebar.owners')}</p>
-                </div>
+            <HeaderBanner
+                title={t('sidebar.systemUsers')}
+                description={t('sidebar.owners')}
+                icon={Shield}
+            >
                 <button
                     onClick={() => {
                         resetForm();
                         setShowModal(true);
                     }}
-                    className="w-full md:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30"
+                    className="bg-accent/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs sm:text-sm font-semibold border border-accent-500/30"
                 >
-                    <Plus size={20} /> {t('common.add')} {t('sidebar.owners')}
+                    <Plus size={16} /> {t('common.add')} {t('sidebar.owners')}
+                </button>
+            </HeaderBanner>
+
+            {/* Mobile Controls Section */}
+            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <button
+                    onClick={() => {
+                        resetForm();
+                        setShowModal(true);
+                    }}
+                    className="w-full bg-accent text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs font-semibold"
+                >
+                    <Plus size={14} />
+                    <span>{t('common.add')} {t('sidebar.owners')}</span>
                 </button>
             </div>
 

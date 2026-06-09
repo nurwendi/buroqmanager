@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { MapPin, Users } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
+import HeaderBanner from '@/components/HeaderBanner';
 
 // Leaflet needs to be dynamically imported with ssr: false
 const CustomerMap = dynamic(() => import('@/components/CustomerMap'), {
@@ -26,21 +27,27 @@ export default function MapsPage() {
             animate={{ opacity: 1, y: 0 }}
             className="w-full space-y-6 text-slate-800 dark:text-slate-100"
         >
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-2">
-                        <MapPin className="text-blue-500" size={28} />
-                        {t('maps.title')}
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">
-                        {t('maps.description')}
-                    </p>
-                </div>
-                <div className="bg-white dark:bg-slate-800/80 backdrop-blur-sm px-4 py-2 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700/50 flex items-center gap-3">
-                    <Users className="text-blue-500" size={20} />
+            <HeaderBanner
+                title={t('maps.title')}
+                description={t('maps.description')}
+                icon={MapPin}
+            >
+                <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/30 flex items-center gap-3 text-white">
+                    <Users size={20} className="text-white/80" />
                     <div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">{t('dashboard.totalCustomers')}</p>
-                        <p className="font-bold text-lg leading-tight">Map View</p>
+                        <p className="text-[10px] sm:text-xs text-white/70 font-medium uppercase tracking-wider">{t('dashboard.totalCustomers')}</p>
+                        <p className="font-bold text-sm sm:text-base leading-tight">Map View</p>
+                    </div>
+                </div>
+            </HeaderBanner>
+
+            {/* Mobile Controls Section (Visible only on mobile) */}
+            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <div className="flex items-center gap-3 text-gray-900 dark:text-white">
+                    <Users size={20} className="text-blue-500" />
+                    <div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">{t('dashboard.totalCustomers')}</p>
+                        <p className="font-bold text-sm sm:text-base leading-tight">Map View</p>
                     </div>
                 </div>
             </div>

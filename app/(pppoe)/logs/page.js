@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ClipboardList, RefreshCw, Calendar, Clock, User, Wifi, WifiOff } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function LogsPage() {
     const { t } = useLanguage();
@@ -71,25 +72,32 @@ export default function LogsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center bg-white/30 dark:bg-gray-900/30 p-6 rounded-2xl backdrop-blur-xl border border-white/20 dark:border-white/5 shadow-lg">
-                <div className="flex items-center gap-4">
-                    <div className="p-3 bg-accent rounded-xl shadow-lg shadow-accent/30">
-                        <ClipboardList className="text-white" size={24} />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('pppoe.connectionLogs')}</h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('pppoe.logsDesc')}</p>
-                    </div>
-                </div>
+            <HeaderBanner
+                title={t('pppoe.connectionLogs')}
+                description={t('pppoe.logsDesc')}
+                icon={ClipboardList}
+            >
+                <button
+                    onClick={fetchLogs}
+                    disabled={loading}
+                    className="bg-accent/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs sm:text-sm font-semibold border border-accent-500/30"
+                    title={t('common.refresh')}
+                >
+                    <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                    <span>{t('common.refresh')}</span>
+                </button>
+            </HeaderBanner>
 
-                <div className="flex gap-4">
+            {/* Mobile Controls Section (Visible only on mobile) */}
+            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <div className="flex items-center justify-end w-full">
                     <button
                         onClick={fetchLogs}
                         disabled={loading}
-                        className="p-2 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm border border-gray-200 dark:border-gray-700"
-                        title={t('common.refresh')}
+                        className="bg-accent text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs font-semibold"
                     >
-                        <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+                        <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                        <span>{t('common.refresh')}</span>
                     </button>
                 </div>
             </div>

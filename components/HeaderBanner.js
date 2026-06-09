@@ -5,7 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function HeaderBanner({ title, description, icon: Icon, children }) {
     const { t } = useLanguage();
-    const [bgUrl, setBgUrl] = useState('/dashboard-bg.png');
+    const [bgUrl, setBgUrl] = useState(null);
 
     useEffect(() => {
         fetch('/api/app-settings')
@@ -20,15 +20,19 @@ export default function HeaderBanner({ title, description, icon: Icon, children 
 
     return (
         <div className="relative mb-8 -mx-2 md:-mx-8 -mt-20 md:-mt-24 print:hidden">
-            <div className="relative h-44 sm:h-48 w-full overflow-hidden">
-                <img 
-                    src={bgUrl} 
-                    alt="Header Banner" 
-                    className="absolute inset-0 w-full h-full object-cover object-center scale-105"
-                    style={{ imageRendering: "high-quality" }}
-                />
-                <div className="absolute inset-0 bg-slate-900/30 mix-blend-multiply"></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-transparent via-black/10 to-black/50"></div>
+            <div className="relative h-44 sm:h-48 w-full overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900">
+                {bgUrl && (
+                    <>
+                        <img 
+                            src={bgUrl} 
+                            alt="Header Banner" 
+                            className="absolute inset-0 w-full h-full object-cover object-center scale-105"
+                            style={{ imageRendering: "high-quality" }}
+                        />
+                        <div className="absolute inset-0 bg-slate-900/30 mix-blend-multiply"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-black/10 to-black/50"></div>
+                    </>
+                )}
                 
                 <div className="absolute top-20 md:top-24 left-6 md:left-8 z-10">
                     <div className="flex items-center gap-3">

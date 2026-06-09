@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { WifiOff, RefreshCw, ArrowUpDown } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function OfflineUsersPage() {
     const { t } = useLanguage();
@@ -62,17 +63,28 @@ export default function OfflineUsersPage() {
     const offlineUsers = getSortedOfflineUsers();
 
     return (
-        <div className="p-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div className="flex items-center space-x-2">
-                    <WifiOff size={32} className="text-red-600 dark:text-red-500" />
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('pppoe.offlineUsers')}</h1>
-                </div>
+        <div className="space-y-6">
+            <HeaderBanner
+                title={t('pppoe.offlineUsers')}
+                description="List of PPPoE customers that are currently offline."
+                icon={WifiOff}
+            >
                 <button
                     onClick={fetchData}
-                    className="w-full md:w-auto flex items-center justify-center space-x-2 px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 shadow-lg shadow-accent/30 transition-all"
+                    className="bg-accent/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs sm:text-sm font-semibold border border-accent-500/30"
                 >
                     <RefreshCw size={16} />
+                    <span>{t('common.refresh')}</span>
+                </button>
+            </HeaderBanner>
+
+            {/* Mobile Controls Section (Visible only on mobile) */}
+            <div className="flex flex-wrap items-center gap-2 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <button
+                    onClick={fetchData}
+                    className="w-full bg-accent text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs font-semibold"
+                >
+                    <RefreshCw size={14} />
                     <span>{t('common.refresh')}</span>
                 </button>
             </div>

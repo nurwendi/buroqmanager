@@ -7,6 +7,7 @@ import {
     Filter, Send, User, ChevronRight, UserCheck, ShieldAlert, AlertTriangle,
     Megaphone, Users, UserCog, Loader2, Bell, Check, Info, Trash2
 } from 'lucide-react';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function AdminTicketsPage() {
     const { t } = useLanguage();
@@ -220,17 +221,14 @@ export default function AdminTicketsPage() {
 
 
     return (
-        <div className="text-slate-800 dark:text-slate-100">
-            <div className="w-full space-y-6">
-                
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight">{t('tickets.title')}</h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm">{t('tickets.description')}</p>
-                    </div>
-                </div>
+        <div className="space-y-6 text-slate-800 dark:text-slate-100">
+            <HeaderBanner
+                title={t('tickets.title')}
+                description={t('tickets.description')}
+                icon={MessageSquare}
+            />
 
+            <div className="w-full">
                 {/* Content Area */}
                 <>
                         {/* Stats */}

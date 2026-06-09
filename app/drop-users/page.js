@@ -1,7 +1,6 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import Navbar from '@/components/Navbar';
 import { ShieldAlert, ShieldCheck, RefreshCw, AlertTriangle, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -216,8 +215,7 @@ export default function DropUsersPage() {
     );
 
     return (
-        <div>
-            <Navbar />
+        <div className="space-y-6">
             {/* Global Header Banner */}
             <HeaderBanner
                 title="Manajemen Isolir (Drop Users)"

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { CreditCard, Plus, Trash2, Gauge, Search, Save, Edit2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function ProfilesPage() {
     const { t, resolvedLanguage } = useLanguage();
@@ -146,36 +147,59 @@ export default function ProfilesPage() {
     );
 
     return (
-        <div className="p-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <Gauge className="text-purple-600" /> {t('profiles.title')}
-                </h1>
-
-                <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                    <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
-                        <input
-                            type="text"
-                            placeholder={t('profiles.searchPlaceholder')}
-                            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-
-                    {['superadmin', 'admin', 'manager'].includes(userRole) && (
-                        <button
-                            onClick={() => {
-                                setForm({ id: null, name: '', price: 0, speedUp: 1024, speedDown: 2048, localAddress: '', remoteAddress: '', comment: '' });
-                                setShowModal(true);
-                            }}
-                            className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors"
-                        >
-                            <Plus size={18} /> {t('profiles.addProfile')}
-                        </button>
-                    )}
+        <div className="space-y-6">
+            <HeaderBanner
+                title={t('profiles.title')}
+                description="Manage PPPoE profile packages, speeds, and billing rates."
+                icon={Gauge}
+            >
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={16} />
+                    <input
+                        type="text"
+                        placeholder={t('profiles.searchPlaceholder')}
+                        className="pl-9 pr-4 py-1.5 border border-white/30 rounded-lg bg-black/40 backdrop-blur-md text-white placeholder-white/60 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-purple-500"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
+
+                {['superadmin', 'admin', 'manager'].includes(userRole) && (
+                    <button
+                        onClick={() => {
+                            setForm({ id: null, name: '', price: 0, speedUp: 1024, speedDown: 2048, localAddress: '', remoteAddress: '', comment: '' });
+                            setShowModal(true);
+                        }}
+                        className="bg-purple-600 text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:bg-purple-700 transition-colors shadow-md text-xs sm:text-sm font-semibold border border-purple-500/30"
+                    >
+                        <Plus size={16} /> {t('profiles.addProfile')}
+                    </button>
+                )}
+            </HeaderBanner>
+
+            {/* Mobile Controls Section (Visible only on mobile) */}
+            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <div className="relative w-full">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                    <input
+                        type="text"
+                        placeholder={t('profiles.searchPlaceholder')}
+                        className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-650 rounded-lg bg-white dark:bg-gray-750 text-xs text-gray-900 dark:text-white focus:outline-none"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                {['superadmin', 'admin', 'manager'].includes(userRole) && (
+                    <button
+                        onClick={() => {
+                            setForm({ id: null, name: '', price: 0, speedUp: 1024, speedDown: 2048, localAddress: '', remoteAddress: '', comment: '' });
+                            setShowModal(true);
+                        }}
+                        className="w-full bg-purple-650 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:bg-purple-700 transition-colors shadow-md text-xs font-semibold"
+                    >
+                        <Plus size={14} /> {t('profiles.addProfile')}
+                    </button>
+                )}
             </div>
 
             {loading ? (

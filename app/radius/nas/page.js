@@ -37,7 +37,7 @@ export default function NasPage() {
     };
 
     return (
-        <div>
+        <div className="space-y-6">
             {/* Global Header Banner */}
             <HeaderBanner
                 title="NAS List (Network Access Servers)"
@@ -51,6 +51,17 @@ export default function NasPage() {
                     <Plus size={16} /> Add NAS
                 </button>
             </HeaderBanner>
+
+            {/* Mobile Controls Section */}
+            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <button
+                    onClick={() => setShowModal(true)}
+                    className="w-full bg-accent text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs font-semibold"
+                >
+                    <Plus size={14} />
+                    <span>Add NAS</span>
+                </button>
+            </div>
 
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 <table className="w-full text-left">

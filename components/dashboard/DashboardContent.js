@@ -63,7 +63,7 @@ export default function DashboardContent() {
   const [userRole, setUserRole] = useState(null);
   const [username, setUsername] = useState("");
   const [avatar, setAvatar] = useState(null);
-  const [bgUrl, setBgUrl] = useState("/dashboard-bg.png"); // Default
+  const [bgUrl, setBgUrl] = useState(null); // Default
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(new Date());
 
@@ -302,15 +302,19 @@ export default function DashboardContent() {
       {/* Premium Header with Banner & Overlapping Avatar */}
       <motion.div variants={itemVariants} className="relative mb-8 sm:mb-12 -mx-2 md:-mx-8 -mt-20 md:-mt-24">
         {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
-        <div className="relative h-44 sm:h-48 w-full overflow-hidden border-0 shadow-none outline-none">
-          <img 
-            src={bgUrl} 
-            alt="Dashboard Background" 
-            className="absolute inset-0 w-full h-full object-cover object-center scale-110"
-            style={{ imageRendering: "high-quality" }}
-          />
-          <div className="absolute inset-0 bg-blue-900/10 mix-blend-multiply"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-transparent via-black/10 to-black/50"></div>
+        <div className="relative h-44 sm:h-48 w-full overflow-hidden border-0 shadow-none outline-none bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900">
+          {bgUrl && (
+            <>
+              <img 
+                src={bgUrl} 
+                alt="Dashboard Background" 
+                className="absolute inset-0 w-full h-full object-cover object-center scale-110"
+                style={{ imageRendering: "high-quality" }}
+              />
+              <div className="absolute inset-0 bg-blue-900/10 mix-blend-multiply"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-transparent via-black/10 to-black/50"></div>
+            </>
+          )}
           
           {/* Header Action: Refresh */}
           <div className="absolute top-20 md:top-24 right-6 md:right-8 z-20">

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Loader2, Server, User, WifiOff, Wifi } from 'lucide-react';
+import { Search, Loader2, Server, User, WifiOff, Wifi, Users } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function SuperadminUsersPage() {
     const { t } = useLanguage();
@@ -64,58 +65,102 @@ export default function SuperadminUsersPage() {
     };
 
     return (
-        <div className="p-6 max-h-screen overflow-hidden flex flex-col">
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold dark:text-white mb-2">{t('sidebar.allUsers')}</h1>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">
-                        {users.length} {t('users.totalUsers')} | {users.filter(u => u._sourceRouterName).length} {t('sidebar.routers')}
-                    </p>
-                </div>
+        <div className="space-y-6 max-h-screen overflow-hidden flex flex-col">
+            <HeaderBanner
+                title={t('sidebar.allUsers')}
+                description={`${users.length} ${t('users.totalUsers')} | ${users.filter(u => u._sourceRouterName).length} ${t('sidebar.routers')}`}
+                icon={Users}
+            >
                 <div className="flex flex-col md:flex-row gap-4 items-center">
-                    <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+                    <div className="flex bg-black/40 backdrop-blur-md rounded-lg p-1 border border-white/20">
                         <button
                             onClick={() => setFilterStatus('all')}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'all'
-                                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5 ${filterStatus === 'all'
+                                ? 'bg-white text-gray-900 shadow-sm'
+                                : 'text-white/60 hover:text-white'
                                 }`}
                         >
-                            <User size={16} />
+                            <User size={14} />
                             {t('users.all')}
                         </button>
                         <button
                             onClick={() => setFilterStatus('online')}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'online'
-                                ? 'bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 shadow-sm'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400'
+                            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5 ${filterStatus === 'online'
+                                ? 'bg-white text-green-600 shadow-sm'
+                                : 'text-white/60 hover:text-green-400'
                                 }`}
                         >
-                            <Wifi size={16} />
+                            <Wifi size={14} />
                             {t('users.online')}
                         </button>
                         <button
                             onClick={() => setFilterStatus('offline')}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${filterStatus === 'offline'
-                                ? 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 shadow-sm'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                            className={`px-3 py-1 text-xs font-semibold rounded-md transition-all flex items-center gap-1.5 ${filterStatus === 'offline'
+                                ? 'bg-white text-gray-600 shadow-sm'
+                                : 'text-white/60 hover:text-white'
                                 }`}
                         >
-                            <WifiOff size={16} />
+                            <WifiOff size={14} />
                             {t('users.offline')}
                         </button>
                     </div>
 
                     <div className="relative w-72">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60" size={16} />
                         <input
                             type="text"
                             placeholder={t('users.searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full pl-9 pr-4 py-1.5 rounded-xl border border-white/30 bg-black/40 backdrop-blur-md text-xs text-white placeholder-white/60 outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
+                </div>
+            </HeaderBanner>
+
+            {/* Mobile Controls Section */}
+            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+                    <button
+                        onClick={() => setFilterStatus('all')}
+                        className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${filterStatus === 'all'
+                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                            : 'text-gray-500 dark:text-gray-400'
+                            }`}
+                    >
+                        <User size={14} />
+                        {t('users.all')}
+                    </button>
+                    <button
+                        onClick={() => setFilterStatus('online')}
+                        className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${filterStatus === 'online'
+                            ? 'bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 shadow-sm'
+                            : 'text-gray-500 dark:text-gray-400'
+                            }`}
+                    >
+                        <Wifi size={14} />
+                        {t('users.online')}
+                    </button>
+                    <button
+                        onClick={() => setFilterStatus('offline')}
+                        className={`flex-1 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${filterStatus === 'offline'
+                            ? 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-305 shadow-sm'
+                            : 'text-gray-500 dark:text-gray-400'
+                            }`}
+                    >
+                        <WifiOff size={14} />
+                        {t('users.offline')}
+                    </button>
+                </div>
+                <div className="relative w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input
+                        type="text"
+                        placeholder={t('users.searchPlaceholder')}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-805 text-xs text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                 </div>
             </div>
 

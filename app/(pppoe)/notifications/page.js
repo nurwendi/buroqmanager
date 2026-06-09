@@ -6,6 +6,7 @@ import {
     AlertCircle, CheckCircle2, XCircle, Search, 
     Send, AlertTriangle, Megaphone, Users, UserCog, Loader2, Bell, Check, Info, Clock
 } from 'lucide-react';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function NotificationsPage() {
     const { t } = useLanguage();
@@ -145,17 +146,14 @@ export default function NotificationsPage() {
     const isAdmin = currentUser && ['superadmin', 'admin', 'manager'].includes(currentUser.role?.toLowerCase());
 
     return (
-        <div className="text-slate-800 dark:text-slate-100">
-            <div className="w-full space-y-6">
-                
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight">{t("notifications.title")}</h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm">{t("notifications.description")}</p>
-                    </div>
-                </div>
+        <div className="space-y-6 text-slate-800 dark:text-slate-100">
+            <HeaderBanner
+                title={t("notifications.title")}
+                description={t("notifications.description")}
+                icon={Bell}
+            />
 
+            <div className="w-full">
                 <div className="flex flex-col md:flex-row gap-8 items-start">
                     {/* Side Menu */}
                     <div className="w-full md:w-64 flex-shrink-0 space-y-2 bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm">

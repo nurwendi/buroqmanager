@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Router, Hourglass, Power, Search, Wifi } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+import HeaderBanner from '@/components/HeaderBanner';
+
 export default function GenieAcsPage() {
     const { t } = useLanguage();
     const [devices, setDevices] = useState([]);
@@ -126,19 +128,17 @@ export default function GenieAcsPage() {
     }
 
     return (
-
-
-        <div className="p-6">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                    <Router className="text-orange-500" /> {t('genieacs.title')}
-                </h1>
-
-                <form onSubmit={handleSearch} className="flex gap-2 w-full md:w-auto">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+        <div className="space-y-6">
+            <HeaderBanner
+                title={t('genieacs.title')}
+                description="Manage TR-069 ONU / ONT devices directly from the ACS server."
+                icon={Router}
+            >
+                <form onSubmit={handleSearch} className="flex gap-2">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={16} />
                         <input
-                            className="pl-10 pr-4 py-2 border rounded-lg w-full md:w-64"
+                            className="pl-9 pr-4 py-1.5 border border-white/30 rounded-lg bg-black/40 backdrop-blur-md text-white placeholder-white/60 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-orange-500"
                             placeholder={t('genieacs.placeholder')}
                             value={search}
                             onChange={e => setSearch(e.target.value)}
@@ -146,18 +146,49 @@ export default function GenieAcsPage() {
                     </div>
                     <button
                         type="submit"
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                        className="bg-orange-600 text-white px-3 py-1.5 rounded-lg flex items-center justify-center hover:bg-orange-700 transition-colors shadow-md text-xs sm:text-sm font-semibold border border-orange-500/30"
                     >
                         {t('common.search')}
                     </button>
                     <button
                         type="button"
                         onClick={() => { setSearch(''); fetchDevices(); }}
-                        className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-200"
+                        className="bg-white/20 backdrop-blur-sm text-white p-1.5 rounded-lg hover:bg-white/30 transition-all border border-white/30 flex items-center justify-center"
                         title={t('common.refresh')}
                     >
-                        <Hourglass size={20} className={loading ? 'animate-spin' : ''} />
+                        <Hourglass size={16} className={loading ? 'animate-spin' : ''} />
                     </button>
+                </form>
+            </HeaderBanner>
+
+            {/* Mobile Controls Section (Visible only on mobile) */}
+            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <form onSubmit={handleSearch} className="flex flex-col gap-2">
+                    <div className="relative w-full">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                        <input
+                            className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-650 rounded-lg bg-white dark:bg-gray-750 text-xs text-gray-900 dark:text-white focus:outline-none"
+                            placeholder={t('genieacs.placeholder')}
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            type="submit"
+                            className="flex-1 bg-orange-650 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:bg-orange-700 transition-colors shadow-md text-xs font-semibold"
+                        >
+                            {t('common.search')}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { setSearch(''); fetchDevices(); }}
+                            className="bg-gray-100 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-200 flex items-center justify-center"
+                            title={t('common.refresh')}
+                        >
+                            <Hourglass size={14} className={loading ? 'animate-spin' : ''} />
+                        </button>
+                    </div>
                 </form>
             </div>
 

@@ -36,6 +36,7 @@ import { motion } from "framer-motion";
 import PaymentGatewaySettings from "@/components/settings/PaymentGatewaySettings";
 import InvoiceSettings from "@/components/settings/InvoiceSettings";
 import BackupSettings from "@/components/settings/BackupSettings";
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function AppSettingsPage() {
   const { language, setLanguage, t } = useLanguage();
@@ -446,10 +447,12 @@ export default function AppSettingsPage() {
   };
 
   return (
-    <div className="w-full space-y-6">
-      <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">
-        {t("appSettings.title")}
-      </h1>
+    <div className="space-y-6">
+      <HeaderBanner
+        title={t("appSettings.title")}
+        description="Configure application preferences, language options, user credentials, custom branding, and settings."
+        icon={Gauge}
+      />
 
       {message.text && (
         <div

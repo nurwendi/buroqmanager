@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DollarSign, Users, UserCheck, UserX, Calendar } from 'lucide-react';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function AgentBillingPage() {
     const [stats, setStats] = useState(null);
@@ -37,38 +38,64 @@ export default function AgentBillingPage() {
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
 
-    if (loading && !stats) {
-        return <div className="p-8 text-center text-gray-500">Loading stats...</div>;
-    }
-
     return (
-        <div className="space-y-6 p-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-gray-800">Agent Dashboard</h1>
-                <div className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border border-gray-200">
-                    <Calendar className="text-gray-500" size={20} />
+        <div className="space-y-6">
+            <HeaderBanner
+                title="Agent Dashboard"
+                description="View your customer payments, revenue summaries, and commissions."
+                icon={Users}
+            >
+                <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/30 text-white">
+                    <Calendar size={16} className="text-white/80" />
                     <select
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(e.target.value)}
-                        className="bg-transparent outline-none text-gray-700 font-medium"
+                        className="bg-transparent outline-none text-xs sm:text-sm font-semibold text-white cursor-pointer"
                     >
                         {months.map((m, i) => (
-                            <option key={i} value={i}>{m}</option>
+                            <option key={i} value={i} className="text-gray-900">{m}</option>
                         ))}
                     </select>
                     <select
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(e.target.value)}
-                        className="bg-transparent outline-none text-gray-700 font-medium ml-2"
+                        className="bg-transparent outline-none text-xs sm:text-sm font-semibold text-white cursor-pointer ml-2"
                     >
                         {[2024, 2025, 2026].map(y => (
-                            <option key={y} value={y}>{y}</option>
+                            <option key={y} value={y} className="text-gray-900">{y}</option>
+                        ))}
+                    </select>
+                </div>
+            </HeaderBanner>
+
+            {/* Mobile Controls Section (Visible only on mobile) */}
+            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <Calendar className="text-gray-500" size={16} />
+                    <select
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                        className="bg-transparent outline-none text-xs text-gray-700 dark:text-gray-300 font-medium flex-1 cursor-pointer"
+                    >
+                        {months.map((m, i) => (
+                            <option key={i} value={i} className="text-gray-900 dark:text-white">{m}</option>
+                        ))}
+                    </select>
+                    <select
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(e.target.value)}
+                        className="bg-transparent outline-none text-xs text-gray-700 dark:text-gray-300 font-medium ml-2 cursor-pointer"
+                    >
+                        {[2024, 2025, 2026].map(y => (
+                            <option key={y} value={y} className="text-gray-900 dark:text-white">{y}</option>
                         ))}
                     </select>
                 </div>
             </div>
 
-            {stats && (
+            {loading && !stats ? (
+                <div className="p-8 text-center text-gray-500">Loading stats...</div>
+            ) : stats && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Total Generated (Revenue) */}
                     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">

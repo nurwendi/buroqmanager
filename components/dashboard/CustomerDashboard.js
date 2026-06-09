@@ -20,6 +20,7 @@ export default function CustomerDashboard() {
     });
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [bgUrl, setBgUrl] = useState(null);
 
     // GenieACS State
     const [acsDevice, setAcsDevice] = useState(null);
@@ -153,6 +154,16 @@ export default function CustomerDashboard() {
     useEffect(() => {
         // Initial fetch
         fetchStats();
+
+        // Fetch Theme Settings
+        fetch('/api/app-settings')
+            .then(res => res.json())
+            .then(data => {
+                if (data.dashboardBgUrl) {
+                    setBgUrl(data.dashboardBgUrl);
+                }
+            })
+            .catch(err => console.error('Failed to fetch app settings in CustomerDashboard', err));
     }, []);
 
     useEffect(() => {
@@ -253,14 +264,18 @@ export default function CustomerDashboard() {
             {/* Premium Header with Banner & Overlapping Avatar */}
             <motion.div variants={itemVariants} className="relative mb-12 sm:mb-14 w-screen left-1/2 -translate-x-1/2 -mt-20 md:-mt-24">
                 {/* Banner Area - Sharp Corners & Seamless Deep Curve */}
-                <div className="relative h-44 sm:h-48 w-full overflow-hidden border-0 shadow-none">
-                    <img 
-                        src="/dashboard-bg.png" 
-                        alt="Banner" 
-                        className="w-full h-full object-cover scale-110"
-                    />
-                    <div className="absolute inset-0 bg-indigo-900/10 mix-blend-multiply"></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-transparent via-black/10 to-black/50"></div>
+                <div className="relative h-44 sm:h-48 w-full overflow-hidden border-0 shadow-none bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900">
+                    {bgUrl && (
+                        <>
+                            <img 
+                                src={bgUrl} 
+                                alt="Banner" 
+                                className="w-full h-full object-cover scale-110"
+                            />
+                            <div className="absolute inset-0 bg-indigo-900/10 mix-blend-multiply"></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-black/10 to-black/50"></div>
+                        </>
+                    )}
                     
                     {/* Header Actions (Refresh & Logout) - Absolute Positioned on Banner */}
                     <div className="absolute top-20 md:top-24 right-6 md:right-8 flex items-center gap-2 z-20">

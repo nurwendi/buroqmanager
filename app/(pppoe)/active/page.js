@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Activity, RefreshCw, ArrowUpDown, Search, ExternalLink, Power, Wifi, RotateCcw, MoreHorizontal, X } from 'lucide-react';
 import { useDashboard } from '@/contexts/DashboardContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function ActiveConnectionsPage() {
     const { t } = useLanguage();
@@ -227,42 +228,69 @@ export default function ActiveConnectionsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6">
-                <div className="flex items-center space-x-2">
-                    <Activity size={28} className="text-accent" />
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('pppoe.activeConnections')}</h1>
+            {/* Global Header Banner */}
+            <HeaderBanner
+                title={t('pppoe.activeConnections')}
+                description="Monitor real-time active PPPoE connections, bandwidth, and CPE device statuses."
+                icon={Activity}
+            >
+                <div className="relative">
+                    <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" />
+                    <input
+                        type="text"
+                        placeholder={t('pppoe.searchPlaceholder')}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9 pr-4 py-1.5 border border-white/30 rounded-lg bg-black/40 backdrop-blur-md text-white placeholder-white/60 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                 </div>
+                <label className="flex items-center space-x-2 text-white text-xs sm:text-sm cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        checked={autoRefresh}
+                        onChange={(e) => setAutoRefresh(e.target.checked)}
+                        className="w-4 h-4 rounded border-white/30 bg-black/40 text-blue-600 focus:ring-0 cursor-pointer"
+                    />
+                    <span>{t('pppoe.autoRefresh')}</span>
+                </label>
+                <button
+                    onClick={fetchConnections}
+                    className="bg-accent/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs sm:text-sm font-semibold border border-accent-500/30"
+                >
+                    <RefreshCw size={16} />
+                    <span>{t('common.refresh')}</span>
+                </button>
+            </HeaderBanner>
 
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:space-x-4">
-                    <div className="relative">
-                        <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            {/* Mobile Controls Section (Visible only on mobile) */}
+            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <div className="relative w-full">
+                    <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder={t('pppoe.searchPlaceholder')}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-650 rounded-lg bg-white dark:bg-gray-750 text-xs text-gray-900 dark:text-white focus:outline-none"
+                    />
+                </div>
+                <div className="flex items-center justify-between w-full">
+                    <label className="flex items-center space-x-2 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">
                         <input
-                            type="text"
-                            placeholder={t('pppoe.searchPlaceholder')}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full md:w-auto pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            type="checkbox"
+                            checked={autoRefresh}
+                            onChange={(e) => setAutoRefresh(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300 bg-white dark:bg-gray-750 text-blue-600 focus:ring-0 cursor-pointer"
                         />
-
-                    </div>
-                    <div className="flex items-center justify-between md:justify-start gap-4">
-                        <label className="flex items-center space-x-2">
-                            <input
-                                type="checkbox"
-                                checked={autoRefresh}
-                                onChange={(e) => setAutoRefresh(e.target.checked)}
-                                className="w-4 h-4"
-                            />
-                            <span className="text-sm">{t('pppoe.autoRefresh')}</span>
-                        </label>
-                        <button
-                            onClick={fetchConnections}
-                            className="flex items-center space-x-2 px-4 py-2 bg-accent text-white rounded hover:opacity-90 transition-all"
-                        >
-                            <RefreshCw size={16} />
-                            <span>{t('common.refresh')}</span>
-                        </button>
-                    </div>
+                        <span>{t('pppoe.autoRefresh')}</span>
+                    </label>
+                    <button
+                        onClick={fetchConnections}
+                        className="bg-accent text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs font-semibold"
+                    >
+                        <RefreshCw size={14} />
+                        <span>{t('common.refresh')}</span>
+                    </button>
                 </div>
             </div>
 

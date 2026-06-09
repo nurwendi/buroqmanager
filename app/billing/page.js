@@ -46,7 +46,6 @@ export default function BillingPage() {
         status: 'completed'
     });
 
-    const [bgUrl, setBgUrl] = useState('/dashboard-bg.png');
     const [origin, setOrigin] = useState('');
     const [rowsPerPage, setRowsPerPage] = useState(25);
     const [currentPage, setCurrentPage] = useState(1);
@@ -59,15 +58,6 @@ export default function BillingPage() {
         if (typeof window !== 'undefined') {
             setOrigin(window.location.origin);
         }
-        
-        fetch('/api/app-settings')
-            .then(res => res.json())
-            .then(data => {
-                if (data.dashboardBgUrl) {
-                    setBgUrl(data.dashboardBgUrl);
-                }
-            })
-            .catch(err => console.error('Failed to fetch app settings', err));
     }, []);
 
 
@@ -613,7 +603,7 @@ Terima Kasih
     */
 
     return (
-        <div>
+        <div className="space-y-6">
             {/* Global Header Banner */}
             <HeaderBanner
                 title={t('billing.title')}

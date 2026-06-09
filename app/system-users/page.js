@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Edit2, Plus, Trash2, Shield, ShieldAlert, User } from 'lucide-react';
+import { Edit2, Plus, Trash2, Shield, ShieldAlert, User, Users } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function SystemUsersPage() {
     const { t, resolvedLanguage } = useLanguage();
@@ -172,13 +173,15 @@ export default function SystemUsersPage() {
     };
 
     return (
-        <div className="p-6 space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">{t('systemUsers.title')}</h1>
+        <div className="space-y-6">
+            <HeaderBanner
+                title={t('systemUsers.title')}
+                description="Kelola pengguna sistem, staf lapangan, agen pemasaran, dan teknisi beserta komisi masing-masing."
+                icon={Users}
+            >
                 <button
                     onClick={() => {
                         setEditMode(false);
-                        // Default role depends on current user's power
                         const defaultRole = currentUserRole === 'superadmin' ? 'admin' : 'staff';
                         setFormData({ 
                             username: '', 
@@ -196,9 +199,38 @@ export default function SystemUsersPage() {
                         });
                         setShowModal(true);
                     }}
-                    className="w-full md:w-auto bg-accent text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all font-medium shadow-lg shadow-accent/20"
+                    className="bg-accent/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs sm:text-sm font-semibold border border-accent-500/30"
                 >
-                    <Plus size={20} /> {t('systemUsers.addUser')}
+                    <Plus size={16} /> {t('systemUsers.addUser')}
+                </button>
+            </HeaderBanner>
+
+            {/* Mobile Controls Section */}
+            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <button
+                    onClick={() => {
+                        setEditMode(false);
+                        const defaultRole = currentUserRole === 'superadmin' ? 'admin' : 'staff';
+                        setFormData({ 
+                            username: '', 
+                            password: '', 
+                            role: defaultRole, 
+                            isAgent: false, 
+                            isTechnician: false, 
+                            agentRate: 0, 
+                            technicianRate: 0, 
+                            prefix: '',
+                            fullName: '',
+                            phone: '',
+                            address: '',
+                            agentNumber: ''
+                        });
+                        setShowModal(true);
+                    }}
+                    className="w-full bg-accent text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs font-semibold"
+                >
+                    <Plus size={14} />
+                    <span>{t('systemUsers.addUser')}</span>
                 </button>
             </div>
 

@@ -6,6 +6,7 @@ import { Server, RefreshCw, Wifi, WifiOff, Shield, Network, Cpu, MemoryStick, Cl
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
+import HeaderBanner from '@/components/HeaderBanner';
 
 // Helpers
 function formatBytes(bytes) {
@@ -385,27 +386,30 @@ export default function NatPage() {
 
     return (
         <div className="w-full space-y-6">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <ArrowLeftRight size={20} className="text-white" />
-                        </div>
-                        {t('sidebar.networkTitle')}
-                    </h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {t('sidebar.networkDesc')}
-                        {lastUpdate && <span className="ml-2 text-xs opacity-60">· Terakhir diperbarui: {lastUpdate.toLocaleTimeString()}</span>}
-                    </p>
-                </div>
+            <HeaderBanner
+                title={t('sidebar.networkTitle')}
+                description={`${t('sidebar.networkDesc')}${lastUpdate ? ` · Terakhir diperbarui: ${lastUpdate.toLocaleTimeString()}` : ''}`}
+                icon={ArrowLeftRight}
+            >
                 <button
                     onClick={fetchData}
                     disabled={loading}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all shadow-md disabled:opacity-60 text-sm"
+                    className="flex items-center gap-2 px-5 py-2 text-white bg-blue-600/80 hover:bg-blue-700/80 backdrop-blur-md rounded-xl font-medium transition-all shadow-md disabled:opacity-60 text-sm"
                 >
                     <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                     {loading ? 'Memperbarui...' : 'Perbarui'}
+                </button>
+            </HeaderBanner>
+
+            {/* Mobile Controls Section */}
+            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <button
+                    onClick={fetchData}
+                    disabled={loading}
+                    className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:bg-blue-700 transition-all shadow-md text-xs font-semibold"
+                >
+                    <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                    <span>{loading ? 'Memperbarui...' : 'Perbarui'}</span>
                 </button>
             </div>
 

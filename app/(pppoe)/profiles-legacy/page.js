@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowUpDown, Edit, Plus } from 'lucide-react';
+import { ArrowUpDown, Edit, Plus, Layers } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useDashboard } from '@/contexts/DashboardContext';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function ProfilesPage() {
     const [profiles, setProfiles] = useState([]);
@@ -170,14 +171,27 @@ export default function ProfilesPage() {
     };
 
     return (
-        <div>
-            <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">PPPoE Profiles</h1>
+        <div className="space-y-6">
+            <HeaderBanner
+                title="PPPoE Profiles"
+                description="Manage bandwidth limit templates, IP allocation policies, and pricing schemes for PPPoE connections."
+                icon={Layers}
+            >
                 <button
                     onClick={() => setShowModal(true)}
-                    className="w-full md:w-auto bg-accent text-white px-4 py-2 rounded flex items-center justify-center gap-2 hover:opacity-90"
+                    className="bg-accent/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs sm:text-sm font-semibold border border-accent-500/30"
                 >
-                    <Plus size={20} /> Add Profile
+                    <Plus size={16} /> Add Profile
+                </button>
+            </HeaderBanner>
+
+            {/* Mobile Controls Section (Visible only on mobile) */}
+            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+                <button
+                    onClick={() => setShowModal(true)}
+                    className="bg-accent text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs font-semibold"
+                >
+                    <Plus size={14} /> Add Profile
                 </button>
             </div>
 

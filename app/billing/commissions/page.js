@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { DollarSign, Calendar, Users, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
+import HeaderBanner from '@/components/HeaderBanner';
 
 export default function CommissionsPage() {
     const { t, resolvedLanguage } = useLanguage();
@@ -93,11 +94,16 @@ export default function CommissionsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4 mb-6">
-                <Link href="/billing" className="p-2 rounded-full hover:bg-gray-100 text-gray-600">
-                    <ArrowLeft size={24} />
+            <HeaderBanner
+                title={t('billing.commissionReports')}
+                description="View and analyze commission details for agents and technicians based on successful collections."
+                icon={DollarSign}
+            />
+
+            <div className="flex items-center justify-between">
+                <Link href="/billing" className="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                    <ArrowLeft size={16} /> Back to Billing
                 </Link>
-                <h1 className="text-3xl font-bold text-gray-800">{t('billing.commissionReports')}</h1>
             </div>
 
             <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">

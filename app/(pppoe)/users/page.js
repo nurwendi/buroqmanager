@@ -30,6 +30,7 @@ export default function UsersPage() {
     const [showModal, setShowModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [selectedUsers, setSelectedUsers] = useState(new Set());
     const [showProfileDropdown, setShowProfileDropdown] = useState(false);
     const [showReviewProfileDropdown, setShowReviewProfileDropdown] = useState(false);
@@ -335,6 +336,15 @@ export default function UsersPage() {
             .then(data => {
                 setUserRole(data.user.role);
                 setCurrentUserId(data.user.id);
+                setCurrentUser(data.user);
+
+                const isAgent = data.user.isAgent || data.user.role === 'agent';
+                const isTech = data.user.isTechnician || data.user.role === 'technician';
+                setFormData(prev => ({
+                    ...prev,
+                    agentId: isAgent ? data.user.id : prev.agentId,
+                    technicianId: isTech ? data.user.id : prev.technicianId
+                }));
             })
             .catch(err => console.error('Failed to fetch user role', err));
     }, []);
@@ -921,6 +931,10 @@ export default function UsersPage() {
         setShowModal(false);
         setEditMode(false);
         setEditingUserId(null);
+
+        const isAgent = currentUser?.isAgent || currentUser?.role === 'agent';
+        const isTech = currentUser?.isTechnician || currentUser?.role === 'technician';
+
         setFormData({
             name: '',
             password: '',
@@ -930,8 +944,8 @@ export default function UsersPage() {
             customerName: '',
             customerAddress: '',
             customerPhone: '',
-            agentId: '',
-            technicianId: '',
+            agentId: isAgent ? currentUser.id : '',
+            technicianId: isTech ? currentUser.id : '',
             ownerId: '',
             coordinates: '',
             comment: ''
@@ -1981,7 +1995,7 @@ export default function UsersPage() {
                                                 placeholder={t('users.emailPlaceholder')}
                                             />
                                         </div>
-                                        <div>
+                                        <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
                                                 <User size={16} /> {t('users.identityNumber')}
                                             </label>
@@ -2071,7 +2085,7 @@ export default function UsersPage() {
                                     <button
                                         type="button"
                                         onClick={handleCloseModal}
-                                        className="px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
                                     >
                                         {t('users.cancel')}
                                     </button>
@@ -2343,7 +2357,7 @@ export default function UsersPage() {
                                     <div className="flex justify-end gap-3 pt-4 border-t">
                                         <button
                                             onClick={() => setShowReviewModal(false)}
-                                            className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
                                         >
                                             {t('common.cancel')}
                                         </button>
@@ -2423,7 +2437,7 @@ export default function UsersPage() {
                                     <button
                                         type="button"
                                         onClick={() => setShowBulkEditModal(false)}
-                                        className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
                                     >
                                         {t('common.cancel')}
                                     </button>
@@ -2479,7 +2493,7 @@ export default function UsersPage() {
                                     <button
                                         type="button"
                                         onClick={() => setEditingDevice(null)}
-                                        className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors"
                                     >
                                         {t('common.cancel')}
                                     </button>

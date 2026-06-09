@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Server, Plus, Trash2, Edit2, CheckCircle, Power, X, Settings, Copy, Check, Save, AlertTriangle, Loader2, WifiOff, Shield, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+import HeaderBanner from '@/components/HeaderBanner';
+
 export default function SettingsPage() {
     const { t } = useLanguage();
     const [settings, setSettings] = useState({
@@ -409,11 +411,12 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="w-full space-y-8">
-            <div className="flex items-center gap-3 mb-8">
-                <Server className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">{t('routers.title')}</h1>
-            </div>
+        <div className="w-full space-y-6">
+            <HeaderBanner
+                title={t('routers.title')}
+                description="Manage your MikroTik routers, RADIUS clients (NAS), and isolir (drop users) configurations."
+                icon={Server}
+            />
 
             {/* Connections Management */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
