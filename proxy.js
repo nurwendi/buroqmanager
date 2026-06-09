@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/security';
 
-export async function middleware(request) {
+export async function proxy(request) {
     const authToken = request.cookies.get('auth_token');
     const { pathname } = request.nextUrl;
 
@@ -53,8 +53,6 @@ export async function middleware(request) {
 
     // Role: Editor
     // Allow everything EXCEPT: system-users, routers, app-settings
-    // Role: Editor
-    // Allow everything EXCEPT: system-users, routers, app-settings
     if (user.role === 'editor') {
         const restrictedForEditor = ['/system-users', '/routers'];
         if (restrictedForEditor.some(path => pathname.startsWith(path))) {
@@ -78,7 +76,6 @@ export async function middleware(request) {
     if (restrictedPaths.some(path => pathname.startsWith(path))) {
         return NextResponse.redirect(new URL('/', request.url));
     }
-
 
     return NextResponse.next();
 }
