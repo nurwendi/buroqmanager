@@ -170,18 +170,22 @@ export async function POST(request) {
         // We must scope this by ownerId if we have it, or findFirst if we don't (risky)
         // With ownerId determined, we can check specifically.
 
-        let existingCustomer = null;
-        if (ownerId) {
-            existingCustomer = await db.customer.findUnique({
-                where: {
-                    username_ownerId: { username, ownerId }
-                }
-            });
-        } else {
-            // Fallback for global lookups (superadmin without ownerId)
-            // Using findFirst as username is not unique globally
-            existingCustomer = await db.customer.findFirst({ where: { username } });
+        let existing = null;
+        if (body.id) {
+            existing = await db.customer.findUnique({ where: { id: body.id } });
         }
+        if (!existing) {
+            if (ownerId) {
+                existing = await db.customer.findUnique({
+                    where: {
+                        username_ownerId: { username, ownerId }
+                    }
+                });
+            } else {
+                existing = await db.customer.findFirst({ where: { username } });
+            }
+        }
+        const existingCustomer = existing;
 
         if (existingCustomer) {
             if (user.role === 'admin' && existingCustomer.ownerId !== user.id) {
@@ -252,32 +256,7 @@ export async function POST(request) {
 
 
         // Manual Upsert to avoid Prisma Unique Constraint nuances with Compound Keys
-        let existing = null;
-        if (body.id) {
-            // Priority 1: Find by ID (for safe renames)
-            existing = await db.customer.findUnique({ where: { id: body.id } });
-        }
-        
-        if (!existing) {
-            if (ownerId) {
-                existing = await db.customer.findUnique({
-                    where: {
-                        username_ownerId: {
-                            username: username,
-                            ownerId: ownerId
-                        }
-                    }
-                });
-            } else {
-                // Should properly match the unique index anyway, but findFirst is safer if undefined
-                existing = await db.customer.findFirst({
-                    where: {
-                        username: username,
-                        ownerId: null
-                    }
-                });
-            }
-        }
+        // (Using already resolved 'existing' from the top of the function)
 
         let customer;
         if (existing) {
