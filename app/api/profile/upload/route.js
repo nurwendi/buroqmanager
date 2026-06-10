@@ -28,7 +28,7 @@ export async function POST(request) {
         const filePath = path.join(uploadDir, filename);
 
         await writeFile(filePath, buffer);
-        const avatarUrl = `/uploads/avatars/${filename}`;
+        const avatarUrl = `/api/uploads/avatars/${filename}`;
 
         // Update user or customer profile with new avatar URL
         if (user.role === 'customer') {

@@ -10,8 +10,8 @@ export async function proxy(request) {
         return NextResponse.next();
     }
 
-    // Allow public API routes for isolation page
-    if (pathname.startsWith('/api/isolir') || pathname === '/api/app-settings') {
+    // Allow public API routes for isolation page and dynamic uploads
+    if (pathname.startsWith('/api/isolir') || pathname === '/api/app-settings' || pathname.startsWith('/api/uploads')) {
         return NextResponse.next();
     }
 

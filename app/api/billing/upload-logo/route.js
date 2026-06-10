@@ -28,7 +28,7 @@ export async function POST(request) {
         await writeFile(filepath, buffer);
 
         // Return the public URL
-        const logoUrl = `/uploads/${filename}`;
+        const logoUrl = `/api/uploads/${filename}`;
         return NextResponse.json({ logoUrl });
     } catch (error) {
         console.error('Upload error:', error);
