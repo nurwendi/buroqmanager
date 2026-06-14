@@ -338,8 +338,12 @@ export default function UsersPage() {
                 setCurrentUserId(data.user.id);
                 setCurrentUser(data.user);
 
-                const isAgent = data.user.isAgent || data.user.role === 'agent';
-                const isTech = data.user.isTechnician || data.user.role === 'technician';
+                let isAgent = data.user.isAgent || data.user.role === 'agent';
+                let isTech = data.user.isTechnician || data.user.role === 'technician';
+                if (data.user.role === 'partner' && data.user.isAgent && data.user.isTechnician) {
+                    isAgent = true;
+                    isTech = true;
+                }
                 setFormData(prev => ({
                     ...prev,
                     agentId: isAgent ? data.user.id : prev.agentId,
@@ -744,7 +748,8 @@ export default function UsersPage() {
                     customerEmail: formData.customerEmail,
                     agentId: effectiveAgentId,
                     technicianId: effectiveTechnicianId,
-                    identityNumber: formData.identityNumber
+                    identityNumber: formData.identityNumber,
+                    comment: formData.comment
                 }),
             });
 
@@ -932,8 +937,12 @@ export default function UsersPage() {
         setEditMode(false);
         setEditingUserId(null);
 
-        const isAgent = currentUser?.isAgent || currentUser?.role === 'agent';
-        const isTech = currentUser?.isTechnician || currentUser?.role === 'technician';
+        let isAgent = currentUser?.isAgent || currentUser?.role === 'agent';
+        let isTech = currentUser?.isTechnician || currentUser?.role === 'technician';
+        if (currentUser?.role === 'partner' && currentUser?.isAgent && currentUser?.isTechnician) {
+            isAgent = true;
+            isTech = true;
+        }
 
         setFormData({
             name: '',

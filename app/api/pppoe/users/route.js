@@ -241,7 +241,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { name, password, profile, service = "pppoe", routerIds, comment, coordinates, technicianId } = body;
+        const { name, password, profile, service = "pppoe", routerIds, comment, coordinates, technicianId, agentId } = body;
 
         if (!name || !password) {
             return NextResponse.json({ error: "Name and password are required" }, { status: 400 });
@@ -294,7 +294,7 @@ export async function POST(request) {
                     name: body.customerName,
                     address: body.customerAddress,
                     phone: body.customerPhone,
-                    agentId: userId,
+                    agentId: agentId || userId,
                     password: password,
                     profile: profile,
                     service: service,

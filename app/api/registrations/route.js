@@ -389,6 +389,7 @@ export async function POST(request) {
                     if (newValues.password) updateParams.push(`=password=${newValues.password}`);
                     if (newValues.profile) updateParams.push(`=profile=${newValues.profile}`);
                     if (newValues.service) updateParams.push(`=service=${newValues.service}`);
+                    if (newValues.comment !== undefined) updateParams.push(`=comment=${newValues.comment || ''}`);
 
                     await client.write('/ppp/secret/set', updateParams);
 

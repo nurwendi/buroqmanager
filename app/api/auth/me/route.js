@@ -38,6 +38,8 @@ export async function GET(request) {
         ownerId: true,
         language: true,
         avatar: true,
+        isAgent: true,
+        isTechnician: true,
         owner: {
           select: {
             username: true
@@ -68,6 +70,8 @@ export async function GET(request) {
     language: freshUser.language,
     avatar: freshUser.avatar,
     suffix: freshUser.suffix,
+    isAgent: freshUser.isAgent,
+    isTechnician: freshUser.isTechnician,
   });
 
   return NextResponse.json({ user: freshUser, token });
