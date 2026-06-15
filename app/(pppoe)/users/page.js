@@ -2060,12 +2060,12 @@ export default function UsersPage() {
                                 {['superadmin', 'admin', 'manager'].includes(userRole) && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('users.agent')} <span className="text-red-500">*</span></label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.agent')} <span className="text-red-500">*</span></label>
                                             <select
                                                 required
                                                 value={formData.agentId}
                                                 onChange={(e) => setFormData({ ...formData, agentId: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                             >
                                                 <option value="">{t('users.selectAgent')}</option>
                                                 {systemUsers.filter(u => u.isAgent).map(user => (
@@ -2074,12 +2074,12 @@ export default function UsersPage() {
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('users.technician')} <span className="text-red-500">*</span></label>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.technician')} <span className="text-red-500">*</span></label>
                                             <select
                                                 required
                                                 value={formData.technicianId}
                                                 onChange={(e) => setFormData({ ...formData, technicianId: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                             >
                                                 <option value="">{t('users.selectTechnician')}</option>
                                                 {systemUsers.filter(u => u.isTechnician).map(user => (
