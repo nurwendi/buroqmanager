@@ -106,7 +106,7 @@ export default function CommissionsPage() {
                 </Link>
             </div>
 
-            <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
+            <div className="flex justify-between items-center bg-white dark:bg-gray-900/30 backdrop-blur-xl p-4 rounded-lg shadow-sm border border-transparent dark:border-white/5">
                 <div className="flex items-center gap-2">
                     <Calendar className="text-gray-500" />
                     <select
@@ -116,7 +116,7 @@ export default function CommissionsPage() {
                             setSelectedYear(parseInt(year));
                             setSelectedMonth(parseInt(month));
                         }}
-                        className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                     >
                         {getAvailableMonths().map(({ year, month }) => (
                             <option key={`${year}-${month}`} value={`${year}-${month}`}>
@@ -131,46 +131,46 @@ export default function CommissionsPage() {
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+            <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-md overflow-hidden border border-white/20 dark:border-white/5">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50/50 dark:bg-black/20">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('billing.agentTechnician')}</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('common.role')}</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('billing.transactions')}</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('billing.totalSales')}</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t('billing.commission')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.agentTechnician')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.role')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.transactions')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.totalSales')}</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('billing.commission')}</th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
                         {loading ? (
-                            <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500">{t('common.loading')}</td></tr>
+                            <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('common.loading')}</td></tr>
                         ) : commissionData.length === 0 ? (
-                            <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500">{t('billing.noCommissions')}</td></tr>
+                            <tr><td colSpan="5" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('billing.noCommissions')}</td></tr>
                         ) : (
                             commissionData.map((item) => (
-                                <tr key={item.userId} className="hover:bg-gray-50 transition-colors">
+                                <tr key={item.userId} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-3">
-                                            <div className="bg-gray-100 p-2 rounded-full">
-                                                <Users size={20} className="text-gray-600" />
+                                            <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-full">
+                                                <Users size={20} className="text-gray-600 dark:text-gray-300" />
                                             </div>
-                                            <span className="font-medium text-gray-900">{item.username}</span>
+                                            <span className="font-medium text-gray-900 dark:text-white">{item.username}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${item.role === 'agent' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
+                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${item.role === 'agent' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300'
                                             }`}>
                                             {item.role}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                         {item.transactionCount}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                         {formatCurrency(item.totalSales)}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600 dark:text-green-400">
                                         {formatCurrency(item.totalCommission)}
                                     </td>
                                 </tr>
