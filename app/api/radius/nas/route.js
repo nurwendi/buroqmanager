@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export async function GET(request) {
     try {
@@ -59,6 +60,11 @@ export async function POST(request) {
 
 export async function DELETE(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'superadmin' && user.role !== 'admin')) {
+            return unauthorizedResponse();
+        }
+
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
 
