@@ -1334,6 +1334,11 @@ export default function UsersPage() {
                                                 <div>
                                                     <h4 className="font-bold text-gray-900 dark:text-white text-[15px] leading-tight">{user.name}</h4>
                                                     <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{getCustomerName(user.name) || '-'}</p>
+                                                    {user.comment && (
+                                                        <p className="text-[10px] text-amber-650 dark:text-amber-400 font-medium italic mt-1 leading-normal">
+                                                            💬 {user.comment}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                             <button
@@ -1611,6 +1616,11 @@ export default function UsersPage() {
                                                                 {user.name}
                                                             </span>
                                                             <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{getCustomerName(user.name)}</span>
+                                                            {user.comment && (
+                                                                <span className="text-[10px] text-amber-650 dark:text-amber-400 font-medium italic mt-0.5 max-w-[220px] truncate" title={user.comment}>
+                                                                    💬 {user.comment}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </td>
