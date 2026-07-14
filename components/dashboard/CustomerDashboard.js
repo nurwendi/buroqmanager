@@ -730,9 +730,36 @@ export default function CustomerDashboard() {
                                 </div>
                                 <h3 className="font-bold text-sm text-gray-800 dark:text-white truncate max-w-[280px]">{selectedTicket.title}</h3>
                             </div>
-                            <button onClick={() => setChatModal(false)} className="text-gray-400 hover:text-gray-600">
-                                <X size={20} />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                {selectedTicket.status !== 'closed' && selectedTicket.status !== 'resolved' && (
+                                    <button
+                                        onClick={async () => {
+                                            if (confirm('Apakah Anda yakin ingin menyelesaikan/menutup tiket ini?')) {
+                                                try {
+                                                    const res = await fetch(`/api/tickets/${selectedTicket.id}`, {
+                                                        method: 'PATCH',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ status: 'closed' })
+                                                    });
+                                                    if (res.ok) {
+                                                        const updated = await res.json();
+                                                        setSelectedTicket(updated);
+                                                        fetchTickets();
+                                                    }
+                                                } catch (err) {
+                                                    console.error(err);
+                                                }
+                                            }
+                                        }}
+                                        className="text-[10px] px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/20 dark:hover:bg-red-950/40 dark:text-red-300 font-bold rounded-lg transition-colors border border-red-100 dark:border-red-900/50"
+                                    >
+                                        Tutup Tiket
+                                    </button>
+                                )}
+                                <button onClick={() => setChatModal(false)} className="text-gray-400 hover:text-gray-600">
+                                    <X size={20} />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Description banner */}
