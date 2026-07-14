@@ -7,7 +7,7 @@ export async function GET(request, { params }) {
     const user = await getUserFromRequest(request);
     if (!user) return unauthorizedResponse();
 
-    const { id: ticketId } = params;
+    const { id: ticketId } = await params;
 
     try {
         const ticket = await db.ticket.findUnique({
@@ -62,7 +62,7 @@ export async function POST(request, { params }) {
     const user = await getUserFromRequest(request);
     if (!user) return unauthorizedResponse();
 
-    const { id: ticketId } = params;
+    const { id: ticketId } = await params;
 
     try {
         const body = await request.json();
