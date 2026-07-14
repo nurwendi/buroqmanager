@@ -1448,15 +1448,7 @@ export default function UsersPage() {
                                         className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                     >
                                         <div className="flex items-center gap-1">
-                                            {t('users.customerId')} <ArrowUpDown size={14} />
-                                        </div>
-                                    </th>
-                                    <th
-                                        onClick={() => sortData('password')}
-                                        className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            {t('users.password')} <ArrowUpDown size={14} />
+                                            {t('users.customerId')} / {t('users.password')} <ArrowUpDown size={14} />
                                         </div>
                                     </th>
                                     <th
@@ -1626,25 +1618,25 @@ export default function UsersPage() {
                                                 </td>
 
                                                 <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
-                                                    {(() => {
-                                                        const customer = customersDataLowerCase[user.name.toLowerCase()];
-                                                        const cid = (user._customerId && user._customerId !== '-') ? user._customerId : (customer?.customerId && customer?.customerId !== '-') ? customer.customerId : null;
-
-                                                        if (cid) {
-                                                            return (
-                                                                <span className="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded-md font-medium border border-blue-200 dark:border-blue-800/50">
-                                                                    {cid}
-                                                                </span>
-                                                            );
-                                                        }
-                                                        return <span className="text-xs text-gray-400">-</span>;
-                                                    })()}
-                                                </td>
-
-                                                {/* Password Column */}
-                                                <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-xs text-gray-400 dark:text-gray-500 font-mono tracking-wide">{user.password || '-'}</span>
-                                                </td>
+                                                     <div className="flex flex-col gap-1">
+                                                         {(() => {
+                                                             const customer = customersDataLowerCase[user.name.toLowerCase()];
+                                                             const cid = (user._customerId && user._customerId !== '-') ? user._customerId : (customer?.customerId && customer?.customerId !== '-') ? customer.customerId : null;
+ 
+                                                             if (cid) {
+                                                                 return (
+                                                                     <span className="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded-md font-medium border border-blue-200 dark:border-blue-800/50 w-fit">
+                                                                         {cid}
+                                                                     </span>
+                                                                 );
+                                                             }
+                                                             return <span className="text-xs text-gray-400">-</span>;
+                                                         })()}
+                                                         <span className="text-xs text-gray-400 dark:text-gray-500 font-mono tracking-wide pl-1" title={t('users.password')}>
+                                                             🔑 {user.password || '-'}
+                                                         </span>
+                                                     </div>
+                                                 </td>
 
                                                 {/* Device Column (ACS) */}
                                                 <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
