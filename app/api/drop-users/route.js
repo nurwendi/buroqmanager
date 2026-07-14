@@ -113,12 +113,9 @@ export async function POST(request) {
                     // Format: "AUTO-ISOLIR | OLD:{profile}"
                     // We should append if possible or just replace active status.
                     // Let's replace to be safe and consistent with previous logic.
-                    const newComment = `AUTO-ISOLIR | OLD:${user.currentProfile}`;
-
                     await client.write('/ppp/secret/set', [
                         `=.id=${user.id}`,
-                        '=profile=DROP',
-                        `=comment=${newComment}`
+                        '=profile=DROP'
                     ]);
 
                     // Remove active connections
