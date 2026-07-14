@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 import db from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 // GET: List tickets based on user role
 export async function GET(request) {
     const user = await getUserFromRequest(request);
@@ -14,6 +16,7 @@ export async function GET(request) {
         const category = searchParams.get('category');
 
         const where = {};
+        console.log('[DEBUG GET TICKETS] User:', { id: user.id, username: user.username, role: user.role, ownerId: user.ownerId });
 
         // Role-based filtering
         if (user.role === 'customer') {
@@ -35,10 +38,13 @@ export async function GET(request) {
             ];
         } else if (user.role === 'admin' || user.role === 'superadmin') {
             // Admins can see everything, optionally filtered by ownerId
-            if (user.ownerId) {
-                where.ownerId = user.ownerId;
+            const ownerId = user.role === 'admin' ? user.id : user.ownerId;
+            if (ownerId) {
+                where.ownerId = ownerId;
             }
         }
+
+        console.log('[DEBUG GET TICKETS] Query Where:', where);
 
         // Apply query filters
         if (status) where.status = status;
@@ -121,6 +127,8 @@ export async function POST(request) {
         }
 
         ownerId = customer.ownerId;
+        console.log('[DEBUG POST TICKET] Customer Resolved:', customer ? { id: customer.id, name: customer.name, ownerId: customer.ownerId } : 'NULL');
+        console.log('[DEBUG POST TICKET] Ticket Data before DB create:', { title, customerId, ownerId });
 
         // Auto-routing logic based on Category
         let assignedStaffId = null;

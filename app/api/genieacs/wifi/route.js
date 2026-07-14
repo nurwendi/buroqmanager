@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { setParameter, getDevice, parseGenieACSDevice } from '@/lib/genieacs';
 import { getUserFromRequest } from '@/lib/api-auth';
+import db from '@/lib/db';
 
 export async function POST(request) {
     try {
@@ -27,9 +28,27 @@ export async function POST(request) {
 
         // OWNERSHIP VERIFICATION
         if (user.role === 'customer') {
+            const customer = await db.customer.findFirst({
+                where: {
+                    OR: [
+                        { customerId: user.username },
+                        { username: user.username }
+                    ]
+                }
+            });
+
+            if (!customer) {
+                return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+            }
+
+            const pppoeUsername = customer.username;
             const parsedDevice = parseGenieACSDevice(deviceRaw);
-            // Verify that the device's PPPoE username matches the logged-in user
-            if (parsedDevice.pppoe_user !== user.username) {
+            
+            const cleanRouterUser = (parsedDevice.pppoe_user || '').split('@')[0].trim().toLowerCase();
+            const cleanDbUser = (pppoeUsername || '').split('@')[0].trim().toLowerCase();
+
+            // Verify that the device's PPPoE username matches the logged-in customer's PPPoE username
+            if (cleanRouterUser !== cleanDbUser) {
                 console.warn(`[GenieACS] Security Alert: Customer ${user.username} tried to modify device ${deviceId} belonging to ${parsedDevice.pppoe_user}`);
                 return NextResponse.json({ error: 'Access Denied: You do not own this device.' }, { status: 403 });
             }

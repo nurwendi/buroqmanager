@@ -34,6 +34,10 @@ export async function GET(request) {
                 $or: [
                     { "VirtualParameters.pppoeUsername": regex },
                     { "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username": regex },
+                    { "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Username": regex },
+                    { "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.3.WANPPPConnection.1.Username": regex },
+                    { "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.4.WANPPPConnection.1.Username": regex },
+                    { "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.5.WANPPPConnection.1.Username": regex },
                     { "Device.PPP.Interface.1.Username": regex }
                 ]
             };
@@ -41,10 +45,12 @@ export async function GET(request) {
             const devices = await findDevices(query);
             const cleanedDevices = devices.map(parseGenieACSDevice);
 
-            const myDevice = cleanedDevices.find(d =>
-                d.pppoe_user &&
-                d.pppoe_user.toLowerCase() === pppoeUsername.toLowerCase()
-            );
+            const myDevice = cleanedDevices.find(d => {
+                if (!d.pppoe_user) return false;
+                const cleanRouterUser = d.pppoe_user.split('@')[0].trim().toLowerCase();
+                const cleanDbUser = pppoeUsername.split('@')[0].trim().toLowerCase();
+                return cleanRouterUser === cleanDbUser;
+            });
 
             return NextResponse.json(myDevice ? [myDevice] : []);
         }
@@ -57,6 +63,10 @@ export async function GET(request) {
                     { "_deviceId._SerialNumber": regex },
                     { "VirtualParameters.pppoeUsername": regex },
                     { "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username": regex },
+                    { "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Username": regex },
+                    { "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.3.WANPPPConnection.1.Username": regex },
+                    { "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.4.WANPPPConnection.1.Username": regex },
+                    { "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.5.WANPPPConnection.1.Username": regex },
                     { "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID": regex },
                     { "_deviceId._OUI": regex }
                 ]

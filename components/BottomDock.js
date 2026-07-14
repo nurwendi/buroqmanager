@@ -81,7 +81,7 @@ export default function BottomDock() {
         { href: '/routers', icon: Server, label: t('sidebar.routers'), roles: ['admin', 'manager'] },
 
         { href: '/genieacs', icon: Wifi, label: t('sidebar.genieacs'), roles: ['superadmin'] },
-        { href: '/tickets', icon: MessageSquare, label: t('sidebar.tickets'), roles: ['admin', 'superadmin', 'manager', 'technician', 'agent', 'partner'] },
+        { href: '/tickets', icon: MessageSquare, label: t('sidebar.tickets') },
         { href: '/maps', icon: MapPin, label: t('maps.title') || 'Peta Pelanggan', roles: ['admin', 'superadmin', 'manager', 'agent', 'technician'] },
         { href: '/backup', icon: Database, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
@@ -102,8 +102,9 @@ export default function BottomDock() {
         { href: '/app-settings', icon: Settings, label: t('sidebar.settings') || t('sidebar.appSettings') },
     ] : [
         { href: '/', icon: Home, label: t('sidebar.dashboard') },
-        { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'staff'] },
-        { href: '/notifications', icon: Bell, label: t('sidebar.notification'), roles: ['admin', 'manager', 'partner', 'staff', 'customer'] },
+        { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'staff', 'agent', 'technician'] },
+        { href: '/tickets', icon: MessageSquare, label: t('sidebar.tickets') },
+        { href: '/notifications', icon: Bell, label: t('sidebar.notification'), roles: ['admin', 'manager', 'partner', 'staff', 'customer', 'agent', 'technician'] },
         { href: '/app-settings', icon: Settings, label: t('sidebar.settings') || "Settings" },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 

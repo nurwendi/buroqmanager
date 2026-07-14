@@ -9,7 +9,7 @@ module.exports = {
   theme: {
     extend: {},
   },
-  darkMode: 'false',
+  darkMode: 'class',
   plugins: [
     function ({ addVariant }) {
       addVariant('glass-mode', '.glass-mode &')

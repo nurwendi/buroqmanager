@@ -659,7 +659,7 @@ export default function CustomerDashboard() {
                                 <select
                                     value={newTicket.category}
                                     onChange={e => setNewTicket({ ...newTicket, category: e.target.value })}
-                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-750 text-sm text-gray-900 dark:text-white"
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white"
                                 >
                                     <option value="teknis">Masalah Teknis (Router, Kabel, Loss internet)</option>
                                     <option value="tagihan">Masalah Tagihan / Pembayaran (Billing)</option>
@@ -674,7 +674,7 @@ export default function CustomerDashboard() {
                                     placeholder="Contoh: Lampu Router Merah, Internet Lambat..."
                                     value={newTicket.title}
                                     onChange={e => setNewTicket({ ...newTicket, title: e.target.value })}
-                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-750 text-sm text-gray-900 dark:text-white"
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white"
                                     required
                                 />
                             </div>
@@ -686,7 +686,7 @@ export default function CustomerDashboard() {
                                     placeholder="Tulis kronologi atau kendala secara detail..."
                                     value={newTicket.description}
                                     onChange={e => setNewTicket({ ...newTicket, description: e.target.value })}
-                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-750 text-sm text-gray-900 dark:text-white"
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white"
                                     required
                                 />
                             </div>
@@ -760,7 +760,7 @@ export default function CustomerDashboard() {
                                                     ? 'bg-indigo-600 text-white rounded-tr-none' 
                                                     : isSupervisor
                                                         ? 'bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300 rounded-tl-none font-medium'
-                                                        : 'bg-white dark:bg-gray-750 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none'
+                                                        : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 rounded-tl-none'
                                             }`}>
                                                 {msg.message}
                                             </div>
@@ -779,7 +779,7 @@ export default function CustomerDashboard() {
                                     placeholder="Tulis balasan Anda..."
                                     value={replyText}
                                     onChange={e => setReplyText(e.target.value)}
-                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-650 rounded-xl bg-white dark:bg-gray-750 text-xs focus:outline-none"
+                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-xs focus:outline-none"
                                 />
                                 <button
                                     type="submit"
