@@ -8,219 +8,145 @@ import { getConfig, getUserConnectionId } from '@/lib/config';
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
-        const mode = searchParams.get('mode');
+        const mode = searchParams.get('mode'); // We can keep mode for backwards compatibility, but we'll default to all allowed
         const user = await getUserFromRequest(request);
         const config = await getConfig();
 
-        // ------------------------------------------------------------------
-        // MODE: ALL (Superadmin Aggregation)
-        // ------------------------------------------------------------------
-        if (mode === 'all') {
-            if (!user || user.role !== 'superadmin') {
-                return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        let connections = config.connections || [];
+
+        // 1. Determine which connections this user is allowed to query
+        if (user.role !== 'superadmin') {
+            const ownerId = user.role === 'admin' ? user.id : user.ownerId;
+            if (ownerId) {
+                connections = connections.filter(c => c.ownerId === ownerId);
+            } else {
+                connections = [];
             }
+        }
 
-            const connections = config.connections || [];
-            let allUsers = [];
+        // If a specific connection is requested (e.g., standard mode but they actually only want one),
+        // we could filter it here. But usually mode=all means all, and standard meant active.
+        // To fix the bug where new routers don't show customers, we will fetch from ALL allowed connections.
+        
+        let allUsers = [];
 
-            // Fetch all unique owner IDs from connections
-            const ownerIds = [...new Set(connections.map(c => c.ownerId).filter(id => id))];
+        // Fetch all unique owner IDs from connections for labeling
+        const ownerIds = [...new Set(connections.map(c => c.ownerId).filter(id => id))];
+        const owners = await db.user.findMany({
+            where: { id: { in: ownerIds } },
+            select: { id: true, username: true, fullName: true }
+        });
 
-            // Allow looking up owner details
-            const owners = await db.user.findMany({
-                where: { id: { in: ownerIds } },
-                select: { id: true, username: true, fullName: true }
-            });
+        const ownerMap = {};
+        owners.forEach(o => {
+            ownerMap[o.id] = o.username || o.fullName || 'Unknown';
+        });
 
-            const ownerMap = {};
-            owners.forEach(o => {
-                ownerMap[o.id] = o.username || o.fullName || 'Unknown';
-            });
+        // 2. Fetch from all allowed connections in parallel
+        const promises = connections.map(async (conn) => {
+            try {
+                const client = await getMikrotikClient(conn.id);
+                const [routerUsers, activeConnections] = await Promise.all([
+                    client.write('/ppp/secret/print'),
+                    client.write('/ppp/active/print')
+                ]);
 
-            // Fetch Customers to map Customer IDs (Login ID)
-            // Note: We don't have the list of usernames yet.
-            // Querying ALL customers might be heavy if getting thousands?
-            // But getting users first then querying might be cleaner.
-            // Let's do it AFTER getting users.
-
-            // Execute parallel fetches for performance, but handle failures gracefully
-            const promises = connections.map(async (conn) => {
-                try {
-                    const client = await getMikrotikClient(conn.id);
-                    const [routerUsers, activeConnections] = await Promise.all([
-                        client.write('/ppp/secret/print'),
-                        client.write('/ppp/active/print')
-                    ]);
-
-                    // Map active connections for quick lookup
-                    const activeMap = {};
-                    if (Array.isArray(activeConnections)) {
-                        activeConnections.forEach(a => {
-                            activeMap[a.name] = a;
-                        });
-                    }
-
-                    // Augment user data with source router info
-                    return routerUsers.map(u => ({
-                        ...u,
-                        _sourceRouterId: conn.id,
-                        _sourceRouterName: conn.name || conn.host, // Use name or IP as label
-                        _ownerId: conn.ownerId,
-                        _ownerName: ownerMap[conn.ownerId] || conn.ownerId || '-', // Fallback to ID if name not found
-                        // Ensure unique ID for frontend keying if needed (though Mikrotik ID is usually unique per router)
-                        id: `${conn.id}_${u['.id']}`,
-                        _rawUsername: u.name, // Keep raw for matching
-                        _active: !!activeMap[u.name],
-                        _activeData: activeMap[u.name] || null
-                    }));
-                } catch (err) {
-                    console.error(`Failed to fetch users from router ${conn.name || conn.id}:`, err);
-                    return []; // Return empty array on failure so one down router doesn't break the view
+                const activeMap = {};
+                if (Array.isArray(activeConnections)) {
+                    activeConnections.forEach(a => {
+                        activeMap[a.name] = a;
+                    });
                 }
-            });
 
-            const results = await Promise.all(promises);
-            results.forEach(users => {
-                allUsers = [...allUsers, ...users];
-            });
+                return routerUsers.map(u => ({
+                    ...u,
+                    _sourceRouterId: conn.id,
+                    _sourceRouterName: conn.name || conn.host,
+                    _ownerId: conn.ownerId,
+                    _ownerName: ownerMap[conn.ownerId] || conn.ownerId || '-',
+                    id: `${conn.id}_${u['.id']}`,
+                    _rawUsername: u.name,
+                    _active: !!activeMap[u.name],
+                    _activeData: activeMap[u.name] || null
+                }));
+            } catch (err) {
+                console.error(`Failed to fetch users from router ${conn.name || conn.id}:`, err);
+                return [{
+                    '.id': `error_${conn.id}`,
+                    name: `⚠️ GAGAL KONEKSI: ${conn.name || conn.host}`,
+                    service: 'any',
+                    profile: 'error',
+                    comment: err.message || 'Router Offline / API Error',
+                    disabled: "true",
+                    _sourceRouterId: conn.id,
+                    _sourceRouterName: conn.name || conn.host,
+                    _ownerId: conn.ownerId,
+                    _ownerName: ownerMap[conn.ownerId] || conn.ownerId || '-',
+                    id: `${conn.id}_error`,
+                    _rawUsername: `⚠️ GAGAL KONEKSI: ${conn.name || conn.host}`,
+                    _active: false,
+                    _activeData: null,
+                    _isError: true
+                }];
+            }
+        });
 
-            // Attach Usage Data (Global)
-            const { getAllMonthlyUsage } = await import('@/lib/usage-tracker');
-            const allUsageData = await getAllMonthlyUsage();
-            const currentMonth = new Date().toISOString().slice(0, 7);
+        const results = await Promise.all(promises);
+        results.forEach(users => {
+            allUsers = [...allUsers, ...users];
+        });
 
-            const usageMapLowerCase = {};
-            Object.keys(allUsageData).forEach(key => {
-                usageMapLowerCase[key.toLowerCase()] = allUsageData[key];
-            });
-
-            const usersWithUsage = allUsers.map(u => {
-                const userData = allUsageData[u.name] || usageMapLowerCase[(u.name || '').toLowerCase()];
-                let usage = { rx: 0, tx: 0 };
-
-                if (userData && userData.month === currentMonth) {
-                    usage = {
-                        rx: userData.accumulated_rx + userData.last_session_rx,
-                        tx: userData.accumulated_tx + userData.last_session_tx
+        // 3. Apply strict role-based filtering (for staff, agents, etc.)
+        if (user.role !== 'superadmin' && user.role !== 'admin' && user.role !== 'manager') {
+            try {
+                let allowedUsernames = new Set();
+                let filterWhere = {
+                    OR: [
+                        { agentId: user.id },
+                        { technicianId: user.id }
+                    ]
+                };
+                if (user.ownerId) {
+                    filterWhere = {
+                        AND: [
+                            { ownerId: user.ownerId },
+                            filterWhere
+                        ]
                     };
                 }
-                return { ...u, usage };
-            });
 
-            return NextResponse.json(usersWithUsage);
-        }
-
-        // ------------------------------------------------------------------
-        // MODE: STANDARD (Single Router / Scoped)
-        // ------------------------------------------------------------------
-
-        const connectionId = getUserConnectionId(user, config);
-
-        // Fallback: If no connection ID for staff/user, try owner's connection
-        let effectiveConnectionId = connectionId;
-        if (!effectiveConnectionId && user?.ownerId) {
-            const ownerConn = config.connections?.find(c => c.ownerId === user.ownerId);
-            if (ownerConn) effectiveConnectionId = ownerConn.id;
-        }
-
-        // If no connection found for this user (and not superadmin), return empty
-        if (!effectiveConnectionId && user?.role !== 'superadmin') {
-            // We might want to handle this gracefully if querying DB only? 
-            // But line 9 fetches from Mikrotik.
-            // If connection missing, we can't fetch from Mikrotik.
-            // But we still might return DB users if offline?
-            // Current logic mixes Mikrotik + DB filter.
-            // Let's return empty to be consistent with Profiles logic.
-            // However, "Users" page usually shows DB users if offline?
-            // Line 8 fetches Mikrotik. If failing, it errors catch block.
-            return NextResponse.json([]);
-        }
-
-        const client = await getMikrotikClient(effectiveConnectionId);
-        let users = await client.write('/ppp/secret/print');
-
-        // Filter based on role
-        // user already fetched above
-
-        if (user) {
-            // Determine if user owns the current connection
-            const currentConnection = config.connections?.find(c => c.id === effectiveConnectionId);
-            const isConnectionOwner = currentConnection?.ownerId === user.id;
-
-            if (user.role === 'superadmin' || isConnectionOwner) {
-                // Superadmin or Router Owner sees ALL users on the router
-                // We still might want to mark them or something, but for now just return them all.
-                // But wait, if we return all, we might show users that belong to OTHER tenants if looking at a shared router?
-                // If isConnectionOwner, they own the router, so they own everyone on it.
-                // No filter needed.
-
-                // Optional: We could filtering to exclude system users or something? user.role === 'superadmin' usually sees all.
-                // Admin who owns router sees all.
-            } else {
-                // Non-owner Admin/Staff: Apply strict filters
-                try {
-                    let allowedUsernames = new Set();
-                    let filterWhere = {};
-
-                    if (user.role === 'admin' || user.role === 'manager') {
-                        // Admin and Manager see ALL users of their tenant owner
-                        filterWhere = { ownerId: user.ownerId || user.id };
-                    } else if (['agent', 'partner', 'technician', 'staff', 'editor'].includes(user.role)) {
-                        // Staff/Agent/Technician/Editor see ONLY assigned users
-                        filterWhere = {
-                            OR: [
-                                { agentId: user.id },
-                                { technicianId: user.id }
-                            ]
-                        };
-                        // Ensure strict tenant scoping
-                        if (user.ownerId) {
-                            filterWhere = {
-                                AND: [
-                                    { ownerId: user.ownerId },
-                                    filterWhere
-                                ]
-                            };
-                        }
-                    } else {
-                        // Default fallback
-                        filterWhere = { ownerId: 'impossible_id' };
-                    }
-
-                    // Fetch allowed usernames from DB
-                    if (Object.keys(filterWhere).length > 0 || (filterWhere.AND && filterWhere.AND.length > 0)) {
-                        const customers = await db.customer.findMany({
-                            where: filterWhere,
-                            select: { username: true }
-                        });
-                        customers.forEach(c => allowedUsernames.add(c.username));
-
-                        // Apply filter to Mikrotik result
-                        users = users.filter(u => allowedUsernames.has(u.name));
-                    } else {
-                        users = [];
-                    }
-                } catch (e) {
-                    console.error('Error filtering users:', e);
-                    users = [];
+                if (Object.keys(filterWhere).length > 0 || (filterWhere.AND && filterWhere.AND.length > 0)) {
+                    const customers = await db.customer.findMany({
+                        where: filterWhere,
+                        select: { username: true }
+                    });
+                    customers.forEach(c => allowedUsernames.add(c.username));
+                    allUsers = allUsers.filter(u => allowedUsernames.has(u.name) || u._isError);
+                } else {
+                    allUsers = [];
                 }
+            } catch (e) {
+                console.error('Error filtering users:', e);
+                allUsers = [];
             }
         }
 
-        // Attach monthly usage data
+        // 4. Attach Usage Data
         const { getAllMonthlyUsage } = await import('@/lib/usage-tracker');
         const allUsageData = await getAllMonthlyUsage();
         const currentMonth = new Date().toISOString().slice(0, 7);
 
-        // Create a lowercase map for fallback
         const usageMapLowerCase = {};
         Object.keys(allUsageData).forEach(key => {
             usageMapLowerCase[key.toLowerCase()] = allUsageData[key];
         });
 
-        const usersWithUsage = users.map(u => {
-            // Try exact match first, then case-insensitive
-            const userData = allUsageData[u.name] || usageMapLowerCase[u.name.toLowerCase()];
+        const usersWithUsage = allUsers.map(u => {
+            const userData = allUsageData[u.name] || usageMapLowerCase[(u.name || '').toLowerCase()];
             let usage = { rx: 0, tx: 0 };
 
             if (userData && userData.month === currentMonth) {
@@ -231,6 +157,7 @@ export async function GET(request) {
             }
             return { ...u, usage };
         });
+
         return NextResponse.json(usersWithUsage);
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });

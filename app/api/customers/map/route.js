@@ -33,7 +33,7 @@ export async function GET(request) {
                 phone: true,
                 address: true,
                 coordinates: true,
-                disabled: true,
+                
                 profile: {
                     select: {
                         name: true

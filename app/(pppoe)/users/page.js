@@ -1052,6 +1052,11 @@ export default function UsersPage() {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
+    // Compute accurate online count for local users (exclude RADIUS/other router sessions not in our list)
+    const onlineUsersCount = useMemo(() => {
+        return users.filter(user => activeConnections.some(c => c.name === user.name)).length;
+    }, [users, activeConnections]);
+
     return (
         <div className="space-y-6">
             {/* Global Header Banner */}
@@ -1263,7 +1268,7 @@ export default function UsersPage() {
                                 <div className="absolute inset-x-0 bottom-0 h-1 bg-green-500 z-20" />
                             )}
 
-                            <p className={`text-xl md:text-2xl font-bold transition-colors z-10 ${filterStatus === 'online' ? 'text-green-700 dark:text-green-200' : 'text-green-600 dark:text-green-400'}`}>{activeConnections.length}</p>
+                            <p className={`text-xl md:text-2xl font-bold transition-colors z-10 ${filterStatus === 'online' ? 'text-green-700 dark:text-green-200' : 'text-green-600 dark:text-green-400'}`}>{onlineUsersCount}</p>
                             <p className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider z-10">{t('pppoe.online')}</p>
                         </button>
 
@@ -1287,7 +1292,7 @@ export default function UsersPage() {
                                 <div className="absolute inset-x-0 bottom-0 h-1 bg-gray-500 z-20" />
                             )}
 
-                            <p className={`text-xl md:text-2xl font-bold transition-colors z-10 ${filterStatus === 'offline' ? 'text-gray-700 dark:text-gray-200' : 'text-gray-600 dark:text-gray-300'}`}>{users.length - activeConnections.length}</p>
+                            <p className={`text-xl md:text-2xl font-bold transition-colors z-10 ${filterStatus === 'offline' ? 'text-gray-700 dark:text-gray-200' : 'text-gray-600 dark:text-gray-300'}`}>{users.length - onlineUsersCount}</p>
                             <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider z-10">{t('pppoe.offline')}</p>
                         </button>
                     </div>
@@ -1324,7 +1329,7 @@ export default function UsersPage() {
 
                                 return (
                                     <div
-                                        key={user['.id']}
+                                        key={user.id}
                                         onClick={() => setDetailsModal({ ...user, acs, active })}
                                         className={`rounded-xl p-3 border transition-shadow cursor-pointer ${isOnline ? 'bg-green-50/40 border-green-100 dark:bg-green-900/10 dark:border-green-800/30' : 'bg-white/50 border-gray-100 dark:bg-gray-800/50 dark:border-gray-700/50'}`}
                                     >
@@ -1506,7 +1511,7 @@ export default function UsersPage() {
                                         const isOnline = !!active;
 
                                         return (
-                                            <tr key={user['.id']} className={`transition-colors ${isOnline ? 'bg-green-50/50 dark:bg-green-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
+                                            <tr key={user.id} className={`transition-colors ${isOnline ? 'bg-green-50/50 dark:bg-green-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
                                                 <td className="px-6 py-4 whitespace-nowrap relative">
                                                     {/* Desktop: Checkbox */}
                                                     <div className="hidden sm:block">
