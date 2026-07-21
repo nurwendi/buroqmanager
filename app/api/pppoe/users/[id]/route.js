@@ -22,6 +22,13 @@ export async function PUT(request, { params }) {
         const config = await getConfig();
         let connectionId = getUserConnectionId(user, config);
 
+        let targetId = id;
+        if (id && id.includes('_')) {
+            const parts = id.split('_');
+            connectionId = parts[0];
+            targetId = parts.slice(1).join('_');
+        }
+
         // Fallback Logic (Same as POST)
         if (!connectionId && user?.ownerId) {
             const ownerConn = config.connections?.find(c => c.ownerId === user.ownerId);
@@ -43,7 +50,7 @@ export async function PUT(request, { params }) {
             return NextResponse.json({ error: "Failed to connect to router: " + connError.message }, { status: 503 });
         }
 
-        const updateParams = [`=.id=${id}`];
+        const updateParams = [`=.id=${targetId}`];
         if (name) updateParams.push(`=name=${name}`);
         if (password) updateParams.push(`=password=${password}`);
         if (profile) updateParams.push(`=profile=${profile}`);
@@ -116,6 +123,13 @@ export async function DELETE(request, { params }) {
         const config = await getConfig();
         let connectionId = getUserConnectionId(user, config);
 
+        let targetId = id;
+        if (id && id.includes('_')) {
+            const parts = id.split('_');
+            connectionId = parts[0];
+            targetId = parts.slice(1).join('_');
+        }
+
         // Fallback Logic (Same as POST)
         if (!connectionId && user?.ownerId) {
             const ownerConn = config.connections?.find(c => c.ownerId === user.ownerId);
@@ -127,10 +141,10 @@ export async function DELETE(request, { params }) {
 
         const client = await getMikrotikClient(connectionId);
 
-        console.log(`Attempting to delete user with ID: ${id}`);
+        console.log(`Attempting to delete user with ID: ${targetId} on router ${connectionId}`);
 
         try {
-            await client.write(['/ppp/secret/remove', `=.id=${id}`]);
+            await client.write(['/ppp/secret/remove', `=.id=${targetId}`]);
         } catch (deleteError) {
             // Handle !empty reply - this is normal for remove operations
             if (deleteError.errno === 'UNKNOWNREPLY' || deleteError.message?.includes('!empty')) {
