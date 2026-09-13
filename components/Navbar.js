@@ -86,6 +86,7 @@ export default function Navbar() {
         { href: '/offline', icon: WifiOff, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/profiles', icon: Settings, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
         { href: '/drop-users', icon: ShieldAlert, label: t('sidebar.dropIsolir'), roles: ['admin', 'manager'] },
+        { href: '/olt', icon: FileText, label: 'Script OLT ZTE', roles: ['admin', 'manager', 'staff', 'technician'] },
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
     const settingsItems = [
