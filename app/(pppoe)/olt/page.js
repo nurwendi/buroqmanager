@@ -98,7 +98,7 @@ write`;
         const user = users.find(u => u.name === oltData.username);
         if (!user || !user['.id']) return alert('Data pelanggan tidak valid!');
 
-        const commentToAdd = `1/1/${oltData.noInterface || ''}:${oltData.noOnu || ''} ${oltData.sn || ''}`.trim();
+        const commentToAdd = `1/1/${oltData.noInterface || ''} : ${oltData.noOnu || ''} ${oltData.sn || ''}`.trim();
         let newComment = commentToAdd;
 
         setUpdatingComment(true);
@@ -250,7 +250,7 @@ write`;
                                     <div className="pt-2 border-t border-blue-200 dark:border-blue-800/50">
                                         <p className="text-xs font-medium text-blue-800 dark:text-blue-300">Komentar Baru (Menggantikan yang lama):</p>
                                         <p className="text-sm font-mono bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded text-blue-900 dark:text-blue-200 mt-1 inline-block">
-                                            1/1/{oltData.noInterface || '[noInterface]'}:{oltData.noOnu || '[noOnu]'} {oltData.sn || '[SN]'}
+                                            1/1/{oltData.noInterface || '[noInterface]'} : {oltData.noOnu || '[noOnu]'} {oltData.sn || '[SN]'}
                                         </p>
                                     </div>
                                 </div>
