@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, Copy, Settings, Terminal, Info, Loader2 } from 'lucide-react';
+import { Shield, Copy, Settings, Terminal, Info, Loader2, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function OltScriptPage() {
@@ -9,6 +9,11 @@ export default function OltScriptPage() {
     const [loading, setLoading] = useState(true);
     const [selectedUserComment, setSelectedUserComment] = useState('');
     const [updatingComment, setUpdatingComment] = useState(false);
+    
+    // For searchable dropdown
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showDropdown, setShowDropdown] = useState(false);
+    const filteredUsers = users.filter(u => u.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const [oltData, setOltData] = useState({
         username: '',
@@ -157,22 +162,55 @@ write`;
                     
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username PPPoE (Pilih)</label>
+                            <div className="relative">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Username PPPoE (Cari)</label>
                                 <div className="relative">
-                                    <select 
-                                        value={oltData.username} 
-                                        onChange={handleUserSelect} 
-                                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white transition-all appearance-none"
+                                    <input
+                                        type="text"
+                                        value={searchTerm}
+                                        onChange={(e) => {
+                                            setSearchTerm(e.target.value);
+                                            setShowDropdown(true);
+                                            if (e.target.value === '') {
+                                                setOltData({ ...oltData, username: '', password: '' });
+                                                setSelectedUserComment('');
+                                            }
+                                        }}
+                                        onFocus={() => setShowDropdown(true)}
+                                        onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                                        placeholder={loading ? "Memuat pelanggan..." : "Ketik untuk mencari..."}
+                                        className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white transition-all pr-10"
                                         disabled={loading}
-                                    >
-                                        <option value="">-- Pilih Pelanggan --</option>
-                                        {users.map(u => (
-                                            <option key={u['.id'] || u.name} value={u.name}>{u.name}</option>
-                                        ))}
-                                    </select>
-                                    {loading && <Loader2 size={16} className="absolute right-3 top-3 animate-spin text-gray-400" />}
+                                    />
+                                    {loading ? (
+                                        <Loader2 size={16} className="absolute right-3 top-3 animate-spin text-gray-400" />
+                                    ) : (
+                                        <Search size={16} className="absolute right-3 top-3 text-gray-400" />
+                                    )}
                                 </div>
+                                
+                                {showDropdown && filteredUsers.length > 0 && (
+                                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                        {filteredUsers.map(u => (
+                                            <div 
+                                                key={u['.id'] || u.name}
+                                                onClick={() => {
+                                                    setSearchTerm(u.name);
+                                                    setOltData({
+                                                        ...oltData,
+                                                        username: u.name,
+                                                        password: u.password || '',
+                                                    });
+                                                    setSelectedUserComment(u.comment || '');
+                                                    setShowDropdown(false);
+                                                }}
+                                                className="px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-sm text-gray-800 dark:text-gray-200"
+                                            >
+                                                {u.name}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password PPPoE</label>
