@@ -21,6 +21,7 @@ export default function UsersPage() {
     const [profiles, setProfiles] = useState([]);
     const [activeConnections, setActiveConnections] = useState([]);
     const [acsDevices, setAcsDevices] = useState([]);
+    const [importingVirtual, setImportingVirtual] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -352,6 +353,26 @@ export default function UsersPage() {
             })
             .catch(err => console.error('Failed to fetch user role', err));
     }, []);
+
+    const handleImportVirtual = async () => {
+        if (!confirm('Apakah Anda yakin ingin mengimport semua pelanggan virtual dari Mikrotik ke Database? ID Pelanggan akan digenerate secara otomatis.')) return;
+        setImportingVirtual(true);
+        try {
+            const res = await fetch('/api/customers/import-virtual', { method: 'POST' });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message);
+                fetchCustomersData();
+            } else {
+                alert('Gagal: ' + (data.error || 'Unknown error'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Terjadi kesalahan saat import.');
+        } finally {
+            setImportingVirtual(false);
+        }
+    };
 
     const fetchUsers = async () => {
         setLoading(true);

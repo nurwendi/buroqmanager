@@ -98,8 +98,8 @@ export async function GET(request) {
                             // Add as virtual customer object
                             mergedList.push({
                                 username: u.name,
-                                name: u.name, // Fallback
-                                customerId: u.comment || u.name, // Use comment as ID if exists
+                                  name: u.name, // Fallback
+                                  customerId: u.name, // Prevent using OLT comment as ID
                                 phone: '-',
                                 address: '-',
                                 profile: { name: u.profile, price: 0 },
