@@ -95,24 +95,30 @@ export default function UsersPage() {
 
     const { preferences } = useDashboard();
 
-    // Fetch All Data
-    const fetchData = async () => {
+    // State for server-side pagination
+    const [totalUsers, setTotalUsers] = useState(0);
+    const [serverPage, setServerPage] = useState(1);
+    const [serverSearch, setServerSearch] = useState('');
+    const searchDebounceRef = useRef(null);
+
+    // Fetch All Data - GenieACS lazy-loaded separately to speed up initial load
+    const fetchData = async (page = 1, search = '', status = 'all') => {
         try {
             setLoading(true);
+            const limit = rowsPerPage === 'All' ? 500 : (rowsPerPage || 100);
+            const queryParams = new URLSearchParams({ page, limit, search, status });
             const [
                 usersRes,
                 profilesRes,
                 activeRes,
-                acsRes,
                 customersRes,
                 systemUsersRes,
                 settingsRes,
                 registrationsRes
             ] = await Promise.all([
-                fetch('/api/pppoe/users'),
+                fetch('/api/pppoe/users?' + queryParams.toString()),
                 fetch('/api/pppoe/profiles'),
                 fetch('/api/pppoe/active'),
-                fetch('/api/genieacs/devices'),
                 fetch('/api/customers?lite=true'),
                 fetch('/api/admin/users'),
                 fetch('/api/settings'),
@@ -121,19 +127,22 @@ export default function UsersPage() {
 
             if (!usersRes.ok || !profilesRes.ok) throw new Error('Failed to fetch initial data');
 
-            const usersData = await usersRes.json();
+            const usersPayload = await usersRes.json();
             const profilesData = await profilesRes.json();
             const activeData = activeRes.ok ? await activeRes.json() : [];
-            const acsData = acsRes.ok ? await acsRes.json() : [];
             const customersDataVals = customersRes.ok ? await customersRes.json() : {};
             const systemUsersData = systemUsersRes.ok ? await systemUsersRes.json() : [];
             const settingsData = settingsRes.ok ? await settingsRes.json() : {};
             const registrationsData = registrationsRes.ok ? await registrationsRes.json() : [];
 
+            // Support both paginated {users, total} format and legacy flat array
+            const usersData = Array.isArray(usersPayload) ? usersPayload : (usersPayload.users || []);
+            const total = Array.isArray(usersPayload) ? usersPayload.length : (usersPayload.total || 0);
+
             setUsers(usersData);
+            setTotalUsers(total);
             setProfiles((profilesData || []).filter(p => p.name !== 'default' && p.name !== 'billing.default'));
             setActiveConnections(activeData);
-            setAcsDevices(acsData);
             setCustomersData(customersDataVals);
             setSystemUsers(systemUsersData);
             setPendingRegistrations(registrationsData);
@@ -153,24 +162,30 @@ export default function UsersPage() {
         }
     };
 
+    // Lazy-load GenieACS devices after main data loads (non-blocking)
+    const fetchAcsDevices = async () => {
+        try {
+            const acsRes = await fetch('/api/genieacs/devices');
+            if (acsRes.ok) setAcsDevices(await acsRes.json());
+        } catch (e) { console.error('ACS fetch failed', e); }
+    };
+
     // Auto-refresh active connections only (every 10s)
     useEffect(() => {
         const interval = setInterval(async () => {
             if (document.hidden) return;
             try {
-                const [activeRes, acsRes] = await Promise.all([
-                    fetch('/api/pppoe/active'),
-                    fetch('/api/genieacs/devices')
-                ]);
+                const activeRes = await fetch('/api/pppoe/active');
                 if (activeRes.ok) setActiveConnections(await activeRes.json());
-                if (acsRes.ok) setAcsDevices(await acsRes.json());
             } catch (e) { console.error("Auto-refresh failed", e); }
-        }, 10000);
+        }, 60000);
         return () => clearInterval(interval);
     }, []);
 
     useEffect(() => {
-        fetchData();
+        fetchData(1, '', filterStatus);
+        // Load ACS devices in background after main data
+        setTimeout(() => fetchAcsDevices(), 1500);
     }, []);
 
     useEffect(() => {
@@ -377,9 +392,13 @@ export default function UsersPage() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/pppoe/users');
+            const res = await fetch('/api/pppoe/users?page=1&limit=100');
             if (res.ok) {
-                setUsers(await res.json());
+                const payload = await res.json();
+                const usersData = Array.isArray(payload) ? payload : (payload.users || []);
+                const total = Array.isArray(payload) ? payload.length : (payload.total || 0);
+                setUsers(usersData);
+                setTotalUsers(total);
             }
         } catch (error) {
             console.error('Failed to fetch users', error);
@@ -1327,7 +1346,16 @@ export default function UsersPage() {
                             type="text"
                             placeholder={t('pppoe.searchPlaceholder')}
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                // Debounced server search
+                                clearTimeout(searchDebounceRef.current);
+                                searchDebounceRef.current = setTimeout(() => {
+                                    setServerPage(1);
+                                    setServerSearch(e.target.value);
+                                    fetchData(1, e.target.value, filterStatus);
+                                }, 400);
+                            }}
                             className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:placeholder-gray-400"
                         />
                     </div>
@@ -1362,7 +1390,7 @@ export default function UsersPage() {
                                                     <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">{getCustomerName(user.name) || '-'}</p>
                                                     {user.comment && (
                                                         <p className="text-[10px] text-amber-650 dark:text-amber-400 font-medium italic mt-1 leading-normal">
-                                                            💬 {user.comment}
+                                                            ?? {user.comment}
                                                         </p>
                                                     )}
                                                 </div>
@@ -1636,7 +1664,7 @@ export default function UsersPage() {
                                                             <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{getCustomerName(user.name)}</span>
                                                             {user.comment && (
                                                                 <span className="text-[10px] text-amber-650 dark:text-amber-400 font-medium italic mt-0.5 max-w-[220px] truncate" title={user.comment}>
-                                                                    💬 {user.comment}
+                                                                    ?? {user.comment}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1659,7 +1687,7 @@ export default function UsersPage() {
                                                              return <span className="text-xs text-gray-400">-</span>;
                                                          })()}
                                                          <span className="text-xs text-gray-400 dark:text-gray-500 font-mono tracking-wide pl-1" title={t('users.password')}>
-                                                             🔑 {user.password || '-'}
+                                                             ?? {user.password || '-'}
                                                          </span>
                                                      </div>
                                                  </td>

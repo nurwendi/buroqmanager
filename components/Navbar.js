@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { MapPin, Home, Users, Settings, LogOut, Menu, X, Network, Share2, DollarSign, Wallet, FileText, Lock, Globe, Server, Cloud, Database, Palette, ClipboardList, ShieldAlert, Activity, ChevronDown, Router, Megaphone, Bell, MessageSquare, CreditCard, WifiOff, UserCog, Shield, Sun, Moon } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import NotificationPopover from './NotificationPopover';
@@ -19,6 +19,10 @@ export default function Navbar() {
     const { t, resolvedLanguage, setLanguage } = useLanguage();
     const { updateTheme, effectiveMode } = useTheme();
 
+    // Refs for dropdown containers — used to close dropdowns on outside click
+    const billingDropdownRef = useRef(null);
+    const pppoeDropdownRef = useRef(null);
+
     const toggleTheme = () => {
         const newMode = effectiveMode === 'dark' ? 'light' : 'dark';
         updateTheme({ mode: newMode });
@@ -27,6 +31,20 @@ export default function Navbar() {
     useEffect(() => {
         fetchAppSettings();
         fetchUserRole();
+    }, []);
+
+    // Close dropdowns when clicking outside — use mousedown (fires before click) to avoid race condition
+    useEffect(() => {
+        const handleOutsideClick = (e) => {
+            if (billingDropdownRef.current && !billingDropdownRef.current.contains(e.target)) {
+                setIsBillingOpen(false);
+            }
+            if (pppoeDropdownRef.current && !pppoeDropdownRef.current.contains(e.target)) {
+                setIsPppoeOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleOutsideClick);
+        return () => document.removeEventListener('mousedown', handleOutsideClick);
     }, []);
 
     const fetchUserRole = async () => {
@@ -150,10 +168,9 @@ export default function Navbar() {
 
                         {/* Billing & Reports Dropdown */}
                         {billingReportItems.length > 0 && (
-                            <div className="relative">
+                            <div className="relative" ref={billingDropdownRef}>
                                 <button
                                     onClick={() => setIsBillingOpen(!isBillingOpen)}
-                                    onBlur={() => setTimeout(() => setIsBillingOpen(false), 200)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-2xl transition-all duration-200 ${billingReportItems.some(item => pathname === item.href)
                                         ? 'bg-accent text-white shadow-md'
                                         : 'text-gray-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
@@ -187,10 +204,9 @@ export default function Navbar() {
 
                         {/* PPPoE Dropdown */}
                         {userRole !== 'customer' && userRole !== 'superadmin' && (
-                            <div className="relative">
+                            <div className="relative" ref={pppoeDropdownRef}>
                                 <button
                                     onClick={() => setIsPppoeOpen(!isPppoeOpen)}
-                                    onBlur={() => setTimeout(() => setIsPppoeOpen(false), 200)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-2xl transition-all duration-200 ${pppoeItems.some(item => pathname === item.href)
                                         ? 'bg-accent text-white shadow-md'
                                         : 'text-gray-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'

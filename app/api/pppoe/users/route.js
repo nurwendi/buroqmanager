@@ -8,8 +8,14 @@ import { getConfig, getUserConnectionId } from '@/lib/config';
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
-        const mode = searchParams.get('mode'); // We can keep mode for backwards compatibility, but we'll default to all allowed
-        const user = await getUserFromRequest(request);
+
+        // Pagination & filter query params
+        const page   = Math.max(1, parseInt(searchParams.get('page')  || '1', 10));
+        const limit  = Math.max(1, parseInt(searchParams.get('limit') || '100', 10));
+        const search = (searchParams.get('search') || '').trim().toLowerCase();
+        const status = searchParams.get('status') || 'all'; // 'all' | 'online' | 'offline'
+
+        const user   = await getUserFromRequest(request);
         const config = await getConfig();
 
         if (!user) {
@@ -28,10 +34,6 @@ export async function GET(request) {
             }
         }
 
-        // If a specific connection is requested (e.g., standard mode but they actually only want one),
-        // we could filter it here. But usually mode=all means all, and standard meant active.
-        // To fix the bug where new routers don't show customers, we will fetch from ALL allowed connections.
-        
         let allUsers = [];
 
         // Fetch all unique owner IDs from connections for labeling
@@ -135,7 +137,28 @@ export async function GET(request) {
             }
         }
 
-        // 4. Attach Usage Data
+        // 4. Apply search filter (case-insensitive match on username / name field)
+        if (search) {
+            allUsers = allUsers.filter(u =>
+                u._isError || (u.name || '').toLowerCase().includes(search)
+            );
+        }
+
+        // 5. Apply status filter using the _active field
+        if (status === 'online') {
+            allUsers = allUsers.filter(u => u._isError || u._active === true);
+        } else if (status === 'offline') {
+            allUsers = allUsers.filter(u => u._isError || u._active === false);
+        }
+
+        // 6. Compute pagination metadata on the filtered list
+        const total      = allUsers.length;
+        const totalPages = Math.ceil(total / limit) || 1;
+        const safePage   = Math.min(page, totalPages);
+        const startIdx   = (safePage - 1) * limit;
+        const pageSlice  = allUsers.slice(startIdx, startIdx + limit);
+
+        // 7. Attach Usage Data — only for the current page slice, not all users
         const { getAllMonthlyUsage } = await import('@/lib/usage-tracker');
         const allUsageData = await getAllMonthlyUsage();
         const currentMonth = new Date().toISOString().slice(0, 7);
@@ -145,7 +168,7 @@ export async function GET(request) {
             usageMapLowerCase[key.toLowerCase()] = allUsageData[key];
         });
 
-        const usersWithUsage = allUsers.map(u => {
+        const usersWithUsage = pageSlice.map(u => {
             const userData = allUsageData[u.name] || usageMapLowerCase[(u.name || '').toLowerCase()];
             let usage = { rx: 0, tx: 0 };
 
@@ -158,7 +181,12 @@ export async function GET(request) {
             return { ...u, usage };
         });
 
-        return NextResponse.json(usersWithUsage);
+        return NextResponse.json({
+            users: usersWithUsage,
+            total,
+            page: safePage,
+            totalPages
+        });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
