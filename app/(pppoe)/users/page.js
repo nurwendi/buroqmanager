@@ -116,7 +116,7 @@ export default function UsersPage() {
                 settingsRes,
                 registrationsRes
             ] = await Promise.all([
-                fetch('/api/pppoe/users?' + queryParams.toString()),
+                fetch('/api/pppoe/users'),
                 fetch('/api/pppoe/profiles'),
                 fetch('/api/pppoe/active'),
                 fetch('/api/customers?lite=true'),
@@ -392,7 +392,7 @@ export default function UsersPage() {
     const fetchUsers = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/pppoe/users?page=1&limit=100');
+            const res = await fetch('/api/pppoe/users');
             if (res.ok) {
                 const payload = await res.json();
                 const usersData = Array.isArray(payload) ? payload : (payload.users || []);
