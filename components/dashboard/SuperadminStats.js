@@ -156,27 +156,67 @@ export default function SuperadminStats({ stats }) {
                                 </div>
                             </div>
                             
-                            {/* Individual Cores Grid */}
-                            {stats?.serverCpus && stats.serverCpus.length > 0 ? (
-                                <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-4 gap-2">
-                                    {stats.serverCpus.map((coreLoad, idx) => {
-                                        const isHigh = coreLoad > 80;
-                                        const isMed = coreLoad > 40 && !isHigh;
-                                        const bgClass = isHigh ? 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse' 
-                                            : isMed ? 'bg-amber-400 text-amber-900 shadow-[0_0_8px_rgba(251,191,36,0.4)]' 
-                                            : 'bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.3)]';
-                                            
+                                {/* Individual Cores Grid */}
+                                {stats?.serverCpus && stats.serverCpus.length > 0 ? (
+                                    (() => {
+                                        const coreCount = stats.serverCpus.length;
+                                        let gridClass = 'grid-cols-4';
+                                        let wrapperClass = 'w-full';
+                                        
+                                        if (coreCount === 1) {
+                                            gridClass = 'grid-cols-1';
+                                            wrapperClass = 'w-1/3 mx-auto';
+                                        } else if (coreCount === 2) {
+                                            gridClass = 'grid-cols-2';
+                                            wrapperClass = 'w-3/4 sm:w-1/2 mx-auto';
+                                        } else if (coreCount === 3) {
+                                            gridClass = 'grid-cols-3';
+                                            wrapperClass = 'w-full sm:w-3/4 mx-auto';
+                                        } else if (coreCount === 4) {
+                                            gridClass = 'grid-cols-2'; // 2x2 grid
+                                            wrapperClass = 'w-3/4 sm:w-1/2 mx-auto';
+                                        } else if (coreCount > 4 && coreCount <= 8) {
+                                            gridClass = 'grid-cols-4';
+                                            wrapperClass = 'w-full';
+                                        } else {
+                                            gridClass = 'grid-cols-4 sm:grid-cols-8';
+                                            wrapperClass = 'w-full';
+                                        }
+
                                         return (
-                                            <div key={idx} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-2 flex flex-col items-center justify-center relative overflow-hidden group hover:border-blue-400 transition-colors">
-                                                <span className="text-[9px] text-gray-400 dark:text-gray-500 font-bold mb-1 tracking-widest uppercase">Core {idx}</span>
-                                                <div className={`text-xs font-black px-2 py-0.5 rounded ${bgClass} transition-all duration-500`}>
-                                                    {coreLoad}%
-                                                </div>
+                                            <div className={`grid ${gridClass} gap-3 ${wrapperClass}`}>
+                                                {stats.serverCpus.map((coreLoad, idx) => {
+                                                    const isHigh = coreLoad > 80;
+                                                    const isMed = coreLoad > 40 && !isHigh;
+                                                    
+                                                    // Background of the outer chip casing
+                                                    const chipBgClass = isHigh ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-900 dark:text-red-100' 
+                                                        : isMed ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-100' 
+                                                        : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-100';
+
+                                                    // Inner processor die color
+                                                    const dieBgClass = isHigh ? 'bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)] animate-pulse' 
+                                                        : isMed ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' 
+                                                        : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]';
+
+                                                    return (
+                                                        <div key={idx} className={`aspect-square rounded-xl border-2 ${chipBgClass} p-1.5 flex flex-col items-center justify-center relative overflow-hidden group shadow-sm hover:scale-105 transition-transform duration-300`}>
+                                                            {/* Circuit board pattern background */}
+                                                            <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at center, currentColor 1px, transparent 1px)', backgroundSize: '4px 4px' }}></div>
+                                                            <div className="absolute inset-0 opacity-[0.07] pointer-events-none" style={{ backgroundImage: 'linear-gradient(90deg, transparent 48%, currentColor 48%, currentColor 52%, transparent 52%), linear-gradient(0deg, transparent 48%, currentColor 48%, currentColor 52%, transparent 52%)', backgroundSize: '12px 12px' }}></div>
+                                                            
+                                                            {/* Inner CPU Die */}
+                                                            <div className={`relative z-10 w-[70%] h-[70%] rounded border border-white/20 flex flex-col items-center justify-center text-white ${dieBgClass} transition-all duration-500 backdrop-blur-sm`}>
+                                                                <span className="text-[9px] sm:text-[10px] font-bold tracking-wider opacity-90 mb-0.5">CORE {idx}</span>
+                                                                <span className="text-sm sm:text-base font-black leading-none">{coreLoad}%</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         );
-                                    })}
-                                </div>
-                            ) : (
+                                    })()
+                                ) : (
                                 <div className="w-full bg-gray-200 dark:bg-gray-700 h-3 rounded-full overflow-hidden shadow-inner">
                                     <div
                                         className={`h-full rounded-full transition-all duration-1000 ${cpuLoad > 80 ? 'bg-gradient-to-r from-red-500 to-rose-600' : 'bg-gradient-to-r from-blue-500 to-indigo-500'}`}
