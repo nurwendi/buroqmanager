@@ -128,16 +128,31 @@ export default function SuperadminStats({ stats }) {
                                         </div>
                                         <div className="flex justify-between items-center text-xs text-gray-500 mt-1 w-full">
                                             <span className="truncate">Free: {formatBytes(systemInfo.memory?.free)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex items-start gap-4 hover:border-cyan-400/50 transition-colors group">
+                                    <div className="p-3 rounded-lg bg-cyan-100 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400 group-hover:bg-cyan-500 group-hover:text-white transition-colors">
+                                        <Database size={24} />
+                                    </div>
+                                    <div className="w-full flex-1 min-w-0">
+                                        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">System Storage</p>
+                                        <div className="font-black text-gray-900 dark:text-white truncate">
+                                            {systemInfo.disk ? systemInfo.disk.total : 'Unknown'} Total
+                                        </div>
+                                        <div className="flex justify-between items-center text-xs text-gray-500 mt-1 w-full">
+                                            <span className="truncate">Free: {systemInfo.disk ? systemInfo.disk.free : 'N/A'}</span>
                                             {systemInfo.disk && (
-                                                <span className="font-bold text-orange-500/80 dark:text-orange-400/80 ml-2 whitespace-nowrap" title={`Total: ${systemInfo.disk.total}, Free: ${systemInfo.disk.free}`}>
-                                                    Disk: {systemInfo.disk.percent}
+                                                <span className="font-bold text-cyan-600 dark:text-cyan-400 ml-2 whitespace-nowrap">
+                                                    Used: {systemInfo.disk.percent}
                                                 </span>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex items-start gap-4 hover:border-purple-400/50 transition-colors group">
+                                <div className="sm:col-span-2 bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex items-start gap-4 hover:border-purple-400/50 transition-colors group">
                                     <div className="p-3 rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
                                         <Activity size={24} />
                                     </div>
