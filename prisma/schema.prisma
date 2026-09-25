@@ -86,6 +86,9 @@ model Customer {
   tickets       Ticket[]
 
   @@unique([username, ownerId])
+  @@index([ownerId])
+  @@index([agentId])
+  @@index([technicianId])
   @@map("Customer")
 }
 

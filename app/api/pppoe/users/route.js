@@ -5,6 +5,10 @@ import db from '@/lib/db';
 
 import { getConfig, getUserConnectionId } from '@/lib/config';
 
+// Module-level in-memory cache to prevent hammering Mikrotik on frequent reloads
+const routerCache = new Map();
+const CACHE_TTL_MS = 15000; // 15 seconds
+
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
@@ -27,10 +31,6 @@ export async function GET(request) {
                 connections = [];
             }
         }
-
-        // If a specific connection is requested (e.g., standard mode but they actually only want one),
-        // we could filter it here. But usually mode=all means all, and standard meant active.
-        // To fix the bug where new routers don't show customers, we will fetch from ALL allowed connections.
         
         let allUsers = [];
 
@@ -46,14 +46,29 @@ export async function GET(request) {
             ownerMap[o.id] = o.username || o.fullName || 'Unknown';
         });
 
-        // 2. Fetch from all allowed connections in parallel
+        // 2. Fetch from all allowed connections in parallel (with caching)
         const promises = connections.map(async (conn) => {
             try {
-                const client = await getMikrotikClient(conn.id);
-                const [routerUsers, activeConnections] = await Promise.all([
-                    client.write('/ppp/secret/print'),
-                    client.write('/ppp/active/print')
-                ]);
+                let routerUsers, activeConnections;
+                const cacheKey = conn.id;
+                const cachedData = routerCache.get(cacheKey);
+
+                if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL_MS) {
+                    routerUsers = cachedData.secrets;
+                    activeConnections = cachedData.active;
+                } else {
+                    const client = await getMikrotikClient(conn.id);
+                    [routerUsers, activeConnections] = await Promise.all([
+                        client.write('/ppp/secret/print'),
+                        client.write('/ppp/active/print')
+                    ]);
+                    
+                    routerCache.set(cacheKey, {
+                        timestamp: Date.now(),
+                        secrets: routerUsers,
+                        active: activeConnections
+                    });
+                }
 
                 const activeMap = {};
                 if (Array.isArray(activeConnections)) {

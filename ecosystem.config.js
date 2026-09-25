@@ -1,23 +1,16 @@
 module.exports = {
-    apps: [
-        {
-            name: "billing",
-            script: "npm",
-            args: "start",
-            env: {
-                NODE_ENV: "production",
-            },
-            env_production: {
-                NODE_ENV: "production",
-            },
-        },
-        {
-            name: "isolir",
-            script: "npm",
-            args: "run isolir",
-            env: {
-                NODE_ENV: "production",
-            },
-        },
-    ],
+  apps: [
+    {
+      name: 'billing-pro',
+      script: 'node_modules/next/dist/bin/next',
+      args: 'start -p 3000',
+      instances: 'max',
+      exec_mode: 'cluster',
+      watch: false,
+      max_memory_restart: '1G',
+      env: {
+        NODE_ENV: 'production'
+      }
+    }
+  ]
 };
