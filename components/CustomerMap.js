@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, LayersControl } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -219,42 +220,44 @@ export default function CustomerMap() {
                     </LayersControl.BaseLayer>
                 </LayersControl>
                 
-                {validCustomers.map((customer) => (
-                    <Marker 
-                        key={customer.id} 
-                        position={customer.parsedCoords}
-                        icon={createCustomIcon(customer.statusColor)}
-                    >
-                        <Popup>
-                            <div className="p-1 min-w-[200px]">
-                                <h3 className={`font-bold text-sm mb-1 border-b pb-1 ${
-                                    isDark ? 'text-slate-100 border-slate-700' : 'text-slate-900 border-slate-200'
-                                }}`}>
-                                    {customer.name} | {customer.username}
-                                </h3>
-                                <div className={`text-xs space-y-1 mt-2 ${
-                                    isDark ? 'text-slate-300' : 'text-slate-700'
-                                }}`}>
-                                    <p><strong className={isDark ? 'text-slate-200' : 'text-slate-800'}>{t('maps.phoneLabel') || 'No. HP'}:</strong> {customer.phone || '-'}</p>
-                                    <p><strong className={isDark ? 'text-slate-200' : 'text-slate-800'}>Redaman:</strong> {customer.rx_power && customer.rx_power !== '-' ? `${customer.rx_power} dBm` : '-'}</p>
-                                    <p><strong className={isDark ? 'text-slate-200' : 'text-slate-800'}>{t('maps.addressLabel') || 'Alamat'}:</strong> {customer.address || '-'}</p>
-                                    <p className="mt-2 pt-1 border-t border-dashed border-slate-200 dark:border-slate-700">
-                                        <strong className={isDark ? 'text-slate-200' : 'text-slate-800'}>Status:</strong>{' '}
-                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                            customer.statusColor === 'rose'
-                                                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                : customer.statusColor === 'orange'
-                                                ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                                                : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                        }`}>
-                                            {customer.statusText}
-                                        </span>
-                                    </p>
+                <MarkerClusterGroup chunkedLoading>
+                    {validCustomers.map((customer) => (
+                        <Marker 
+                            key={customer.id} 
+                            position={customer.parsedCoords}
+                            icon={createCustomIcon(customer.statusColor)}
+                        >
+                            <Popup>
+                                <div className="p-1 min-w-[200px]">
+                                    <h3 className={`font-bold text-sm mb-1 border-b pb-1 ${
+                                        isDark ? 'text-slate-100 border-slate-700' : 'text-slate-900 border-slate-200'
+                                    }}`}>
+                                        {customer.name} | {customer.username}
+                                    </h3>
+                                    <div className={`text-xs space-y-1 mt-2 ${
+                                        isDark ? 'text-slate-300' : 'text-slate-700'
+                                    }}`}>
+                                        <p><strong className={isDark ? 'text-slate-200' : 'text-slate-800'}>{t('maps.phoneLabel') || 'No. HP'}:</strong> {customer.phone || '-'}</p>
+                                        <p><strong className={isDark ? 'text-slate-200' : 'text-slate-800'}>Redaman:</strong> {customer.rx_power && customer.rx_power !== '-' ? `${customer.rx_power} dBm` : '-'}</p>
+                                        <p><strong className={isDark ? 'text-slate-200' : 'text-slate-800'}>{t('maps.addressLabel') || 'Alamat'}:</strong> {customer.address || '-'}</p>
+                                        <p className="mt-2 pt-1 border-t border-dashed border-slate-200 dark:border-slate-700">
+                                            <strong className={isDark ? 'text-slate-200' : 'text-slate-800'}>Status:</strong>{' '}
+                                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                                customer.statusColor === 'rose'
+                                                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                    : customer.statusColor === 'orange'
+                                                    ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                                                    : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                            }`}>
+                                                {customer.statusText}
+                                            </span>
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        </Popup>
-                    </Marker>
-                ))}
+                            </Popup>
+                        </Marker>
+                    ))}
+                </MarkerClusterGroup>
             </MapContainer>
         </div>
     );

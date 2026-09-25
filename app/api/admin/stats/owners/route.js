@@ -47,25 +47,19 @@ export async function GET(request) {
             return acc;
         }, {});
 
-        // 4. To count "Active per Owner", we need to know which owner owns which active username.
-        // We can query ALL customers and map them? Or just the active ones?
-        // Querying all customers might be heavy if getting thousands.
-        // Better: Query customers where username IN activeSessionsMap.
+        // 4. Calculate active per owner efficiently in-memory instead of massive IN clause
         const activeUsernames = Array.from(activeSessionsMap);
         let activeOwnerMap = {};
 
         if (activeUsernames.length > 0) {
-            // Chunk it if too large? Prisma 'in' efficient? 
-            // Let's assume < 2000 active users for now.
-            const activeCustomers = await db.customer.findMany({
-                where: {
-                    username: { in: activeUsernames }
-                },
+            // Fetch only username and ownerId for all customers
+            const allCust = await db.customer.findMany({
                 select: { username: true, ownerId: true }
             });
-
-            activeCustomers.forEach(c => {
-                if (c.ownerId) {
+            
+            // Map it in memory (O(N) is extremely fast in Node.js)
+            allCust.forEach(c => {
+                if (activeSessionsMap.has(c.username) && c.ownerId) {
                     activeOwnerMap[c.ownerId] = (activeOwnerMap[c.ownerId] || 0) + 1;
                 }
             });
