@@ -90,38 +90,65 @@ export default function SuperadminStats({ stats }) {
                             {t('dashboard.serverSpec')}
                         </h3>
                         {systemInfo ? (
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('dashboard.os')}</p>
-                                        <div className="font-semibold text-sm truncate flex items-center gap-2 text-gray-900 dark:text-white">
-                                            {systemInfo.type === 'Windows_NT' ? 'Windows' : 'Linux'}
-                                            <span className="opacity-50 text-[10px]">({systemInfo.platform})</span>
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-1 truncate">{systemInfo.release}</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex items-start gap-4 hover:border-blue-400/50 transition-colors group">
+                                    <div className="p-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                                        <Server size={24} />
                                     </div>
-                                    <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('dashboard.totalMemory')}</p>
-                                        <div className="font-semibold text-sm flex items-center gap-2 text-gray-900 dark:text-white">
-                                            {formatBytes(systemInfo.memory?.total)}
-                                            <HardDrive size={12} className="text-orange-500" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">Operating System</p>
+                                        <div className="font-black text-gray-900 dark:text-white flex items-center gap-2 truncate">
+                                            {systemInfo.type === 'Windows_NT' ? 'Windows' : 'Linux'} {systemInfo.release}
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-1">{t('dashboard.free')}: {formatBytes(systemInfo.memory?.free)}</p>
+                                        <p className="text-xs text-gray-500 mt-1 capitalize truncate">{systemInfo.hostname} • {systemInfo.arch}</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex items-start gap-4 hover:border-emerald-400/50 transition-colors group">
+                                    <div className="p-3 rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                                        <Cpu size={24} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">Processor</p>
+                                        <div className="font-black text-gray-900 dark:text-white text-sm truncate" title={systemInfo.cpu?.model}>
+                                            {systemInfo.cpu?.model}
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-1">{systemInfo.cpu?.cores} Cores • {systemInfo.cpu?.speed} MHz</p>
                                     </div>
                                 </div>
 
-                                <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('dashboard.processor')}</p>
-                                    <div className="font-semibold text-sm text-gray-900 dark:text-white">{systemInfo.cpu?.model}</div>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                                        <div className="flex items-center gap-1">
-                                            <Cpu size={12} className="text-green-600 dark:text-green-400" />
-                                            {systemInfo.cpu?.cores} {t('dashboard.cores')}
+                                <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex items-start gap-4 hover:border-orange-400/50 transition-colors group">
+                                    <div className="p-3 rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                                        <HardDrive size={24} />
+                                    </div>
+                                    <div className="w-full flex-1 min-w-0">
+                                        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">System Memory</p>
+                                        <div className="font-black text-gray-900 dark:text-white truncate">
+                                            {formatBytes(systemInfo.memory?.total)} Total
                                         </div>
-                                        <div className="flex items-center gap-1">
-                                            <Activity size={12} className="text-blue-600 dark:text-blue-400" />
-                                            {systemInfo.cpu?.speed} MHz
+                                        <div className="flex justify-between items-center text-xs text-gray-500 mt-1 w-full">
+                                            <span className="truncate">Free: {formatBytes(systemInfo.memory?.free)}</span>
+                                            {systemInfo.disk && (
+                                                <span className="font-bold text-orange-500/80 dark:text-orange-400/80 ml-2 whitespace-nowrap" title={`Total: ${systemInfo.disk.total}, Free: ${systemInfo.disk.free}`}>
+                                                    Disk: {systemInfo.disk.percent}
+                                                </span>
+                                            )}
                                         </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex items-start gap-4 hover:border-purple-400/50 transition-colors group">
+                                    <div className="p-3 rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                                        <Activity size={24} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mb-1">System Status</p>
+                                        <div className="font-black text-gray-900 dark:text-white text-sm truncate">
+                                            Uptime: {systemInfo.uptime ? `${Math.floor(systemInfo.uptime / 86400)}d ${Math.floor((systemInfo.uptime % 86400) / 3600)}h` : 'N/A'}
+                                        </div>
+                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-1 truncate" title={systemInfo.loadavg ? systemInfo.loadavg.map(n => n.toFixed(2)).join(', ') : 'N/A'}>
+                                            Load: {systemInfo.loadavg ? systemInfo.loadavg.map(n => n.toFixed(2)).join(', ') : 'N/A'} • Node {systemInfo.nodeVersion || ''}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
