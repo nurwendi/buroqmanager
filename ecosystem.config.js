@@ -2,14 +2,14 @@ module.exports = {
   apps: [
     {
       name: 'billing',
-      script: 'server.js',
+      script: 'node_modules/next/dist/bin/next',
+      args: 'start -p 2000',
       instances: 'max',
       exec_mode: 'cluster',
       watch: false,
       max_memory_restart: '1G',
       env: {
-        NODE_ENV: 'production',
-        PORT: 2000
+        NODE_ENV: 'production'
       }
     }
   ]
