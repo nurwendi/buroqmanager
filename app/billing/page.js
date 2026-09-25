@@ -108,7 +108,10 @@ export default function BillingPage() {
     const fetchUsers = async () => {
         try {
             const res = await fetch('/api/pppoe/users');
-            if (res.ok) setUsers(await res.json());
+            if (res.ok) {
+                const data = await res.json();
+                setUsers(Array.isArray(data) ? data : (data.users || []));
+            }
         } catch (error) {
             console.error('Failed to fetch users', error);
         }

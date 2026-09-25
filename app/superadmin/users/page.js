@@ -20,7 +20,7 @@ export default function SuperadminUsersPage() {
             const res = await fetch('/api/pppoe/users?mode=all');
             if (!res.ok) throw new Error('Failed to fetch users');
             const data = await res.json();
-            setUsers(Array.isArray(data) ? data : []);
+            setUsers(Array.isArray(data) ? data : (data.users || []));
         } catch (err) {
             console.error(err);
         } finally {

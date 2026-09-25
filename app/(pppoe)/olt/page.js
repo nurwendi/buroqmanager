@@ -39,7 +39,7 @@ export default function OltScriptPage() {
                 const res = await fetch('/api/pppoe/users');
                 if (res.ok) {
                     const data = await res.json();
-                    setUsers(data);
+                    setUsers(Array.isArray(data) ? data : (data.users || []));
                 }
             } catch (error) {
                 console.error('Failed to fetch users', error);

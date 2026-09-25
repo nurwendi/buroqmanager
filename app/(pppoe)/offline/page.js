@@ -46,7 +46,8 @@ export default function OfflineUsersPage() {
             const usersData = await usersRes.json();
             const activeData = await activeRes.json();
 
-            if (Array.isArray(usersData)) setUsers(usersData);
+            const finalUsers = Array.isArray(usersData) ? usersData : (usersData.users || []);
+            setUsers(finalUsers);
             if (Array.isArray(activeData)) setActiveConnections(activeData);
 
         } catch (error) {
