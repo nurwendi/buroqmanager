@@ -128,57 +128,69 @@ export async function GET(request) {
         let systemUserCount = 0;
 
         // --- Aggregation logic for PPPoE active/offline ---
-        for (const conn of targetConnections) {
+        let allowedUsernames = null;
+        if (currentUser.role !== 'superadmin') {
+            let filterWhere = {};
+            if (currentUser.role === 'admin' || currentUser.role === 'manager') {
+                filterWhere = { ownerId: currentUser.id };
+                if (currentUser.role === 'manager' && currentUser.ownerId) {
+                    filterWhere = { ownerId: currentUser.ownerId };
+                }
+            } else if (['agent', 'partner', 'technician', 'staff', 'editor'].includes(currentUser.role)) {
+                filterWhere = {
+                    OR: [ { agentId: currentUser.id }, { technicianId: currentUser.id } ]
+                };
+                if (currentUser.ownerId) {
+                    filterWhere = { AND: [{ ownerId: currentUser.ownerId }, filterWhere] };
+                }
+            } else {
+                filterWhere = { ownerId: 'impossible_id' };
+            }
+
+            allowedUsernames = new Set();
+            if (Object.keys(filterWhere).length > 0 || (filterWhere.AND && filterWhere.AND.length > 0)) {
+                const dbCustomers = await db.customer.findMany({
+                    where: filterWhere,
+                    select: { username: true }
+                });
+                dbCustomers.forEach(c => allowedUsernames.add(c.username));
+            }
+        }
+
+        const pppoeStats = await Promise.all(targetConnections.map(async (conn) => {
             try {
                 const client = await getMikrotikClient(conn.id);
-                const activeConnections = await client.write('/ppp/active/print');
+                const [activeConnections, allSecrets] = await Promise.all([
+                    client.write('/ppp/active/print'),
+                    client.write('/ppp/secret/print')
+                ]);
+                
+                const activeMap = new Set(activeConnections.map(a => a.name));
                 let myTotalUsers = 0;
                 let activeCountForThisRouter = 0;
 
                 if (currentUser.role === 'superadmin') {
-                    const allSecrets = await client.write('/ppp/secret/print');
                     myTotalUsers = allSecrets.length;
-                    const activeMap = new Set(activeConnections.map(a => a.name));
                     activeCountForThisRouter = allSecrets.filter(s => activeMap.has(s.name)).length;
                 } else {
-                    const allSecrets = await client.write('/ppp/secret/print');
-                    let filterWhere = {};
-                    if (currentUser.role === 'admin' || currentUser.role === 'manager') {
-                        filterWhere = { ownerId: currentUser.id };
-                        if (currentUser.role === 'manager' && currentUser.ownerId) {
-                            filterWhere = { ownerId: currentUser.ownerId };
-                        }
-                    } else if (['agent', 'partner', 'technician', 'staff', 'editor'].includes(currentUser.role)) {
-                        filterWhere = {
-                            OR: [ { agentId: currentUser.id }, { technicianId: currentUser.id } ]
-                        };
-                        if (currentUser.ownerId) {
-                            filterWhere = { AND: [{ ownerId: currentUser.ownerId }, filterWhere] };
-                        }
-                    } else {
-                        filterWhere = { ownerId: 'impossible_id' };
-                    }
-
-                    let allowedUsernames = new Set();
-                    if (Object.keys(filterWhere).length > 0 || (filterWhere.AND && filterWhere.AND.length > 0)) {
-                        const dbCustomers = await db.customer.findMany({
-                            where: filterWhere,
-                            select: { username: true }
-                        });
-                        dbCustomers.forEach(c => allowedUsernames.add(c.username));
-                    }
                     const mySecrets = allSecrets.filter(s => allowedUsernames.has(s.name));
                     myTotalUsers = mySecrets.length;
-                    const activeMap = new Set(activeConnections.map(a => a.name));
                     activeCountForThisRouter = mySecrets.filter(s => activeMap.has(s.name)).length;
                 }
                 
-                myActiveCount += activeCountForThisRouter;
-                pppoeOffline += Math.max(0, myTotalUsers - activeCountForThisRouter);
-
+                return {
+                    active: activeCountForThisRouter,
+                    total: myTotalUsers
+                };
             } catch (err) {
                 console.error(`PPPoE aggregation failed for router ${conn.id}:`, err.message);
+                return { active: 0, total: 0 };
             }
+        }));
+
+        for (const stat of pppoeStats) {
+            myActiveCount += stat.active;
+            pppoeOffline += Math.max(0, stat.total - stat.active);
         }
 
         // --- Hardware stats for effective router ---

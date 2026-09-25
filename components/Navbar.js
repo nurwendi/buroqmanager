@@ -22,6 +22,7 @@ export default function Navbar() {
     // Refs for dropdown containers — used to close dropdowns on outside click
     const billingDropdownRef = useRef(null);
     const pppoeDropdownRef = useRef(null);
+    const mobileMenuRef = useRef(null);
 
     const toggleTheme = () => {
         const newMode = effectiveMode === 'dark' ? 'light' : 'dark';
@@ -36,6 +37,10 @@ export default function Navbar() {
     // Close dropdowns when clicking outside — use mousedown (fires before click) to avoid race condition
     useEffect(() => {
         const handleOutsideClick = (e) => {
+            // Do not close if clicking inside the mobile menu wrapper
+            if (mobileMenuRef.current && mobileMenuRef.current.contains(e.target)) {
+                return;
+            }
             if (billingDropdownRef.current && !billingDropdownRef.current.contains(e.target)) {
                 setIsBillingOpen(false);
             }
@@ -369,7 +374,7 @@ export default function Navbar() {
 
                 {/* Mobile Menu */}
                 {isMobileMenuOpen && (
-                    <div className="lg:hidden pb-4">
+                    <div className="lg:hidden pb-4" ref={mobileMenuRef}>
                         {navItems.filter(item => item.href === '/').map((item) => (
                             <Link
                                 key={item.href}
