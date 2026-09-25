@@ -33,6 +33,7 @@ export async function GET(request) {
         const endCpus = os.cpus();
 
         let totalIdle = 0, totalTick = 0;
+        const serverCpus = [];
         for (let i = 0; i < startCpus.length; i++) {
             const cpu1 = startCpus[i];
             const cpu2 = endCpus[i];
@@ -42,6 +43,10 @@ export async function GET(request) {
             for (let type in cpu1.times) {
                 tick += cpu2.times[type] - cpu1.times[type];
             }
+            
+            const coreLoad = tick > 0 ? Math.round(((tick - idle) / tick) * 100) : 0;
+            serverCpus.push(coreLoad);
+            
             totalIdle += idle;
             totalTick += tick;
         }
@@ -109,6 +114,7 @@ export async function GET(request) {
                 totalCustomers: 0,
                 systemUserCount: 0,
                 serverCpuLoad,
+                serverCpus,
                 serverMemoryUsed,
                 serverMemoryTotal,
                 routers: routerStats
@@ -260,6 +266,7 @@ export async function GET(request) {
             totalCustomers,
             systemUserCount,
             serverCpuLoad,
+            serverCpus,
             serverMemoryUsed,
             serverMemoryTotal,
             routers: routerStats
@@ -271,6 +278,7 @@ export async function GET(request) {
             pppoeActive: 0,
             pppoeOffline: 0,
             cpuLoad: 0,
+            serverCpus: [],
             memoryUsed: 0,
             memoryTotal: 0,
             temperature: null,

@@ -146,18 +146,39 @@ export default function SuperadminStats({ stats }) {
                         <div>
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                                    <Cpu size={16} /> {t('dashboard.cpuLoad')}
+                                    <Cpu size={16} /> {t('dashboard.cpuLoad')} (Avg)
                                 </span>
                                 <span className={`text-sm font-bold ${cpuLoad > 80 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
                                     {cpuLoad}%
                                 </span>
                             </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
-                                <div
-                                    className={`h-full rounded-full transition-all duration-1000 ${cpuLoad > 80 ? 'bg-red-500' : 'bg-green-500'}`}
-                                    style={{ width: `${cpuLoad}%` }}
-                                />
-                            </div>
+                            
+                            {/* Individual Cores */}
+                            {stats?.serverCpus && stats.serverCpus.length > 0 ? (
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+                                    {stats.serverCpus.map((coreLoad, idx) => (
+                                        <div key={idx} className="flex flex-col gap-1">
+                                            <div className="flex justify-between text-[10px] text-gray-500">
+                                                <span>Core {idx}</span>
+                                                <span>{coreLoad}%</span>
+                                            </div>
+                                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                                                <div
+                                                    className={`h-full rounded-full transition-all duration-1000 ${coreLoad > 80 ? 'bg-red-500' : 'bg-green-500'}`}
+                                                    style={{ width: `${coreLoad}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full rounded-full transition-all duration-1000 ${cpuLoad > 80 ? 'bg-red-500' : 'bg-green-500'}`}
+                                        style={{ width: `${cpuLoad}%` }}
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* RAM */}

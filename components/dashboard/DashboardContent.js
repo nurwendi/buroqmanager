@@ -165,6 +165,7 @@ export default function DashboardContent() {
                 totalCustomers: data.totalCustomers,
                 systemUserCount: data.systemUserCount || 0,
                 serverCpuLoad: data.serverCpuLoad,
+                serverCpus: data.serverCpus || [],
                 serverMemoryUsed: data.serverMemoryUsed,
                 serverMemoryTotal: data.serverMemoryTotal,
                 routers: data.routers || []
