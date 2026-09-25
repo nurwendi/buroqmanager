@@ -7,12 +7,18 @@ import { getConfig, getUserConnectionId } from '@/lib/config';
 
 // Module-level in-memory cache to prevent hammering Mikrotik on frequent reloads
 const routerCache = new Map();
-const CACHE_TTL_MS = 15000; // 15 seconds
+const CACHE_TTL_MS = 300000; // 5 minutes cache for blazing fast page switching
 
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
-        const mode = searchParams.get('mode'); // We can keep mode for backwards compatibility, but we'll default to all allowed
+        const mode = searchParams.get('mode');
+        const page = parseInt(searchParams.get('page')) || 1;
+        const limitParam = searchParams.get('limit');
+        const limit = (limitParam === 'All' || !limitParam) ? null : parseInt(limitParam);
+        const search = (searchParams.get('search') || '').toLowerCase();
+        const status = searchParams.get('status') || 'all';
+
         const user = await getUserFromRequest(request);
         const config = await getConfig();
 
@@ -22,7 +28,6 @@ export async function GET(request) {
 
         let connections = config.connections || [];
 
-        // 1. Determine which connections this user is allowed to query
         if (user.role !== 'superadmin') {
             const ownerId = user.role === 'admin' ? user.id : user.ownerId;
             if (ownerId) {
@@ -34,7 +39,6 @@ export async function GET(request) {
         
         let allUsers = [];
 
-        // Fetch all unique owner IDs from connections for labeling
         const ownerIds = [...new Set(connections.map(c => c.ownerId).filter(id => id))];
         const owners = await db.user.findMany({
             where: { id: { in: ownerIds } },
@@ -46,7 +50,6 @@ export async function GET(request) {
             ownerMap[o.id] = o.username || o.fullName || 'Unknown';
         });
 
-        // 2. Fetch from all allowed connections in parallel (with caching)
         const promises = connections.map(async (conn) => {
             try {
                 let routerUsers, activeConnections;
@@ -115,7 +118,6 @@ export async function GET(request) {
             allUsers = [...allUsers, ...users];
         });
 
-        // 3. Apply strict role-based filtering (for staff, agents, etc.)
         if (user.role !== 'superadmin' && user.role !== 'admin' && user.role !== 'manager') {
             try {
                 let allowedUsernames = new Set();
@@ -150,7 +152,37 @@ export async function GET(request) {
             }
         }
 
-        // 4. Attach Usage Data
+        // Apply Search Filter
+        if (search) {
+            allUsers = allUsers.filter(u => 
+                (u.name && u.name.toLowerCase().includes(search)) || 
+                (u.comment && u.comment.toLowerCase().includes(search))
+            );
+        }
+
+        // Apply Status Filter
+        if (status === 'online') {
+            allUsers = allUsers.filter(u => u._active);
+        } else if (status === 'offline') {
+            allUsers = allUsers.filter(u => !u._active && !u._isError);
+        } else if (status === 'isolir') {
+            // Usually isolated means profile contains isolir, check comment or profile
+            allUsers = allUsers.filter(u => 
+                (u.profile && u.profile.toLowerCase().includes('isolir')) ||
+                (u.comment && u.comment.toLowerCase().includes('isolir'))
+            );
+        }
+
+        const totalUsers = allUsers.length;
+        
+        // Apply Pagination
+        let paginatedUsers = allUsers;
+        if (limit) {
+            const startIndex = (page - 1) * limit;
+            paginatedUsers = allUsers.slice(startIndex, startIndex + limit);
+        }
+
+        // Attach Usage Data ONLY to the paginated slice
         const { getAllMonthlyUsage } = await import('@/lib/usage-tracker');
         const allUsageData = await getAllMonthlyUsage();
         const currentMonth = new Date().toISOString().slice(0, 7);
@@ -160,7 +192,7 @@ export async function GET(request) {
             usageMapLowerCase[key.toLowerCase()] = allUsageData[key];
         });
 
-        const usersWithUsage = allUsers.map(u => {
+        const usersWithUsage = paginatedUsers.map(u => {
             const userData = allUsageData[u.name] || usageMapLowerCase[(u.name || '').toLowerCase()];
             let usage = { rx: 0, tx: 0 };
 
@@ -173,7 +205,12 @@ export async function GET(request) {
             return { ...u, usage };
         });
 
-        return NextResponse.json(usersWithUsage);
+        return NextResponse.json({
+            users: usersWithUsage,
+            total: totalUsers,
+            page,
+            totalPages: limit ? Math.ceil(totalUsers / limit) : 1
+        });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
