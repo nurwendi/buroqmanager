@@ -136,45 +136,50 @@ export default function SuperadminStats({ stats }) {
 
                 {/* Real-time Usage */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 relative overflow-hidden">
-                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-gray-800 dark:text-white">
-                        <Activity size={20} className="text-green-600 dark:text-green-400" />
+                    <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-gray-800 dark:text-white">
+                        <Activity size={20} className="text-blue-600 dark:text-blue-400" />
                         {t('dashboard.realtimeUsage')}
                     </h3>
 
                     <div className="space-y-6">
                         {/* CPU */}
-                        <div>
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                                    <Cpu size={16} /> {t('dashboard.cpuLoad')} (Avg)
-                                </span>
-                                <span className={`text-sm font-bold ${cpuLoad > 80 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
-                                    {cpuLoad}%
-                                </span>
+                        <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                            <div className="flex justify-between items-end mb-4">
+                                <div className="flex items-center gap-2">
+                                    <div className={`p-2 rounded-lg ${cpuLoad > 80 ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 animate-pulse' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                                        <Cpu size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">{t('dashboard.cpuLoad')} (Avg)</p>
+                                        <p className="text-xl font-black text-gray-800 dark:text-white">{cpuLoad}%</p>
+                                    </div>
+                                </div>
                             </div>
                             
-                            {/* Individual Cores */}
+                            {/* Individual Cores Grid */}
                             {stats?.serverCpus && stats.serverCpus.length > 0 ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
-                                    {stats.serverCpus.map((coreLoad, idx) => (
-                                        <div key={idx} className="flex flex-col gap-1">
-                                            <div className="flex justify-between text-[10px] text-gray-500">
-                                                <span>Core {idx}</span>
-                                                <span>{coreLoad}%</span>
+                                <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-4 gap-2">
+                                    {stats.serverCpus.map((coreLoad, idx) => {
+                                        const isHigh = coreLoad > 80;
+                                        const isMed = coreLoad > 40 && !isHigh;
+                                        const bgClass = isHigh ? 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse' 
+                                            : isMed ? 'bg-amber-400 text-amber-900 shadow-[0_0_8px_rgba(251,191,36,0.4)]' 
+                                            : 'bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.3)]';
+                                            
+                                        return (
+                                            <div key={idx} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-2 flex flex-col items-center justify-center relative overflow-hidden group hover:border-blue-400 transition-colors">
+                                                <span className="text-[9px] text-gray-400 dark:text-gray-500 font-bold mb-1 tracking-widest uppercase">Core {idx}</span>
+                                                <div className={`text-xs font-black px-2 py-0.5 rounded ${bgClass} transition-all duration-500`}>
+                                                    {coreLoad}%
+                                                </div>
                                             </div>
-                                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
-                                                <div
-                                                    className={`h-full rounded-full transition-all duration-1000 ${coreLoad > 80 ? 'bg-red-500' : 'bg-green-500'}`}
-                                                    style={{ width: `${coreLoad}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             ) : (
-                                <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                                <div className="w-full bg-gray-200 dark:bg-gray-700 h-3 rounded-full overflow-hidden shadow-inner">
                                     <div
-                                        className={`h-full rounded-full transition-all duration-1000 ${cpuLoad > 80 ? 'bg-red-500' : 'bg-green-500'}`}
+                                        className={`h-full rounded-full transition-all duration-1000 ${cpuLoad > 80 ? 'bg-gradient-to-r from-red-500 to-rose-600' : 'bg-gradient-to-r from-blue-500 to-indigo-500'}`}
                                         style={{ width: `${cpuLoad}%` }}
                                     />
                                 </div>
@@ -182,20 +187,30 @@ export default function SuperadminStats({ stats }) {
                         </div>
 
                         {/* RAM */}
-                        <div>
-                            <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                                    <HardDrive size={16} /> {t('dashboard.memoryUsage')}
-                                </span>
-                                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
+                        <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+                            <div className="flex justify-between items-end mb-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
+                                        <HardDrive size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">{t('dashboard.memoryUsage')}</p>
+                                        <p className="text-xl font-black text-gray-800 dark:text-white">
+                                            {formatBytes(memoryUsage)} <span className="text-sm font-medium text-gray-400">/ {formatBytes(memoryTotal)}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <span className="text-lg font-black text-orange-500">
                                     {memoryPercent}%
                                 </span>
                             </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full overflow-hidden">
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 h-3 rounded-full overflow-hidden shadow-inner relative">
                                 <div
-                                    className="h-full bg-orange-500 rounded-full transition-all duration-1000"
+                                    className="h-full bg-gradient-to-r from-orange-400 to-rose-500 rounded-full transition-all duration-1000 relative"
                                     style={{ width: `${memoryPercent}%` }}
-                                />
+                                >
+                                    <div className="absolute top-0 left-0 right-0 bottom-0 bg-white/20" style={{ backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)', backgroundSize: '1rem 1rem' }}></div>
+                                </div>
                             </div>
                         </div>
                     </div>
