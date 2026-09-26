@@ -210,6 +210,10 @@ export async function GET(request) {
             total: totalUsers,
             page,
             totalPages: limit ? Math.ceil(totalUsers / limit) : 1
+        }, {
+            headers: {
+                'Cache-Control': 'private, max-age=300'
+            }
         });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
