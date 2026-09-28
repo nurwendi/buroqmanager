@@ -32,25 +32,27 @@ export async function POST(request) {
     const maxAttempts = 5;
     const windowMs = 15 * 60 * 1000; // 15 minutes lock
 
-    let rateLimitData = ipCache.get(ip) || { attempts: 0, resetTime: now + windowMs };
-
-    // Reset attempts if the block window has expired
-    if (now > rateLimitData.resetTime) {
-        rateLimitData.attempts = 0;
-        rateLimitData.resetTime = now + windowMs;
-    }
-
-    // Check if the IP is currently rate limited
-    if (rateLimitData.attempts >= maxAttempts) {
-        const minutesLeft = Math.ceil((rateLimitData.resetTime - now) / 60000);
-        return NextResponse.json({
-            error: `Terlalu banyak percobaan login gagal dari IP Anda. Silakan coba lagi dalam ${minutesLeft} menit.`
-        }, { status: 429 });
-    }
-
     try {
         const body = await request.json();
         const { username, password } = body;
+
+        // Use IP + Username combination so that 1 IP used by many people doesn't get fully blocked
+        const rateLimitKey = `${ip}_${username}`;
+        let rateLimitData = ipCache.get(rateLimitKey) || { attempts: 0, resetTime: now + windowMs };
+
+        // Reset attempts if the block window has expired
+        if (now > rateLimitData.resetTime) {
+            rateLimitData.attempts = 0;
+            rateLimitData.resetTime = now + windowMs;
+        }
+
+        // Check if this specific IP+Username combo is currently rate limited
+        if (rateLimitData.attempts >= maxAttempts) {
+            const minutesLeft = Math.ceil((rateLimitData.resetTime - now) / 60000);
+            return NextResponse.json({
+                error: `Terlalu banyak percobaan gagal untuk akun ini. Silakan coba lagi dalam ${minutesLeft} menit.`
+            }, { status: 429 });
+        }
 
         let user = await verifyPassword(username, password);
 
@@ -115,7 +117,7 @@ export async function POST(request) {
 
         if (user) {
             // Clear rate limit entries on successful login
-            ipCache.delete(ip);
+            ipCache.delete(rateLimitKey);
 
             const payload = {
                 username: user.username,
@@ -141,7 +143,7 @@ export async function POST(request) {
 
         // Record failed attempt
         rateLimitData.attempts += 1;
-        ipCache.set(ip, rateLimitData);
+        ipCache.set(rateLimitKey, rateLimitData);
 
         return NextResponse.json({ error: 'ID Pelanggan atau password salah.' }, { status: 401 });
     } catch (error) {
