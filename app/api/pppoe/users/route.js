@@ -9,6 +9,8 @@ import { getConfig, getUserConnectionId } from '@/lib/config';
 const routerCache = new Map();
 const CACHE_TTL_MS = 300000; // 5 minutes cache for blazing fast page switching
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
@@ -210,10 +212,6 @@ export async function GET(request) {
             total: totalUsers,
             page,
             totalPages: limit ? Math.ceil(totalUsers / limit) : 1
-        }, {
-            headers: {
-                'Cache-Control': 'private, max-age=300'
-            }
         });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
