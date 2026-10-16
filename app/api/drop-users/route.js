@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getMikrotikClient } from '@/lib/mikrotik';
 import { restoreUserConnection } from '@/lib/billing-actions';
 import db from '@/lib/db';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,8 +35,13 @@ async function getUsersWithUnpaidInvoices() {
         }));
 }
 
-export async function GET() {
+export async function GET(request) {
     try {
+        const currentUser = await getUserFromRequest(request);
+        if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+            return unauthorizedResponse();
+        }
+
         const client = await getMikrotikClient();
 
         // 1. Get Unpaid Users from DB
@@ -94,8 +100,13 @@ export async function GET() {
 
 export async function POST(request) {
     try {
+        const currentUser = await getUserFromRequest(request);
+        if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+            return unauthorizedResponse();
+        }
+
         const body = await request.json();
-        const { action, users } = body; // users is array of { username, id, currentProfile (for drop) }
+        const { action, users } = body;
 
         if (!users || !Array.isArray(users) || users.length === 0) {
             return NextResponse.json({ error: 'Users array required' }, { status: 400 });

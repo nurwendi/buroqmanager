@@ -103,6 +103,8 @@ export async function PUT(request, { params }) {
             }
         }
 
+        globalThis._routerCache?.clear();
+
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error('Update error:', error);
@@ -153,6 +155,8 @@ export async function DELETE(request, { params }) {
                 throw deleteError;
             }
         }
+
+        globalThis._routerCache?.clear();
 
         console.log(`Successfully deleted user with ID: ${id}`);
 

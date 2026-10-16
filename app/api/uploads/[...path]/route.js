@@ -3,7 +3,8 @@ import { readFile } from 'fs/promises';
 import path from 'path';
 
 export async function GET(request, { params }) {
-    const pathArray = params.path;
+    const resolvedParams = await params;
+    const pathArray = resolvedParams?.path;
     if (!pathArray || pathArray.length === 0) {
         return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }

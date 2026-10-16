@@ -5,6 +5,11 @@ import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export async function GET(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'superadmin' && user.role !== 'admin' && user.role !== 'manager' && user.role !== 'technician')) {
+            return unauthorizedResponse();
+        }
+
         const nasList = await db.nas.findMany({
             orderBy: { id: 'desc' }
         });

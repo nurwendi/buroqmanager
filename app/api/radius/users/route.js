@@ -1,25 +1,21 @@
 
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export async function GET(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'superadmin' && user.role !== 'admin' && user.role !== 'manager' && user.role !== 'technician')) {
+            return unauthorizedResponse();
+        }
+
         // Fetch all users from radcheck (Unique usernames)
-        // Since radcheck can have multiple rows per user (different attributes), we distinct them.
         const users = await db.radCheck.findMany({
             distinct: ['username'],
             select: { username: true },
             orderBy: { username: 'asc' }
         });
-
-        const detailedUsers = [];
-
-        // This N+1 is not ideal for 100k users, pagination is MUST in real implementation.
-        // For now, we implement basic mapping. A better approach for 100k users is server-side pagination.
-        // Let's implement cursor/limit based pagination if needed, or just return basic list first.
-
-        // Optimized: Fetch attributes in bulk if possible, but prisma groupBy is tricky here.
-        // Let's stick to returning basic list and fetch details on specific user click or optimize later.
 
         return NextResponse.json(users);
     } catch (error) {
@@ -30,6 +26,11 @@ export async function GET(request) {
 
 export async function POST(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'superadmin' && user.role !== 'admin' && user.role !== 'manager' && user.role !== 'technician')) {
+            return unauthorizedResponse();
+        }
+
         const body = await request.json();
         const { username, password, attributes } = body;
 
@@ -38,7 +39,6 @@ export async function POST(request) {
         }
 
         // 1. Add Password (Cleartext-Password or User-Password)
-        // FreeRADIUS typically expects 'Cleartext-Password' := 'password'
         const check = await db.radCheck.create({
             data: {
                 username,
@@ -55,7 +55,7 @@ export async function POST(request) {
                     await db.radReply.create({
                         data: {
                             username,
-                            attribute: attr.name, // e.g. "Framed-IP-Address"
+                            attribute: attr.name,
                             op: attr.op || '=',
                             value: attr.value
                         }
@@ -72,6 +72,11 @@ export async function POST(request) {
 }
 
 export async function DELETE(request) {
+    const user = await getUserFromRequest(request);
+    if (!user || (user.role !== 'superadmin' && user.role !== 'admin')) {
+        return unauthorizedResponse();
+    }
+
     const { searchParams } = new URL(request.url);
     const username = searchParams.get('username');
 

@@ -1,11 +1,17 @@
 
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+            return unauthorizedResponse();
+        }
+
         const now = new Date();
         const cutoffDate = new Date(now.setMonth(now.getMonth() - 3));
 
@@ -70,6 +76,11 @@ export async function GET() {
 
 export async function POST(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+            return unauthorizedResponse();
+        }
+
         const body = await request.json();
         const { usernames } = body;
 

@@ -28,15 +28,29 @@ if [ "$backup_choice" = "y" ] || [ "$backup_choice" = "Y" ]; then
     echo ""
     echo -e "${GREEN}[1/4]${NC} Backing up data..."
     BACKUP_DIR=~/billing-backup-$(date +%Y%m%d-%H%M%S)
-    mkdir -p $BACKUP_DIR
+    mkdir -p "$BACKUP_DIR"
     
     if [ -d "/opt/billing" ]; then
-        cp -f /opt/billing/config.json $BACKUP_DIR/ 2>/dev/null || true
-        cp -f /opt/billing/customer-data.json $BACKUP_DIR/ 2>/dev/null || true
-        cp -f /opt/billing/app-settings.json $BACKUP_DIR/ 2>/dev/null || true
-        cp -f /opt/billing/billing-settings.json $BACKUP_DIR/ 2>/dev/null || true
-        cp -rf /opt/billing/data $BACKUP_DIR/ 2>/dev/null || true
-        cp -rf /opt/billing/backups $BACKUP_DIR/ 2>/dev/null || true
+        cp -f /opt/billing/.env "$BACKUP_DIR/.env.backup" 2>/dev/null || true
+        cp -f /opt/billing/config.json "$BACKUP_DIR/" 2>/dev/null || true
+        cp -f /opt/billing/customer-data.json "$BACKUP_DIR/" 2>/dev/null || true
+        cp -f /opt/billing/app-settings.json "$BACKUP_DIR/" 2>/dev/null || true
+        cp -f /opt/billing/billing-settings.json "$BACKUP_DIR/" 2>/dev/null || true
+        cp -rf /opt/billing/data "$BACKUP_DIR/" 2>/dev/null || true
+        cp -rf /opt/billing/backups "$BACKUP_DIR/" 2>/dev/null || true
+        cp -rf /opt/billing/public/uploads "$BACKUP_DIR/uploads" 2>/dev/null || true
+
+        # Dump PostgreSQL database if DATABASE_URL is configured
+        if [ -f "/opt/billing/.env" ] && command -v pg_dump &> /dev/null; then
+            DB_URL=$(grep -E '^DATABASE_URL=' /opt/billing/.env | cut -d '=' -f2- | tr -d '"' | tr -d "'" | cut -d '?' -f1)
+            if [ -n "$DB_URL" ]; then
+                echo "  Dumping PostgreSQL database..."
+                pg_dump "$DB_URL" --clean --if-exists --no-owner --no-acl > "$BACKUP_DIR/database-backup.sql" 2>/dev/null && \
+                    echo -e "  Database dump saved to: ${GREEN}$BACKUP_DIR/database-backup.sql${NC}" || \
+                    echo -e "  ${YELLOW}Warning: Could not dump PostgreSQL database automatically.${NC}"
+            fi
+        fi
+
         echo -e "  Backup saved to: ${GREEN}$BACKUP_DIR${NC}"
     else
         echo -e "  ${YELLOW}No data found to backup${NC}"
@@ -46,9 +60,13 @@ else
     echo -e "${GREEN}[1/4]${NC} Skipping backup..."
 fi
 
-echo -e "${GREEN}[2/4]${NC} Stopping PM2 process..."
-pm2 stop billing 2>/dev/null || true
-pm2 delete billing 2>/dev/null || true
+echo -e "${GREEN}[2/4]${NC} Stopping PM2 processes..."
+if [ -f "/opt/billing/ecosystem.config.js" ]; then
+    pm2 stop /opt/billing/ecosystem.config.js 2>/dev/null || true
+    pm2 delete /opt/billing/ecosystem.config.js 2>/dev/null || true
+fi
+pm2 stop billing isolir isolir-server 2>/dev/null || true
+pm2 delete billing isolir isolir-server 2>/dev/null || true
 pm2 save 2>/dev/null || true
 
 echo -e "${GREEN}[3/4]${NC} Removing application files..."

@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getMikrotikClient } from '@/lib/mikrotik';
+import { getUserFromRequest } from '@/lib/api-auth';
+import { getConfig, getUserConnectionId } from '@/lib/config';
 
 export async function PUT(request, { params }) {
     try {
-        const client = await getMikrotikClient();
+        const user = await getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const config = await getConfig();
+        const connectionId = getUserConnectionId(user, config);
+        const client = await getMikrotikClient(connectionId);
         const { id } = await params;
 
         if (!id) {
@@ -27,6 +34,7 @@ export async function PUT(request, { params }) {
         if (price !== undefined) updateParams.push(`=comment=price:${price}`);
 
         await client.write('/ppp/profile/set', updateParams);
+        globalThis._routerCache?.clear();
 
         return NextResponse.json({ success: true });
     } catch (error) {
@@ -37,7 +45,12 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
     try {
-        const client = await getMikrotikClient();
+        const user = await getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const config = await getConfig();
+        const connectionId = getUserConnectionId(user, config);
+        const client = await getMikrotikClient(connectionId);
         const { id } = await params;
 
         if (!id) {
@@ -52,6 +65,7 @@ export async function DELETE(request, { params }) {
         }
 
         await client.write(['/ppp/profile/remove', `=.id=${id}`]);
+        globalThis._routerCache?.clear();
 
         return NextResponse.json({ success: true });
     } catch (error) {

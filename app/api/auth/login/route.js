@@ -70,12 +70,22 @@ export async function POST(request) {
             if (customer) {
                 let authenticated = false;
 
-                // Method 1: Check cached/local password (hashed in DB)
+                // Method 1: Check cached/local password (hashed or legacy plaintext)
                 if (customer.password) {
                     const bcrypt = await import('bcryptjs');
-                    const isValid = await bcrypt.compare(password, customer.password);
-                    if (isValid) {
+                    if (customer.password.startsWith('$2a$') || customer.password.startsWith('$2b$')) {
+                        const isValid = await bcrypt.compare(password, customer.password);
+                        if (isValid) {
+                            authenticated = true;
+                        }
+                    } else if (customer.password === password) {
                         authenticated = true;
+                        // Auto-upgrade plaintext password to bcrypt hash
+                        const hashed = await bcrypt.hash(password, 10);
+                        await db.customer.update({
+                            where: { id: customer.id },
+                            data: { password: hashed }
+                        }).catch(err => console.error('[Login] Auto-hash customer password failed:', err.message));
                     }
                 }
 
@@ -107,6 +117,7 @@ export async function POST(request) {
                     user = {
                         id: customer.id,
                         username: customer.customerId,
+                        pppoeUsername: customer.username,
                         role: 'customer',
                         ownerId: customer.ownerId,
                         fullName: customer.name
@@ -124,7 +135,10 @@ export async function POST(request) {
                 role: user.role,
                 id: user.id,
                 ownerId: user.ownerId,
-                fullName: user.fullName
+                fullName: user.fullName,
+                isAgent: !!user.isAgent,
+                isTechnician: !!user.isTechnician,
+                pppoeUsername: user.pppoeUsername || (user.role === 'customer' ? user.username : undefined)
             };
 
             const token = await signToken(payload);

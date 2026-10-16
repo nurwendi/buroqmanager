@@ -1,13 +1,20 @@
 import { NextResponse } from 'next/server';
 import { getMikrotikClient } from '@/lib/mikrotik';
+import { getUserFromRequest } from '@/lib/api-auth';
+import { getConfig, getUserConnectionId } from '@/lib/config';
 import db from '@/lib/db';
 
 const MAX_HISTORY_DAYS = 3;
 const SAMPLE_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
-export async function GET() {
+export async function GET(request) {
     try {
-        const client = await getMikrotikClient();
+        const user = await getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const config = await getConfig();
+        const connectionId = getUserConnectionId(user, config);
+        const client = await getMikrotikClient(connectionId);
 
         // Fetch system resources
         const resources = await client.write('/system/resource/print');

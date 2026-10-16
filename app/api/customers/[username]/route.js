@@ -6,12 +6,20 @@ import { getMikrotikClient } from '@/lib/mikrotik';
 
 export async function GET(request, { params }) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const { username } = await params;
 
         // Since username is not unique globally, we use findFirst. 
-        // ideally we should pass ownerId in query params, but for now this finds the first match.
+        // Filter by ownerId for tenant safety if not superadmin
         const customer = await db.customer.findFirst({
-            where: { username: username }
+            where: {
+                username: username,
+                ...(user.role !== 'superadmin' ? { ownerId: user.role === 'admin' ? user.id : user.ownerId } : {})
+            }
         });
 
         if (!customer) {
@@ -30,52 +38,60 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || user.role === 'customer' || user.role === 'viewer') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const { username } = await params;
         const body = await request.json();
-        const { name, address, phone, coordinates, comment } = body;
+        const { name, address, phone, coordinates, comment, password } = body;
 
-        // Note: This endpoint updates customer DETAILS. 
-        // It does not seem to handle username changes (which would require changing the ID in Customer model).
-        // The file-based one just updated the object at key `username`.
+        let storedPassword = undefined;
+        if (password) {
+            const bcrypt = await import('bcryptjs');
+            storedPassword = password.startsWith('$2a$') || password.startsWith('$2b$') ? password : await bcrypt.hash(password, 10);
+        }
 
-        // Use updateMany because username is not unique (though likely only 1 match usually)
+        // Use updateMany scoped by ownerId for tenant safety
         const updatedCustomer = await db.customer.updateMany({
-            where: { username: username },
+            where: {
+                username: username,
+                ...(user.role !== 'superadmin' ? { ownerId: user.role === 'admin' ? user.id : user.ownerId } : {})
+            },
             data: {
                 name: name || undefined,
                 address: address || undefined,
                 phone: phone || undefined,
                 coordinates: coordinates || undefined,
-                comment: comment || undefined
+                comment: comment || undefined,
+                password: storedPassword
             }
         });
 
         // Also update User if name/phone matches?
-        // Ideally yes to keep sync.
-        await db.user.update({
+        await db.user.updateMany({
             where: { username: username },
             data: {
                 fullName: name || undefined,
                 address: address || undefined,
                 phone: phone || undefined
             }
-        }).catch(() => { }); // Ignore if user not found or other error
+        }).catch(() => { });
 
-        return NextResponse.json({ success: true, customer: updatedCustomer });
+        return NextResponse.json({ success: true, count: updatedCustomer.count });
     } catch (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
-// Helper to update Radius password if changed (PUT doesn't seem to pass password yet?)
-// If password update is needed, we should add it to PUT body destructuring.
-
-
 export async function DELETE(request, { params }) {
     try {
         const { username } = await params;
         const user = await getUserFromRequest(request);
-        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user || user.role === 'customer' || user.role === 'viewer') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
         // Resolve context
         const ownerId = user.role === 'admin' ? user.id : user.ownerId;

@@ -153,13 +153,22 @@ export async function POST(request) {
         }
 
         // --- APPROVE / REJECT ---
+        // Only admin, superadmin, or manager can approve/reject registrations
+        if (!['admin', 'superadmin', 'manager'].includes(user.role)) {
+            return NextResponse.json({ error: "Only admins can approve or reject registrations" }, { status: 403 });
+        }
+
         // 'username' here matches the 'username' field in Registration model (which is the Key)
         if (!username || !action) {
             return NextResponse.json({ error: "Request ID (username) and action are required" }, { status: 400 });
         }
 
         const registration = await db.registration.findFirst({
-            where: { username: username, status: 'pending' }
+            where: {
+                username: username,
+                status: 'pending',
+                ...(user.role !== 'superadmin' ? { ownerId: user.role === 'admin' ? user.id : user.ownerId } : {})
+            }
         });
 
         if (!registration) {
@@ -347,7 +356,7 @@ export async function POST(request) {
                     // Notify Customer (New account)
                     await sendNotification({
                         title: 'Selamat Datang!',
-                        message: `Pendaftaran Anda telah disetujui. Gunakan ID Pelanggan ${finalData.username} untuk masuk ke aplikasi.`,
+                        message: `Pendaftaran Anda telah disetujui. Gunakan ID Pelanggan ${newCustomer.customerId} untuk masuk ke aplikasi.`,
                         type: 'success',
                         ownerId: registration.ownerId,
                         recipients: [{ customerId: newCustomer.id }]

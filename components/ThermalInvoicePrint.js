@@ -1,8 +1,28 @@
 'use client';
 
+/**
+ * ============================================================================
+ * CETAK STRUK THERMAL 58mm (components/ThermalInvoicePrint.js)
+ * ============================================================================
+ * Komponen khusus tampilan cetak printer thermal (58mm).
+ * Hanya terlihat ketika halaman dicetak (Ctrl+P / tombol Cetak).
+ * ============================================================================
+ */
+
 import React from 'react';
 
 export default function ThermalInvoicePrint({ payment, customer, settings, formatCurrency, formatDate }) {
+    const fmtCurrency = typeof formatCurrency === 'function'
+        ? formatCurrency
+        : (amount) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(Number(amount) || 0);
+
+    const fmtDate = typeof formatDate === 'function'
+        ? formatDate
+        : (dateString) => new Date(dateString).toLocaleDateString('id-ID', {
+            year: 'numeric', month: 'short', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+
     return (
         <div className={`hidden print:block font-mono text-black text-[12px] leading-tight w-full max-w-[58mm] mx-auto`}>
             <style jsx global>{`
@@ -56,7 +76,7 @@ export default function ThermalInvoicePrint({ payment, customer, settings, forma
                 {/* Details */}
                 <div className="mb-2">
                     <p>No: #{payment.invoiceNumber || payment.id}</p>
-                    <p>Tgl: {formatDate(payment.date)}</p>
+                    <p>Tgl: {fmtDate(payment.date)}</p>
                     <p className="mt-1 font-bold">Kpd: {customer.name || payment.username}</p>
                 </div>
 
@@ -71,7 +91,7 @@ export default function ThermalInvoicePrint({ payment, customer, settings, forma
                     </div>
                     <div className="flex justify-between font-bold">
                         <span>Total</span>
-                        <span>{formatCurrency(payment.amount)}</span>
+                        <span>{fmtCurrency(payment.amount)}</span>
                     </div>
                 </div>
 

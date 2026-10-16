@@ -1,9 +1,15 @@
 
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export async function GET(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin' && user.role !== 'manager' && user.role !== 'technician')) {
+            return unauthorizedResponse();
+        }
+
         const { searchParams } = new URL(request.url);
         const type = searchParams.get('type'); // 'online' or 'all'
 

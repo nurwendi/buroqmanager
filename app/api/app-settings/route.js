@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
+import { getUserFromRequest } from "@/lib/api-auth";
 
 const SETTINGS_KEY = "app_settings";
 
@@ -30,6 +31,11 @@ export async function GET() {
 
 export async function POST(request) {
   try {
+    const user = await getUserFromRequest(request);
+    if (!user || (user.role !== "superadmin" && user.role !== "admin")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { appName, logoUrl, dashboardBgUrl, loginBgUrl } = body;
 

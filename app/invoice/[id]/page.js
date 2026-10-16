@@ -1,23 +1,68 @@
-import { promises as fs } from 'fs';
-import path from 'path';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
+import db from '@/lib/db';
+import { getConfig } from '@/lib/config';
 import PrintButton from '@/components/PrintButton';
 import CompanyLogo from '@/components/CompanyLogo';
 import ThermalInvoicePrint from '@/components/ThermalInvoicePrint';
 
-// Helper to read JSON files
-async function readJsonFile(filename) {
+/**
+ * ============================================================================
+ * HALAMAN TAGIHAN PUBLIK / INVOICE CETAK (app/invoice/[id]/page.js)
+ * ============================================================================
+ * Halaman ini dapat dibuka langsung dari tautan WhatsApp (/invoice/[id]).
+ * Data tagihan, pelanggan, dan identitas perusahaan diambil langsung dari
+ * database Prisma (Payment, Customer, dan SystemSetting).
+ *
+ * Panduan untuk pengguna awam:
+ * - Untuk mengubah teks "TAGIHAN", "LUNAS", atau "BELUM BAYAR", silakan edit
+ *   bagian JSX di bawah.
+ * - Tampilan cetak printer kasir (58mm) diatur di `components/ThermalInvoicePrint.js`.
+ * ============================================================================
+ */
+
+export const dynamic = 'force-dynamic';
+
+// Helper untuk mengambil pengaturan invoice perusahaan dari database SystemSetting
+async function getInvoiceSettings() {
+    const defaultSettings = {
+        companyName: 'Mikrotik Manager',
+        companyAddress: '',
+        companyContact: '',
+        invoiceFooter: 'Terima kasih atas kepercayaan Anda.',
+        logoUrl: ''
+    };
+
     try {
-        const filePath = path.join(process.cwd(), filename);
-        const data = await fs.readFile(filePath, 'utf8');
-        return JSON.parse(data);
+        const [billingConfigRow, billingSettingsRow, mikrotikConfig] = await Promise.all([
+            db.systemSetting.findUnique({ where: { key: 'billing_config' } }),
+            db.systemSetting.findUnique({ where: { key: 'billing_settings' } }),
+            getConfig()
+        ]);
+
+        let parsedBillingConfig = {};
+        if (billingConfigRow?.value) {
+            try { parsedBillingConfig = JSON.parse(billingConfigRow.value); } catch {}
+        }
+
+        let parsedBillingSettings = {};
+        if (billingSettingsRow?.value) {
+            try { parsedBillingSettings = JSON.parse(billingSettingsRow.value); } catch {}
+        }
+
+        return {
+            ...defaultSettings,
+            ...(mikrotikConfig?.invoiceSettings || {}),
+            ...parsedBillingSettings,
+            ...parsedBillingConfig
+        };
     } catch (error) {
-        return filename === 'payments.json' ? [] : {};
+        console.error('Gagal memuat pengaturan invoice:', error);
+        return defaultSettings;
     }
 }
 
-// Helper to get base URL from request headers
+// Helper untuk mendapatkan Base URL dari request header
 async function getBaseUrl() {
     const headersList = await headers();
     const host = headersList.get('host') || 'localhost:2000';
@@ -26,17 +71,62 @@ async function getBaseUrl() {
 }
 
 export default async function InvoicePage({ params }) {
-    const { id } = await params;
-    const payments = await readJsonFile('payments.json');
-    const payment = payments.find(p => p.id === id);
+    const { id: rawId } = await params;
+    const id = decodeURIComponent(rawId || '');
 
-    if (!payment) {
+    // Cari pembayaran berdasarkan ID atau Nomor Invoice di database Prisma
+    const paymentRecord = await db.payment.findFirst({
+        where: {
+            OR: [
+                { id },
+                { invoiceNumber: id }
+            ]
+        }
+    });
+
+    if (!paymentRecord) {
         notFound();
     }
 
-    const customers = await readJsonFile('customer-data.json');
-    const settings = await readJsonFile('billing-settings.json');
-    const customer = customers[payment.username] || {};
+    // Cari data pelanggan yang sesuai di database Prisma
+    let customerRecord = null;
+    if (paymentRecord.ownerId) {
+        customerRecord = await db.customer.findFirst({
+            where: {
+                username: paymentRecord.username,
+                ownerId: paymentRecord.ownerId
+            }
+        });
+    }
+    if (!customerRecord) {
+        customerRecord = await db.customer.findFirst({
+            where: { username: paymentRecord.username }
+        });
+    }
+
+    const settings = await getInvoiceSettings();
+
+    // Serialisasi objek ke plain JSON agar aman dikirim ke Client Component
+    const payment = {
+        id: paymentRecord.id,
+        invoiceNumber: paymentRecord.invoiceNumber,
+        username: paymentRecord.username,
+        amount: Number(paymentRecord.amount) || 0,
+        method: paymentRecord.method,
+        status: paymentRecord.status,
+        date: paymentRecord.date ? paymentRecord.date.toISOString() : new Date().toISOString(),
+        month: paymentRecord.month,
+        year: paymentRecord.year,
+        notes: paymentRecord.notes || ''
+    };
+
+    const customer = customerRecord ? {
+        name: customerRecord.name || payment.username,
+        address: customerRecord.address || '',
+        phone: customerRecord.phone || '',
+        customerId: customerRecord.customerId || '',
+        customerNumber: customerRecord.customerId || ''
+    } : {};
 
     // Get base URL for absolute logo path
     const baseUrl = await getBaseUrl();
@@ -47,7 +137,7 @@ export default async function InvoicePage({ params }) {
         : null;
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(amount);
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(Number(amount) || 0);
     };
 
     const formatDate = (dateString) => {
@@ -98,8 +188,10 @@ export default async function InvoicePage({ params }) {
                             {customer.phone && (
                                 <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{customer.phone}</p>
                             )}
-                            {customer.customerNumber && (
-                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">No. Pelanggan: {customer.customerNumber}</p>
+                            {(customer.customerId || customer.customerNumber) && (
+                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                                    No. Pelanggan: {customer.customerId || customer.customerNumber}
+                                </p>
                             )}
                         </div>
                         <div className="text-right">
@@ -145,9 +237,8 @@ export default async function InvoicePage({ params }) {
                 payment={payment}
                 customer={customer}
                 settings={settings}
-                formatCurrency={formatCurrency}
-                formatDate={formatDate}
             />
         </div>
     );
 }
+

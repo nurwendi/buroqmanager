@@ -5,13 +5,26 @@ export async function proxy(request) {
     const authToken = request.cookies.get('auth_token');
     const { pathname } = request.nextUrl;
 
-    // Allow access to login page, invoice page, and static assets
-    if (pathname.startsWith('/login') || pathname.startsWith('/invoice') || pathname.startsWith('/isolir') || pathname.startsWith('/_next') || pathname.startsWith('/api/auth')) {
+    // Allow access to public pages and static assets
+    if (
+        pathname.startsWith('/login') ||
+        pathname.startsWith('/invoice') ||
+        pathname.startsWith('/isolir') ||
+        pathname.startsWith('/_next')
+    ) {
         return NextResponse.next();
     }
 
-    // Allow public API routes for isolation page and dynamic uploads
-    if (pathname.startsWith('/api/isolir') || pathname === '/api/app-settings' || pathname.startsWith('/api/uploads')) {
+    // Allow public API routes
+    if (
+        pathname === '/api/auth/login' ||
+        pathname === '/api/auth/logout' ||
+        pathname.startsWith('/api/isolir') ||
+        (pathname === '/api/app-settings' && request.method === 'GET') ||
+        pathname.startsWith('/api/uploads') ||
+        pathname.startsWith('/api/webhooks/midtrans') ||
+        pathname.startsWith('/api/cron')
+    ) {
         return NextResponse.next();
     }
 
@@ -25,7 +38,6 @@ export async function proxy(request) {
     }
 
     if (!token) {
-        // For API routes, return 401 instead of redirect
         if (pathname.startsWith('/api/')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -35,26 +47,47 @@ export async function proxy(request) {
     const user = await verifyToken(token);
 
     if (!user) {
-        // Invalid token
+        if (pathname.startsWith('/api/')) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
         return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    // Check for restricted roles
+    // API routes handle their own fine-grained authorization
+    if (pathname.startsWith('/api/')) {
+        return NextResponse.next();
+    }
+
+    // Restrict /superadmin strictly to superadmin role
+    if (pathname.startsWith('/superadmin') && user.role !== 'superadmin') {
+        return NextResponse.redirect(new URL('/', request.url));
+    }
+
     // If user is superadmin, allow everything
     if (user.role === 'superadmin') {
         return NextResponse.next();
     }
 
-    // If user is admin, allow everything
+    // If user is admin, allow everything (except /superadmin handled above)
     if (user.role === 'admin') {
-        // Enforce admin-specific logic if needed later (e.g., cannot see other admins' users)
+        return NextResponse.next();
+    }
+
+    // Role: Customer — only allow specific customer pages
+    if (user.role === 'customer') {
+        const allowedForCustomer = ['/billing', '/invoice', '/isolir', '/profile', '/tickets', '/notifications'];
+        const isAllowed =
+            pathname === '/' ||
+            allowedForCustomer.some(path => pathname === path || pathname.startsWith(path + '/'));
+        if (!isAllowed) {
+            return NextResponse.redirect(new URL('/', request.url));
+        }
         return NextResponse.next();
     }
 
     // Role: Editor
-    // Allow everything EXCEPT: system-users, routers, app-settings
     if (user.role === 'editor') {
-        const restrictedForEditor = ['/system-users', '/routers'];
+        const restrictedForEditor = ['/system-users', '/system-admin', '/routers', '/app-settings', '/superadmin'];
         if (restrictedForEditor.some(path => pathname.startsWith(path))) {
             return NextResponse.redirect(new URL('/', request.url));
         }
@@ -62,17 +95,25 @@ export async function proxy(request) {
     }
 
     // Role: Manager
-    // Allow everything EXCEPT: system-users
     if (user.role === 'manager') {
-        if (pathname.startsWith('/system-users')) {
+        const restrictedForManager = ['/system-users', '/system-admin', '/superadmin'];
+        if (restrictedForManager.some(path => pathname.startsWith(path))) {
             return NextResponse.redirect(new URL('/', request.url));
         }
         return NextResponse.next();
     }
 
     // Other Roles (agent, technician, staff, viewer)
-    // By default, prevent access to admin pages unless specified
-    const restrictedPaths = ['/settings', '/system-users', '/routers'];
+    const restrictedPaths = [
+        '/settings',
+        '/system-users',
+        '/system-admin',
+        '/superadmin',
+        '/routers',
+        '/app-settings',
+        '/drop-users',
+        '/radius/nas'
+    ];
     if (restrictedPaths.some(path => pathname.startsWith(path))) {
         return NextResponse.redirect(new URL('/', request.url));
     }
@@ -81,5 +122,5 @@ export async function proxy(request) {
 }
 
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|favicon.ico|logo.png|uploads|.*\\.(?:jpg|jpeg|gif|png|webp|svg)).*)'],
+    matcher: ['/((?!_next/static|_next/image|favicon.ico|logo.png|uploads|.*\\.(?:jpg|jpeg|gif|png|webp|svg)).*)'],
 };

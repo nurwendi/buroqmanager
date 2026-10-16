@@ -66,7 +66,7 @@ export async function POST(request) {
         }
 
         // Determine Owner Context
-        const ownerId = decoded.role === 'admin' ? decoded.id : decoded.ownerId;
+        const ownerId = user.role === 'admin' ? user.id : user.ownerId;
 
         const { addLog } = await import('@/lib/logs-db');
         await addLog(message, {

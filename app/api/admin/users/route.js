@@ -48,6 +48,10 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        if (currentUser.role !== 'admin' && currentUser.role !== 'superadmin') {
+            return NextResponse.json({ error: 'Forbidden: Only admins can create users' }, { status: 403 });
+        }
+
         const body = await request.json();
         const { username, password, fullName, phone, address, role, agentNumber, radiusPool } = body;
 
@@ -61,7 +65,6 @@ export async function POST(request) {
             body.ownerId = currentUser.id;
 
             // SCOPED USERNAME LOGIC: username@owner
-            // 1. Fetch Admin's username to be sure
             const db = (await import('@/lib/db')).default;
             const adminUser = await db.user.findUnique({
                 where: { id: currentUser.id },
@@ -69,34 +72,19 @@ export async function POST(request) {
             });
 
             if (adminUser) {
-                // Ensure username doesn't already have domain
                 if (!body.username.includes('@')) {
                     body.username = `${body.username}@${adminUser.username}`;
                 }
             }
 
         } else if (currentUser.role === 'superadmin') {
-            // Superadmin can create admins.
-            // If creating an admin, ownerId represents the superadmin who created them? 
-            // Or null? If null, they are top-level. 
-            // Let's keep them top-level strictly for now (ownerId=null) unless they are staff of superadmin.
-            // But if superadmin creates a Staff, that staff belongs to superadmin.
-            if (body.role !== 'admin' && body.role !== 'superadmin') {
-                // Creating specific staff for superadmin?
-                // Or maybe superadmin is assigning staff to an admin? 
-                // For now, assume superadmin's staff belong to superadmin
-                body.ownerId = currentUser.id;
-            } else {
-                // Creating Admin or Superadmin
-                body.ownerId = currentUser.id;
-
-
+            if (body.role === 'admin' || body.role === 'superadmin') {
+                // Admin is a top-level tenant owner
+                body.ownerId = null;
 
                 // Generate Numeric Admin ID (agentNumber) if not provided
                 if (body.role === 'admin' && !body.agentNumber) {
                     const db = (await import('@/lib/db')).default;
-                    // Find max agentNumber where role is admin
-                    // agentNumber is string, need to cast or fetch all and sort
                     const admins = await db.user.findMany({
                         where: { role: 'admin' },
                         select: { agentNumber: true }
@@ -111,6 +99,9 @@ export async function POST(request) {
                     }
                     body.agentNumber = String(maxNum).padStart(2, '0');
                 }
+            } else {
+                // Staff created by superadmin belongs to superadmin (unless explicit ownerId provided)
+                body.ownerId = body.ownerId || currentUser.id;
             }
         }
 

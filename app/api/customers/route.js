@@ -8,12 +8,10 @@ export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
         const isLite = searchParams.get('lite') === 'true';
-        const user = await getUserFromRequest(request); // Await the promise!
-        
-        if (user) {
-            console.log(`[CUSTOMER-API] Request from User: ${user.username}, Role: ${user.role}, ID: ${user.id}`);
-        } else {
-            console.warn(`[CUSTOMER-API] Unauthenticated request!`);
+        const user = await getUserFromRequest(request);
+
+        if (!user) {
+            return unauthorizedResponse();
         }
 
         let where = {};
@@ -219,6 +217,15 @@ export async function POST(request) {
         // Manual Upsert to avoid Prisma Unique Constraint nuances with Compound Keys
         // (Using already resolved 'existing' from the top of the function)
 
+        // Hash password if provided and not already hashed
+        let storedPassword = password || undefined;
+        if (password) {
+            const bcrypt = await import('bcryptjs');
+            if (!password.startsWith('$2a$') && !password.startsWith('$2b$')) {
+                storedPassword = await bcrypt.hash(password, 10);
+            }
+        }
+
         let customer;
         if (existing) {
             customer = await db.customer.update({
@@ -236,7 +243,7 @@ export async function POST(request) {
                     ownerId: ownerId,
                     coordinates: coordinates || undefined,
                     comment: comment || undefined,
-                    password: password || undefined,
+                    password: storedPassword,
                     profileId: effectiveProfileId || undefined
                 }
             });
@@ -255,7 +262,7 @@ export async function POST(request) {
                     ownerId: ownerId,
                     coordinates: coordinates || undefined,
                     comment: comment || undefined,
-                    password: password || undefined,
+                    password: storedPassword,
                     profileId: effectiveProfileId || undefined
                 }
             });

@@ -29,7 +29,12 @@ export async function GET(request) {
         }
 
         const config = await getConfig();
-        const targetConnections = (config.connections || []).filter(c => c && c.id && c.host);
+        let targetConnections = (config.connections || []).filter(c => c && c.id && c.host);
+
+        // If not superadmin, restrict connections to those owned by the admin
+        if (currentUser.role !== 'superadmin') {
+            targetConnections = targetConnections.filter(c => c.ownerId === currentUser.id);
+        }
 
         const natData = await Promise.all(targetConnections.map(async (conn) => {
             const result = {

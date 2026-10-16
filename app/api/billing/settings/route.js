@@ -46,18 +46,17 @@ async function getBillingSettings() {
 
 export async function GET(request) {
     const user = await getUserFromRequest(request);
-    // Allow superadmin and admin to view (Admin needs it for billing dashboard price lookups occasionally)
-    // But restrict specific fields if needed.
-    // For now, let's keep GET open to admin/superadmin.
-    if (!user || (user.role !== 'superadmin' && user.role !== 'admin')) {
+    // Allow authenticated users to view company billing details (needed by mobile app for thermal receipts)
+    if (!user) {
         return unauthorizedResponse();
     }
 
     const settings = await getBillingSettings();
     const config = await getConfig();
 
-    // Mask password
-    const emailConfig = config.email ? { ...config.email, password: config.email.password ? '******' : '' } : {};
+    // Mask password and only show email config to admin/superadmin
+    const isPrivileged = user.role === 'superadmin' || user.role === 'admin';
+    const emailConfig = isPrivileged && config.email ? { ...config.email, password: config.email.password ? '******' : '' } : {};
 
     return NextResponse.json({
         ...settings,
@@ -68,7 +67,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const user = await getUserFromRequest(request);
-        if (!user || user.role !== 'superadmin') {
+        if (!user || (user.role !== 'superadmin' && user.role !== 'admin')) {
             return unauthorizedResponse();
         }
 

@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { executeOltCommands } from '@/lib/olt-telnet';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export async function POST(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || !['superadmin', 'admin', 'manager', 'technician', 'staff'].includes(user.role)) {
+            return unauthorizedResponse();
+        }
+
         const data = await request.json();
         const oltKey = data.olt || 'olt1';
 

@@ -7,6 +7,10 @@
     "isolir": "node scripts/isolir-server.mjs",
     "build": "next build",
     "start": "next start -p 2000",
+    "start:cluster": "pm2 startOrReload ecosystem.config.js",
+    "stop:cluster": "pm2 stop ecosystem.config.js",
+    "restart:cluster": "pm2 restart ecosystem.config.js",
+    "start:node-cluster": "node server.js",
     "lint": "next lint",
     "db:check": "node scripts/check-db-sync.js"
   },

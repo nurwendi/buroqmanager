@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export async function PUT(request, { params }) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || user.role === 'customer' || user.role === 'viewer') {
+            return unauthorizedResponse();
+        }
+
         const { id } = await params;
         const body = await request.json();
         const { status, amount, notes } = body;
@@ -18,6 +24,11 @@ export async function PUT(request, { params }) {
 
         if (!currentPayment) {
             return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
+        }
+
+        // Verify tenant ownership for non-superadmins
+        if (user.role !== 'superadmin' && currentPayment.ownerId && currentPayment.ownerId !== user.id && currentPayment.ownerId !== user.ownerId) {
+            return unauthorizedResponse();
         }
 
         const updatedPayment = await db.payment.update({
@@ -85,6 +96,7 @@ export async function PUT(request, { params }) {
                         amount: currentPayment.amount, // Carry over amount
                         month: nextMonth,
                         year: nextYear,
+                        ownerId: currentPayment.ownerId || user.id,
                         notes: `Tagihan bulan ${nextMonth + 1}/${nextYear} (Auto-generated from postponement)`
                     }
                 });

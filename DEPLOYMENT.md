@@ -141,8 +141,8 @@ npm install
 npx prisma generate
 npx prisma migrate deploy
 npm run build
-npx pm2 restart billing
-
+pm2 startOrReload ecosystem.config.js
+```
 
 ## 🛡️ Preventing Deployment Issues (Database Sync)
 
@@ -172,7 +172,7 @@ To ensure your database is always in sync with your code and prevent "missing co
 
 ## ⏰ Cron Job Setup (Auto-Isolation)
 
-To enable the "Auto-Drop" feature to run automatically every day, you must set up a cron job on the server.
+Note: Internal `node-cron` jobs run automatically on the primary cluster worker (`NODE_APP_INSTANCE === '0'`). If you also wish to trigger Auto-Isolation externally via system crontab:
 
 1. Open crontab:
 ```bash
@@ -193,7 +193,7 @@ crontab -e
 ### PM2 "Process not found"
 If you see `[PM2][ERROR] Process or Namespace billing not found`, it means the app hasn't been started for the first time. Run:
 ```bash
-pm2 start ecosystem.config.js
+pm2 startOrReload ecosystem.config.js
 ```
 
 ### "PM2 not found" after install
@@ -210,8 +210,9 @@ chmod -R 755 /opt/billing/public
 ```
 
 ### Resetting Data
-To wipe all data and start fresh:
+To wipe legacy JSON data and start fresh:
 ```bash
-# WARNING: Deletes all data!
-node scripts/reset-data.js
+# WARNING: Deletes legacy JSON data!
+node scripts/migrations/reset-data.js
 ```
+

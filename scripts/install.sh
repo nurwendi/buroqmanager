@@ -59,11 +59,10 @@ fi
 echo -e "${YELLOW}Attempting to run database migrations...${NC}"
 npx prisma migrate deploy || echo -e "${RED}Migration failed (likely due to missing DB config). Please run manually after configuring .env.${NC}"
 
-echo -e "${GREEN}[7/7]${NC} Building and starting application with PM2..."
+echo -e "${GREEN}[7/7]${NC} Building and starting application with PM2 (Multi-Core Cluster)..."
 npm run build
 
-pm2 start npm --name "billing" -- start
-pm2 start npm --name "isolir" -- run isolir
+pm2 startOrReload ecosystem.config.js
 pm2 save
 pm2 startup
 
@@ -77,7 +76,7 @@ echo "2. Initialize Database (if Step 6 failed):"
 echo "   cd /opt/billing"
 echo "   npx prisma migrate deploy"
 echo "   npx prisma db seed"
-echo "3. Restart App: pm2 restart billing"
+echo "3. Restart App (Multi-Core Cluster): pm2 restart ecosystem.config.js"
 echo ""
 echo "Access the application at:"
 echo -e "  ${GREEN}http://$(hostname -I | awk '{print $1}'):2000${NC}"

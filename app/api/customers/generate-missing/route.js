@@ -1,16 +1,23 @@
 import { NextResponse } from 'next/server';
 import { getMikrotikClient } from '@/lib/mikrotik';
 import db from '@/lib/db';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export async function POST(request) {
     try {
+        const currentUser = await getUserFromRequest(request);
+        if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'superadmin')) {
+            return unauthorizedResponse();
+        }
+
+        const ownerId = currentUser.role === 'admin' ? currentUser.id : currentUser.ownerId || null;
         const client = await getMikrotikClient();
         const users = await client.write('/ppp/secret/print');
 
         // Get max customer number from DB
-        // Since customerNumber is string, we need to fetch all and parse, or just fetch all
         const customers = await db.customer.findMany({
-            select: { username: true, customerId: true }
+            where: ownerId ? { ownerId } : {},
+            select: { id: true, username: true, customerId: true, ownerId: true }
         });
         const customerMap = new Map(customers.map(c => [c.username, c]));
 
@@ -34,17 +41,22 @@ export async function POST(request) {
                 maxId++;
                 const newCustomerId = String(maxId);
 
-                // Upsert customer
-                await db.customer.upsert({
-                    where: { username },
-                    update: { customerId: newCustomerId },
-                    create: {
-                        username,
-                        name: '',
-                        customerId: newCustomerId,
-                        agentId: null
-                    }
-                });
+                if (existing) {
+                    await db.customer.update({
+                        where: { id: existing.id },
+                        data: { customerId: newCustomerId }
+                    });
+                } else {
+                    await db.customer.create({
+                        data: {
+                            username,
+                            name: username,
+                            customerId: newCustomerId,
+                            agentId: null,
+                            ownerId: ownerId
+                        }
+                    });
+                }
 
                 updatedCount++;
             }

@@ -56,21 +56,22 @@ export async function GET(request) {
     const status = searchParams.get('status');
     const user = await getUserFromRequest(request);
 
+    if (!user) {
+        return unauthorizedResponse();
+    }
+
     let where = {};
     if (status) where.status = status;
 
     // Filter based on role
-    if (user && user.role !== 'superadmin') {
+    if (user.role === 'customer') {
+        const pppoeUser = user.pppoeUsername || user.username;
+        where.username = pppoeUser;
+        if (user.ownerId) where.ownerId = user.ownerId;
+    } else if (user.role !== 'superadmin') {
         const ownerId = user.role === 'admin' ? user.id : user.ownerId;
         if (ownerId) where.ownerId = ownerId;
 
-        // Further Staff Restrictions (Agent/Tech view ONLY their customers??)
-        // Original code Logic:
-        // if user.role != 'admin' -> it did logic to find allowedUsernames.
-        // We should KEEP that logic for Agent/Staff, but ALSO limit by ownerId.
-    }
-
-    if (user && user.role !== 'admin' && user.role !== 'superadmin') {
         const allowedUsernames = [];
 
         // Fetch user's assigned customers
@@ -90,11 +91,12 @@ export async function GET(request) {
             allowedUsernames.push(...techCusts.map(c => c.username));
         }
 
-        if (allowedUsernames.length > 0) {
-            where.username = { in: allowedUsernames };
-        } else if (!user.ownerId) {
-            // If legacy staff has no owner?? nothing.
-            return NextResponse.json([]);
+        if (['agent', 'technician'].includes(user.role)) {
+            if (allowedUsernames.length > 0) {
+                where.username = { in: allowedUsernames };
+            } else {
+                return NextResponse.json([]);
+            }
         }
     }
 
@@ -163,8 +165,8 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const user = await getUserFromRequest(request);
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (!user || user.role === 'customer' || user.role === 'viewer') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
         const body = await request.json();
@@ -324,6 +326,11 @@ export async function POST(request) {
 
 export async function DELETE(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+            return unauthorizedResponse();
+        }
+
         const body = await request.json();
         const { ids } = body;
 
@@ -331,8 +338,13 @@ export async function DELETE(request) {
             return NextResponse.json({ error: 'IDs array is required' }, { status: 400 });
         }
 
+        const where = { id: { in: ids } };
+        if (user.role !== 'superadmin') {
+            where.ownerId = user.id;
+        }
+
         const result = await db.payment.deleteMany({
-            where: { id: { in: ids } }
+            where
         });
 
         if (result.count === 0) {
@@ -352,6 +364,11 @@ export async function DELETE(request) {
 
 export async function PATCH(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin' && user.role !== 'manager')) {
+            return unauthorizedResponse();
+        }
+
         const body = await request.json();
         const { ids, status } = body;
 

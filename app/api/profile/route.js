@@ -25,7 +25,7 @@ export async function GET(request) {
     }
 
     // Strip sensitive data
-    const { passwordHash, ...safeUser } = fullUser;
+    const { passwordHash, password: rawPassword, ...safeUser } = fullUser;
     return NextResponse.json(safeUser);
 }
 
@@ -63,7 +63,7 @@ export async function PUT(request) {
             return NextResponse.json({ error: 'Password must be at least 4 characters' }, { status: 400 });
         }
 
-        if (updates.username) {
+        if (updates.username && user.role !== 'customer') {
             // Check authorization to change username
             if (user.role !== 'admin' && user.role !== 'superadmin') {
                 // If the submitted username is different from current, deny
@@ -89,11 +89,23 @@ export async function PUT(request) {
 
         if (user.role === 'customer') {
             const db = (await import('@/lib/db')).default;
+            const customerUpdates = {};
+            if (updates.fullName !== undefined) customerUpdates.name = updates.fullName;
+            if (updates.phone !== undefined) customerUpdates.phone = updates.phone;
+            if (updates.address !== undefined) customerUpdates.address = updates.address;
+            if (updates.avatar !== undefined) customerUpdates.avatar = updates.avatar;
+            if (updates.language !== undefined) customerUpdates.language = updates.language;
+            if (updates.password) {
+                const bcrypt = await import('bcryptjs');
+                customerUpdates.password = await bcrypt.hash(updates.password, 10);
+            }
+
             const updatedCustomer = await db.customer.update({
                 where: { id: user.id },
-                data: updates
+                data: customerUpdates
             });
-            return NextResponse.json(updatedCustomer);
+            const { password: p, ...safeCust } = updatedCustomer;
+            return NextResponse.json(safeCust);
         } else {
             const updatedUser = await updateUser(user.id, updates);
             return NextResponse.json(updatedUser);

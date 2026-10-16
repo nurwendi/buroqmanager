@@ -46,7 +46,7 @@ export async function GET(request) {
         // 3. Logic to find contact
         if (pppoeUsername) {
             // Find customer in DB
-            const customer = await db.customer.findUnique({
+            const customer = await db.customer.findFirst({
                 where: { username: pppoeUsername },
                 include: {
                     agent: true,

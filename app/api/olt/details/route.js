@@ -1,16 +1,25 @@
 import { NextResponse } from 'next/server';
-import { executeOltCommands } from '@/lib/olt-telnet';
+import { executeOltCommands, sanitizeOltInput } from '@/lib/olt-telnet';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export async function POST(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || !['superadmin', 'admin', 'manager', 'technician', 'staff'].includes(user.role)) {
+            return unauthorizedResponse();
+        }
+
         const data = await request.json();
         const { olt = 'olt1', slot_port, serial } = data;
 
-        if (!slot_port || !serial) {
+        const cleanSlotPort = sanitizeOltInput(slot_port);
+        const cleanSerial = sanitizeOltInput(serial);
+
+        if (!cleanSlotPort || !cleanSerial) {
             return NextResponse.json({ status: 'error', message: 'slot_port dan serial wajib diisi' }, { status: 400 });
         }
 
-        const result = await executeOltCommands(olt, [`show gpon onu state gpon-olt_${slot_port}`]);
+        const result = await executeOltCommands(olt, [`show gpon onu state gpon-olt_${cleanSlotPort}`]);
         const output = result.combinedOutput;
 
         const pattern = new RegExp(`${slot_port}:(\\d+)\\s+enable`, 'g');

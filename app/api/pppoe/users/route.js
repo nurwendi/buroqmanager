@@ -6,7 +6,7 @@ import db from '@/lib/db';
 import { getConfig, getUserConnectionId } from '@/lib/config';
 
 // Module-level in-memory cache to prevent hammering Mikrotik on frequent reloads
-const routerCache = new Map();
+const routerCache = globalThis._routerCache || (globalThis._routerCache = new Map());
 const CACHE_TTL_MS = 300000; // 5 minutes cache for blazing fast page switching
 
 export const dynamic = 'force-dynamic';
@@ -380,6 +380,8 @@ export async function POST(request) {
         if (errors.length > 0 && results.length === 0) {
             return NextResponse.json({ error: "Failed to add user to any router", details: errors }, { status: 500 });
         }
+
+        routerCache.clear();
 
         return NextResponse.json({
             success: true,

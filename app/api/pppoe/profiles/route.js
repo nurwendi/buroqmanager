@@ -47,6 +47,9 @@ export async function GET(request) {
 
         return NextResponse.json(profilesWithPrice);
     } catch (error) {
+        if (error.message === 'Unauthorized') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
@@ -73,9 +76,13 @@ export async function POST(request) {
         if (price) addParams.push(`=comment=price:${price}`);
 
         const result = await client.write('/ppp/profile/add', addParams);
+        globalThis._routerCache?.clear();
 
         return NextResponse.json(result);
     } catch (error) {
+        if (error.message === 'Unauthorized') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -108,9 +115,13 @@ export async function DELETE(request) {
         }
 
         await client.write('/ppp/profile/remove', [`=.id=${targetId}`]);
+        globalThis._routerCache?.clear();
 
         return NextResponse.json({ success: true });
     } catch (error) {
+        if (error.message === 'Unauthorized') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
@@ -138,15 +149,17 @@ export async function PATCH(request) {
 
         // Handle Price via Comment
         if (price) {
-            // We need to preserve other comments if possible, but for now we enforce our format
-            // Or we could fetch first. Let's strictly update price format.
             updateParams.push(`=comment=price:${price}`);
         }
 
         await client.write('/ppp/profile/set', updateParams);
+        globalThis._routerCache?.clear();
 
         return NextResponse.json({ success: true });
     } catch (error) {
+        if (error.message === 'Unauthorized') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

@@ -1,5 +1,14 @@
-
 'use client';
+
+/**
+ * ============================================================================
+ * HALAMAN MANAJEMEN ROUTER NAS FREERADIUS (app/radius/nas/page.js)
+ * ============================================================================
+ * Halaman ini digunakan untuk menambah, melihat, dan menghapus daftar router
+ * NAS (Network Access Server) yang terhubung ke server autentikasi FreeRADIUS.
+ * ============================================================================
+ */
+
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Server } from 'lucide-react';
 import HeaderBanner from '@/components/HeaderBanner';
@@ -33,6 +42,23 @@ export default function NasPage() {
             fetchNas();
         } else {
             alert('Failed to add NAS');
+        }
+    };
+
+    const handleDeleteNas = async (id) => {
+        if (!confirm('Apakah Anda yakin ingin menghapus router NAS ini?')) return;
+        try {
+            const res = await fetch(`/api/radius/nas?id=${id}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                fetchNas();
+            } else {
+                const err = await res.json().catch(() => ({}));
+                alert('Gagal menghapus NAS: ' + (err.error || 'Unknown error'));
+            }
+        } catch (error) {
+            alert('Gagal menghapus NAS: ' + error.message);
         }
     };
 
@@ -87,7 +113,11 @@ export default function NasPage() {
                                     <td className="p-4 font-mono bg-gray-100 rounded px-2 py-1 text-sm">{nas.secret}</td>
                                     <td className="p-4 text-gray-500">{nas.description || '-'}</td>
                                     <td className="p-4">
-                                        <button className="text-red-500 hover:text-red-700">
+                                        <button
+                                            onClick={() => handleDeleteNas(nas.id)}
+                                            className="text-red-500 hover:text-red-700 transition-colors"
+                                            title="Hapus NAS"
+                                        >
                                             <Trash2 size={18} />
                                         </button>
                                     </td>

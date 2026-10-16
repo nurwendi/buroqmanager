@@ -117,19 +117,18 @@ npm install
    This creates all tables and the default admin user.
    ```bash
    npx prisma generate
-   npx prisma db push
-   # Optional: Seed initial data if needed (usually handled by app)
-   # node prisma/seed.js 
+   npx prisma migrate deploy
+   npx prisma db seed
    ```
 
-### Step 6: Build & Start
+### Step 6: Build & Start (Multi-Core Cluster Mode)
 
 ```bash
 # Build the application
 npm run build
 
-# Start with PM2
-pm2 start npm --name "billing" -- start
+# Start billing ( across all CPU cores ) + isolir-server with PM2
+pm2 startOrReload ecosystem.config.js
 
 # Save PM2 list so it restarts on reboot
 pm2 save
@@ -137,7 +136,7 @@ pm2 startup
 # (Run the command output by pm2 startup)
 ```
 
-The app is now running on **Port 2000**.
+The app is now running across all CPU cores on **Port 2000** (and Isolir Server on **Port 1500**).
 
 ---
 
@@ -211,10 +210,11 @@ To allow the billing app to control users, enable API access on your MikroTik.
 ## ⛔ Isolir Server Setup (Auto-Drop)
 
 This system includes a dedicated server (Port 1500) to redirect isolated/unpaid users.
+When starting via `pm2 startOrReload ecosystem.config.js`, `isolir-server` is started automatically.
 
-**1. Start Isolir Server**
+**1. Start/Restart Isolir Server Manually (if needed)**
 ```bash
-pm2 start npm --name "isolir-server" -- run isolir
+pm2 startOrReload ecosystem.config.js --only isolir-server
 pm2 save
 ```
 
@@ -235,9 +235,9 @@ git fetch --all
 git reset --hard origin/master
 npm install
 npx prisma generate
-npx prisma db push
+npx prisma migrate deploy
 npm run build
-npx pm2 restart billing
+pm2 startOrReload ecosystem.config.js
 ```
 
 ---
@@ -245,8 +245,8 @@ npx pm2 restart billing
 ## 🔑 Default Credentials
 
 - **URL**: `http://YOUR_SERVER_IP:2000` (or Port 80 if configured)
-- **Username**: `admin`
-- **Password**: `admin123`
+- **Username**: `superadmin`
+- **Password**: `superadminpassword`
 
 > ⚠️ **Change this password immediately after logging in!**
 
@@ -274,19 +274,23 @@ npx pm2 restart billing
 - Check firewall (`ufw status`). Allow port 2000 or 80: `ufw allow 2000`.
 
 **4. Reset All Data**
-- To wipe database and start fresh: `node scripts/reset-data.js`
+- To wipe legacy JSON data and start fresh: `node scripts/migrations/reset-data.js`
 
-## 🛠 Utility Scripts (Migration Tools)
+## 🛠 Utility Scripts (Migration & Diagnostic Tools)
 
-Used for batch updates of system numbering formats:
+See `scripts/README.md` for complete documentation of all operational, diagnostic, and migration scripts:
+
+- **Database Sync Check**:
+  `npm run db:check` (`node scripts/check-db-sync.js`)
 
 - **Batch Migration (101-105 -> 11-15)**:
-  `node scripts/migrate-batch-prefixes.js`
+  `node scripts/migrations/migrate-batch-prefixes.js`
   (Auto-detects and converts 3-digit prefixes to 2-digit).
 
 - **Manual Prefix Migration**:
-  `node scripts/migrate-customer-ids.js [OLD] [NEW]`
-  `node scripts/migrate-customer-ids.js 999 99`
+  `node scripts/migrations/migrate-customer-ids.js [OLD] [NEW]`
+  `node scripts/migrations/migrate-customer-ids.js 999 99`
 
 - **Owner ID Update**:
   `node -e 'const { PrismaClient } = require("@prisma/client"); const prisma = new PrismaClient(); prisma.user.updateMany({ where: { username: "admin" }, data: { agentNumber: "99" } }).then(console.log).finally(() => prisma.$disconnect())'`
+

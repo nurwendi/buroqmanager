@@ -7,6 +7,9 @@ import { getUserFromRequest } from '@/lib/api-auth'; // Ensure this exists
 
 export async function GET(request) {
     const user = await getUserFromRequest(request);
+    if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const config = await getConfig();
 
     // Mask passwords

@@ -78,13 +78,13 @@ export async function GET(request) {
 
         // --- MULTITENANCY & ROLE FILTERING ---
 
-        // SUPERADMIN / ADMIN: Global View
-        if (user.role === 'superadmin' || user.role === 'admin') {
+        // SUPERADMIN: Global View
+        if (user.role === 'superadmin') {
             return NextResponse.json(cleanedDevices);
         }
 
-        // STAFF / MANAGER: OwnerId Filtering
-        const ownerId = user.ownerId;
+        // ADMIN / STAFF / MANAGER: OwnerId Filtering
+        const ownerId = user.role === 'admin' ? user.id : user.ownerId;
         if (!ownerId) {
             return NextResponse.json([]);
         }

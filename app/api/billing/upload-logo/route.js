@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export async function POST(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+            return unauthorizedResponse();
+        }
+
         const formData = await request.formData();
         const file = formData.get('logo');
 

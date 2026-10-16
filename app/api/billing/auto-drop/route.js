@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { checkAndDropUsers } from '@/lib/auto-drop';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export async function POST(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
+            return unauthorizedResponse();
+        }
+
         const { action } = await request.json();
 
         if (action !== 'check-and-drop') {

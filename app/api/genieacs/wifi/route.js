@@ -7,8 +7,8 @@ export async function POST(request) {
     try {
         const user = await getUserFromRequest(request);
 
-        // Allow Superadmin, Admin, and Customer
-        if (!user || (user.role !== 'superadmin' && user.role !== 'admin' && user.role !== 'customer')) {
+        // Allow Superadmin, Admin, Manager, Staff, Technician, and Customer
+        if (!user || (!['superadmin', 'admin', 'manager', 'staff', 'technician', 'customer'].includes(user.role))) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

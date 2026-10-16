@@ -2,6 +2,16 @@ import { useState, useEffect } from 'react';
 import { Save, Building, Mail, FileText, Calendar, FileCheck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+/**
+ * ============================================================================
+ * PENGATURAN TAGIHAN & IDENTITAS PERUSAHAAN (components/settings/InvoiceSettings.js)
+ * ============================================================================
+ * Komponen ini digunakan untuk mengatur:
+ * 1. Nama, alamat, email, dan logo perusahaan yang tampil di struk/tagihan.
+ * 2. Catatan kaki (footer) pada tagihan.
+ * 3. Tanggal jatuh tempo isolir otomatis (auto-drop) dan konfigurasi SMTP Email.
+ * ============================================================================
+ */
 export default function InvoiceSettings() {
     const { t } = useLanguage();
     const [settings, setSettings] = useState({
@@ -20,6 +30,7 @@ export default function InvoiceSettings() {
         }
     });
     const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [logoFile, setLogoFile] = useState(null);
     useEffect(() => {
@@ -281,11 +292,11 @@ export default function InvoiceSettings() {
                     <div className="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || uploading}
                             className="flex items-center gap-2 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-70 transition-all shadow-md"
                         >
                             <Save size={18} />
-                            {loading ? t('billing.saving') : t('billing.saveGlobalSettings')}
+                            {uploading || loading ? t('billing.saving') : t('billing.saveGlobalSettings')}
                         </button>
                     </div>
                 </form>

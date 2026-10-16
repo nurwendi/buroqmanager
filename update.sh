@@ -20,16 +20,17 @@ npm install
 # 3. Update Database
 echo -e "${YELLOW}🗄️  Updating database schema...${NC}"
 npx prisma generate
-npx prisma db push
+npx prisma migrate deploy || npx prisma db push
 
 # 4. Rebuild Application (Required for Next.js)
 echo -e "${YELLOW}🏗️  Building application...${NC}"
 npm run build
 
-# 5. Restart Service
-echo -e "${YELLOW}🔄 Restarting service...${NC}"
+# 5. Restart Service (Multi-Core Cluster via ecosystem.config.js)
+echo -e "${YELLOW}🔄 Restarting service in Multi-Core Cluster mode...${NC}"
 if command -v pm2 &> /dev/null; then
-    pm2 restart billing || echo -e "${YELLOW}⚠️  PM2 service 'billing' not found. Skipping restart.${NC}"
+    pm2 startOrReload ecosystem.config.js || pm2 restart billing || echo -e "${YELLOW}⚠️  PM2 service not found. Skipping restart.${NC}"
+    pm2 save
 else
     echo -e "${YELLOW}ℹ️  PM2 not found. If running manually, please restart the process.${NC}"
 fi

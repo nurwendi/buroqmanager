@@ -152,6 +152,7 @@ export async function GET(request) {
                 billing.amount = totalUnpaid;
                 // Show the latest invoice number or a generic text if multiple
                 billing.invoice = unpaidInvoices.length === 1 ? unpaidInvoices[0].invoiceNumber : `${unpaidInvoices.length} Pending Invoices`;
+                billing.firstPendingInvoiceNumber = unpaidInvoices[0]?.invoiceNumber || null;
                 // Use the month/year from the most recent unpaid invoice if available
                 const latestUnpaid = unpaidInvoices[0];
                 if (latestUnpaid.month !== null && latestUnpaid.month !== undefined) {
@@ -164,6 +165,7 @@ export async function GET(request) {
                 if (payments.length > 0) {
                     const latest = payments[0];
                     billing.invoice = latest.invoiceNumber;
+                    billing.firstPendingInvoiceNumber = null;
                     // Use month/year from latest payment
                     if (latest.month !== null && latest.month !== undefined) {
                         billing.month = latest.month;
@@ -200,7 +202,12 @@ export async function GET(request) {
 
                 // Find latest notification for this customer
                 const latestRecipient = await db.notificationRecipient.findFirst({
-                    where: { userId: customer.id },
+                    where: {
+                        OR: [
+                            { customerId: customer.id },
+                            { userId: customer.id }
+                        ]
+                    },
                     orderBy: { notification: { createdAt: 'desc' } },
                     include: { notification: { select: { message: true, createdAt: true } } }
                 });

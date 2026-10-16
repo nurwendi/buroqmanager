@@ -1,5 +1,18 @@
 'use client';
 
+/**
+ * ============================================================================
+ * HALAMAN MONITORING NAT & JARINGAN MIKROTIK (app/nat/page.js)
+ * ============================================================================
+ * Halaman ini menampilkan status router MikroTik, daftar aturan Firewall NAT,
+ * daftar Interface jaringan, serta IP Address yang terpasang di setiap router.
+ *
+ * Panduan untuk pengguna awam:
+ * - Untuk mengubah teks judul/label tab, lihat bagian `tabs` di dalam `RouterCard`.
+ * - Warna indikator Online/Offline dapat diatur pada komponen `StatusBadge`.
+ * ============================================================================
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Server, RefreshCw, Wifi, WifiOff, Shield, Network, Cpu, MemoryStick, Clock, ChevronDown, ChevronRight, Activity, Globe, AlertTriangle, CheckCircle, XCircle, Info, Filter, ArrowLeftRight, Zap } from 'lucide-react';
@@ -107,7 +120,9 @@ function InterfaceCard({ iface, ipAddresses }) {
 }
 
 // Router Card (main)
-function RouterCard({ router }) {
+function RouterCard({ router, t: propT }) {
+    const { t: contextT } = useLanguage();
+    const t = propT || contextT;
     const [expanded, setExpanded] = useState(true);
     const [activeTab, setActiveTab] = useState('nat');
     const isOnline = router.status === 'online';
@@ -491,7 +506,7 @@ export default function NatPage() {
                         </div>
                     ) : (
                         data.routers.map(router => (
-                            <RouterCard key={router.id} router={router} />
+                            <RouterCard key={router.id} router={router} t={t} />
                         ))
                     )}
                 </div>

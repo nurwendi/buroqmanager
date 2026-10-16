@@ -1,10 +1,17 @@
 import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+import path, { join } from 'path';
 import { existsSync } from 'fs';
+import { getUserFromRequest } from '@/lib/api-auth';
 
 export async function POST(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== 'superadmin' && user.role !== 'admin') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const formData = await request.formData();
         const file = formData.get('file');
 
@@ -13,10 +20,10 @@ export async function POST(request) {
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
-        const filename = file.name;
+        const filename = path.basename(file.name);
 
         // Validation: Ensure it's a zip file
-        if (!filename.endsWith('.zip')) {
+        if (!filename || !filename.toLowerCase().endsWith('.zip')) {
             return NextResponse.json({ error: 'Only .zip files are allowed' }, { status: 400 });
         }
 

@@ -1,12 +1,24 @@
 'use client';
 
+/**
+ * ============================================================================
+ * HALAMAN DAFTAR SEMUA PELANGGAN LINTAS ROUTER - KHUSUS SUPERADMIN
+ * (app/superadmin/users/page.js)
+ * ============================================================================
+ * Halaman ini menampilkan seluruh akun PPPoE dari semua router yang terdaftar
+ * di sistem. Hanya pengguna dengan role `superadmin` yang diizinkan mengakses.
+ * ============================================================================
+ */
+
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, Loader2, Server, User, WifiOff, Wifi, Users } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import HeaderBanner from '@/components/HeaderBanner';
 
 export default function SuperadminUsersPage() {
     const { t } = useLanguage();
+    const router = useRouter();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -29,8 +41,26 @@ export default function SuperadminUsersPage() {
     };
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        const verifyAndFetch = async () => {
+            try {
+                const res = await fetch('/api/auth/me');
+                if (!res.ok) {
+                    router.push('/login');
+                    return;
+                }
+                const data = await res.json();
+                if (data.user?.role !== 'superadmin') {
+                    router.push('/');
+                    return;
+                }
+                fetchData();
+            } catch (err) {
+                console.error('Role check failed:', err);
+                router.push('/');
+            }
+        };
+        verifyAndFetch();
+    }, [router]);
 
     // Filter Logic
     const filteredUsers = users.filter(user => {

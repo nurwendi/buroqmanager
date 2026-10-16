@@ -1,16 +1,31 @@
-
 'use client';
+
+/**
+ * ============================================================================
+ * HALAMAN MANAJEMEN PERANGKAT GENIEACS / TR-069 (app/genieacs/page.js)
+ * ============================================================================
+ * Halaman ini menampilkan daftar perangkat ONT/ONU pelanggan dari server ACS,
+ * termasuk sinyal optik (RX Power), suhu perangkat, SSID Wi-Fi, serta tombol
+ * untuk mengubah nama/sandi Wi-Fi dan me-reboot perangkat dari jarak jauh.
+ * ============================================================================
+ */
+
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Router, Hourglass, Power, Search, Wifi } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 import HeaderBanner from '@/components/HeaderBanner';
 
+const ALLOWED_ROLES = ['superadmin', 'admin', 'manager', 'technician', 'staff', 'agent'];
+
 export default function GenieAcsPage() {
     const { t } = useLanguage();
+    const router = useRouter();
     const [devices, setDevices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [accessDenied, setAccessDenied] = useState(false);
 
     useEffect(() => {
         checkPermission();
@@ -22,20 +37,21 @@ export default function GenieAcsPage() {
             if (res.ok) {
                 const data = await res.json();
                 const role = data.user?.role;
-                // Restricted to superadmin only
-                if (role !== 'superadmin') {
+                if (!ALLOWED_ROLES.includes(role)) {
                     setAccessDenied(true);
                     setLoading(false);
+                    router.push('/');
                     return;
                 }
                 fetchDevices();
+            } else {
+                router.push('/login');
             }
         } catch (e) {
             console.error('Auth check failed', e);
+            setLoading(false);
         }
     };
-
-    const [accessDenied, setAccessDenied] = useState(false);
 
     const fetchDevices = async (query = '') => {
         setLoading(true);

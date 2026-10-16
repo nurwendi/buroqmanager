@@ -1,8 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createBackup, listBackups } from '@/lib/backup';
+import { getUserFromRequest } from '@/lib/api-auth';
 
 export async function GET(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== 'superadmin' && user.role !== 'admin') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const backups = await listBackups();
         return NextResponse.json(backups);
     } catch (error) {
@@ -13,6 +20,12 @@ export async function GET(request) {
 
 export async function POST(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role !== 'superadmin' && user.role !== 'admin') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
         const result = await createBackup();
         return NextResponse.json({
             success: true,

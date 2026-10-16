@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import db from '@/lib/db';
 import crypto from 'crypto';
 import { restoreUserConnection } from '@/lib/billing-actions';
-
-const prisma = new PrismaClient();
 
 export async function POST(request) {
     try {
@@ -23,9 +21,10 @@ export async function POST(request) {
             return NextResponse.json({ message: 'Invalid data' }, { status: 400 });
         }
 
-        // 1. Find the Payment record to identify the owner/keys
-        const payment = await prisma.payment.findUnique({
-            where: { id: order_id },
+        // 1. Find the Payment record to identify the owner/keys (supports order_id or order_id prefix before timestamp)
+        const paymentLookupId = order_id.includes('-') ? order_id.split('-')[0] : order_id;
+        let payment = await db.payment.findUnique({
+            where: { id: paymentLookupId },
             include: {
                 owner: {
                     include: {
@@ -34,6 +33,19 @@ export async function POST(request) {
                 }
             }
         });
+
+        if (!payment) {
+            payment = await db.payment.findUnique({
+                where: { id: order_id },
+                include: {
+                    owner: {
+                        include: {
+                            gatewayConfig: true
+                        }
+                    }
+                }
+            });
+        }
 
         if (!payment) {
             console.error(`Payment not found for order_id: ${order_id}`);
@@ -73,33 +85,84 @@ export async function POST(request) {
         }
 
         // 4. Update Database
-        await prisma.payment.update({
-            where: { id: order_id },
+        await db.payment.update({
+            where: { id: payment.id },
             data: {
                 gatewayStatus: transaction_status,
-                status: newStatus === 'success' ? 'completed' : 'pending', // Map to internal 'status'
-                paymentType: payment_type
+                status: newStatus === 'success' ? 'completed' : (newStatus === 'failed' ? 'failed' : 'pending'),
+                paymentType: payment_type,
+                date: newStatus === 'success' ? new Date() : payment.date
             }
         });
 
-        // 5. Trigger Reactivation and Notification if Success
+        // 5. Trigger Reactivation, Commission, and Notification if Success
         if (newStatus === 'success') {
-            console.log(`Payment ${order_id} successful. Restoring connection for ${payment.username}...`);
+            // Find real customer to get PPPoE username if stored as customerId
+            let pppoeUsername = payment.username;
+            const customer = await db.customer.findFirst({
+                where: {
+                    OR: [
+                        { customerId: payment.username },
+                        { username: payment.username }
+                    ],
+                    ...(payment.ownerId ? { ownerId: payment.ownerId } : {})
+                },
+                include: { agent: true, technician: true }
+            });
+
+            if (customer) {
+                pppoeUsername = customer.username;
+
+                // Calculate Agent & Technician Commissions if not already created
+                try {
+                    const existingCommissions = await db.commission.count({ where: { paymentId: payment.id } });
+                    if (existingCommissions === 0) {
+                        const commissionsToCreate = [];
+                        if (customer.agent && customer.agent.agentRate > 0) {
+                            commissionsToCreate.push({
+                                paymentId: payment.id,
+                                userId: customer.agent.id,
+                                username: customer.agent.username,
+                                role: 'agent',
+                                rate: customer.agent.agentRate,
+                                amount: (payment.amount * customer.agent.agentRate) / 100
+                            });
+                        }
+                        if (customer.technician && customer.technician.technicianRate > 0) {
+                            commissionsToCreate.push({
+                                paymentId: payment.id,
+                                userId: customer.technician.id,
+                                username: customer.technician.username,
+                                role: 'technician',
+                                rate: customer.technician.technicianRate,
+                                amount: (payment.amount * customer.technician.technicianRate) / 100
+                            });
+                        }
+                        if (commissionsToCreate.length > 0) {
+                            await db.commission.createMany({ data: commissionsToCreate });
+                        }
+                    }
+                } catch (commErr) {
+                    console.error('[Webhook] Commission creation error:', commErr.message);
+                }
+            }
+
+            console.log(`Payment ${order_id} successful. Restoring connection for ${pppoeUsername}...`);
             // Execute restoration
             try {
-                await restoreUserConnection(payment.username);
+                await restoreUserConnection(pppoeUsername, payment.ownerId);
 
                 // Notify the user via Push Notification
                 const { sendTargetedNotificationByUsername } = await import('@/lib/notifications-db');
                 await sendTargetedNotificationByUsername({
-                    username: payment.username,
+                    username: pppoeUsername,
                     title: 'Pembayaran Berhasil',
                     message: `Terima kasih! Pembayaran tagihan ${payment.invoiceNumber.split('-')[0]} telah diterima. Koneksi Anda telah aktif kembali.`,
                     type: 'billing',
                     ownerId: payment.ownerId
                 });
             } catch (notifyError) {
-                console.error('[Webhook] Failed to send payment notification:', notifyError.message);
+                console.error('[Webhook] Failed to restore connection or send notification:', notifyError.message);
             }
         }
 

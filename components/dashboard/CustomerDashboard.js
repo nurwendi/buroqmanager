@@ -1,5 +1,18 @@
 'use client';
 
+/**
+ * ============================================================================
+ * DASHBOARD PELANGGAN (components/dashboard/CustomerDashboard.js)
+ * ============================================================================
+ * Komponen utama yang tampil ketika pengguna login sebagai Pelanggan (Customer).
+ * Fitur yang tersedia di halaman ini:
+ * 1. Status Koneksi & Pemakaian Kuota Bulan Ini (Download / Upload).
+ * 2. Informasi Tagihan & Pembayaran Online (Midtrans).
+ * 3. Pengaturan Nama (SSID) & Sandi Wi-Fi secara mandiri melalui GenieACS.
+ * 4. Layanan Pengaduan / Tiket Bantuan beserta Obrolan (Chat) langsung.
+ * ============================================================================
+ */
+
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Wifi, RefreshCw, CreditCard, Activity, AlertCircle, CheckCircle, LogOut, Signal, Lock, X, Router, MessageSquare, Send, Plus, ChevronRight } from 'lucide-react';
@@ -422,36 +435,49 @@ export default function CustomerDashboard() {
 
                                 <button
                                     onClick={async () => {
-                                        // Payment Logic
+                                        // Payment Logic (Midtrans)
                                         try {
                                             const btn = document.getElementById('pay-btn');
                                             if (btn) { btn.disabled = true; btn.innerText = 'Memproses...'; }
+
+                                            const targetInvoiceNumber =
+                                                stats.firstPendingInvoiceNumber ||
+                                                stats.billing?.firstPendingInvoiceNumber ||
+                                                stats.invoiceNumber ||
+                                                stats.billing?.invoiceNumber ||
+                                                stats.billing?.invoice;
+
+                                            if (!targetInvoiceNumber || targetInvoiceNumber === '-') {
+                                                alert('Nomor tagihan tidak valid untuk diproses.');
+                                                return;
+                                            }
 
                                             const res = await fetch('/api/billing/pay', {
                                                 method: 'POST',
                                                 headers: { 'Content-Type': 'application/json' },
                                                 body: JSON.stringify({
-                                                    invoiceNumber: stats.billing.invoice,
+                                                    invoiceNumber: targetInvoiceNumber,
                                                     amount: stats.billing.amount
                                                 })
                                             });
 
                                             if (res.ok) {
-                                                const data = await res.json();
+                                                const data = await res.json().catch(() => ({}));
                                                 if (data.redirect_url) {
                                                     window.location.href = data.redirect_url; // Redirect to Midtrans
                                                 } else {
                                                     alert('Gagal mendapatkan link pembayaran.');
                                                 }
                                             } else {
-                                                const err = await res.json();
+                                                const err = await res.json().catch(() => ({}));
                                                 alert('Gagal memproses pembayaran: ' + (err.error || 'Unknown error'));
                                             }
                                         } catch (e) {
-                                            alert('Terjadi kesalahan koneksi.');
+                                            console.error('Midtrans payment error:', e);
+                                            alert('Terjadi kesalahan koneksi saat memproses pembayaran.');
                                         } finally {
                                             const btn = document.getElementById('pay-btn');
-                                            if (btn) { btn.disabled = false; btn.innerText = 'Bayar Sekarang'; }
+                                            if (btn) { btn.disabled = false; btn.innerText = t('customerDashboard.payNow') || 'Bayar Sekarang'; }
                                         }
                                     }}
                                     id="pay-btn"
