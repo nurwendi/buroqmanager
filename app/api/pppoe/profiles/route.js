@@ -3,10 +3,13 @@ import { getMikrotikClient } from '@/lib/mikrotik';
 import { getUserFromRequest } from '@/lib/api-auth';
 import { getConfig, getUserConnectionId } from '@/lib/config';
 
-async function getClientForUser(request) {
+async function getClientForUser(request, requireWrite = false) {
     const user = await getUserFromRequest(request);
     if (!user) {
         throw new Error('Unauthorized');
+    }
+    if (requireWrite && user.role === 'customer') {
+        throw new Error('Forbidden');
     }
     const config = await getConfig();
     let connectionId = getUserConnectionId(user, config);
@@ -28,7 +31,7 @@ async function getClientForUser(request) {
 
 export async function GET(request) {
     try {
-        const client = await getClientForUser(request);
+        const client = await getClientForUser(request, false);
         if (!client) return NextResponse.json([]); // Return empty if no router
 
         const profiles = await client.write('/ppp/profile/print');
@@ -57,7 +60,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const client = await getClientForUser(request);
+        const client = await getClientForUser(request, true);
 
         if (!client) {
             return NextResponse.json({ error: "No router configured. Please add a router first." }, { status: 400 });
@@ -83,6 +86,9 @@ export async function POST(request) {
         if (error.message === 'Unauthorized') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+        if (error.message === 'Forbidden') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -94,7 +100,7 @@ export async function DELETE(request) {
         const name = searchParams.get('name');
         const id = searchParams.get('id'); // Mikrotik ID (*1, *2 etc)
 
-        const client = await getClientForUser(request);
+        const client = await getClientForUser(request, true);
         if (!client) {
             return NextResponse.json({ error: "No router configured." }, { status: 400 });
         }
@@ -122,6 +128,9 @@ export async function DELETE(request) {
         if (error.message === 'Unauthorized') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
+        if (error.message === 'Forbidden') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
@@ -129,7 +138,7 @@ export async function DELETE(request) {
 export async function PATCH(request) {
     try {
         const body = await request.json();
-        const client = await getClientForUser(request);
+        const client = await getClientForUser(request, true);
 
         if (!client) {
             return NextResponse.json({ error: "No router configured." }, { status: 400 });
@@ -159,6 +168,9 @@ export async function PATCH(request) {
     } catch (error) {
         if (error.message === 'Unauthorized') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        if (error.message === 'Forbidden') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

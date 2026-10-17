@@ -52,8 +52,18 @@ export async function POST(request) {
                 console.warn(`[GenieACS] Security Alert: Customer ${user.username} tried to modify device ${deviceId} belonging to ${parsedDevice.pppoe_user}`);
                 return NextResponse.json({ error: 'Access Denied: You do not own this device.' }, { status: 403 });
             }
+        } else if (user.role !== 'superadmin') {
+            const ownerId = user.role === 'admin' ? user.id : user.ownerId;
+            const parsedDevice = parseGenieACSDevice(deviceRaw);
+            const deviceUser = (parsedDevice.pppoe_user || '').trim();
+            const customer = await db.customer.findFirst({
+                where: { username: deviceUser, ownerId },
+                select: { id: true }
+            });
+            if (!customer) {
+                return NextResponse.json({ error: 'Access Denied: Device does not belong to your tenant.' }, { status: 403 });
+            }
         }
-        // TODO: Add Manager/Staff ownership check here if needed in future (currently they don't use this endpoint directly from UI)
 
 
         // Determine correct paths based on what exists in the device data

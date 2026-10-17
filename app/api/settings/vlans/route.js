@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
-export async function GET() {
+export async function GET(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || user.role === 'customer') {
+            return unauthorizedResponse();
+        }
+
         const setting = await db.systemSetting.findUnique({
             where: { key: 'olt_vlan_list' }
         });
@@ -29,6 +35,11 @@ export async function GET() {
 
 export async function POST(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || !['superadmin', 'admin', 'manager', 'technician'].includes(user.role)) {
+            return unauthorizedResponse();
+        }
+
         const body = await request.json();
         const { vlan } = body;
 

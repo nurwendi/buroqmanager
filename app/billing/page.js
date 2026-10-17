@@ -72,13 +72,19 @@ export default function BillingPage() {
     }, [showModal, formData.username]);
 
     useEffect(() => {
-        fetchUsers();
-        fetchSystemUsers();
         fetchProfiles();
         fetchSettings();
-        fetchCustomersData();
         fetchUserRole();
     }, []);
+
+    // Lazy-search PPPoE users only when Add Payment modal is open
+    useEffect(() => {
+        if (!showModal) return;
+        const timer = setTimeout(() => {
+            fetchUsers(userSearchTerm);
+        }, 250);
+        return () => clearTimeout(timer);
+    }, [showModal, userSearchTerm]);
 
     useEffect(() => {
         fetchData();
@@ -99,7 +105,7 @@ export default function BillingPage() {
                 const agentData = await agentStatsRes.json();
                 setAgentStats(agentData);
             } else {
-                // Handle error siliently
+                // Handle error silently
             }
         } catch (error) {
             console.error('Failed to fetch billing data', error);
@@ -108,24 +114,17 @@ export default function BillingPage() {
         }
     };
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (search = '') => {
         try {
-            const res = await fetch('/api/pppoe/users');
+            const params = new URLSearchParams({ page: '1', limit: '50' });
+            if (search) params.set('search', search);
+            const res = await fetch(`/api/pppoe/users?${params.toString()}`);
             if (res.ok) {
                 const data = await res.json();
                 setUsers(Array.isArray(data) ? data : (data.users || []));
             }
         } catch (error) {
             console.error('Failed to fetch users', error);
-        }
-    };
-
-    const fetchSystemUsers = async () => {
-        try {
-            const res = await fetch('/api/admin/users');
-            if (res.ok) setSystemUsers(await res.json());
-        } catch (error) {
-            console.error('Failed to fetch system users', error);
         }
     };
 
@@ -361,18 +360,21 @@ export default function BillingPage() {
         }
     };
 
-    const getCustomerName = (username) => {
+    const getCustomerName = (username, payment = null) => {
+        if (payment?.customerName) return payment.customerName;
         return customersData[username]?.name || username;
     };
 
-    const getAgentName = (username) => {
+    const getAgentName = (username, payment = null) => {
+        if (payment?.agentName && payment.agentName !== '-') return payment.agentName;
         const customer = customersData[username];
         if (!customer || !customer.agentId) return '-';
         const agent = systemUsers.find(u => u.id === customer.agentId);
         return agent ? agent.username : '-';
     };
 
-    const getTechnicianName = (username) => {
+    const getTechnicianName = (username, payment = null) => {
+        if (payment?.technicianName && payment.technicianName !== '-') return payment.technicianName;
         const customer = customersData[username];
         if (!customer || !customer.technicianId) return '-';
         const tech = systemUsers.find(u => u.id === customer.technicianId);
@@ -400,8 +402,8 @@ export default function BillingPage() {
                     bVal = new Date(b.date).getTime();
                     break;
                 case 'customer':
-                    aVal = (getCustomerName(a.username) || '').toLowerCase();
-                    bVal = (getCustomerName(b.username) || '').toLowerCase();
+                    aVal = (getCustomerName(a.username, a) || '').toLowerCase();
+                    bVal = (getCustomerName(b.username, b) || '').toLowerCase();
                     break;
                 case 'amount':
                     aVal = parseFloat(a.amount);
@@ -519,15 +521,14 @@ export default function BillingPage() {
 
     const getWhatsAppFormattedUrl = (payment) => {
         const customer = customersData[payment.username];
-        if (!customer) {
-            return { error: `Data pelanggan tidak ditemukan untuk username: ${payment.username}` };
+        const rawPhone = payment.customerPhone || customer?.phone || '';
+        const custName = payment.customerName || customer?.name || payment.username;
+
+        if (!rawPhone) {
+            return { error: `Nomor HP pelanggan belum diisi untuk ${custName}` };
         }
 
-        if (!customer.phone) {
-            return { error: `Nomor HP pelanggan belum diisi` };
-        }
-
-        let phone = customer.phone.replace(/\D/g, '');
+        let phone = rawPhone.replace(/\D/g, '');
         const formattedPhone = phone.startsWith('0') ? '62' + phone.slice(1) : phone;
 
         const invoiceLink = `${origin}/invoice/${payment.id}`;
@@ -542,7 +543,7 @@ ${companyName.toUpperCase()}
 ================================
 No. Invoice : ${String(payment.id || '').slice(0, 8) || '-'}
 Tanggal     : ${tanggal}
-Pelanggan   : ${customer.name}
+Pelanggan   : ${custName}
 Periode     : ${periode}
 --------------------------------
 JUMLAH      : ${amount}
@@ -976,8 +977,8 @@ Terima Kasih
 
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                                     <div>
-                                                        <div className="font-semibold">{getCustomerName(payment.username)}</div>
-                                                        {customersData[payment.username]?.name && (
+                                                        <div className="font-semibold">{getCustomerName(payment.username, payment)}</div>
+                                                        {getCustomerName(payment.username, payment) !== payment.username && (
                                                             <div className="text-xs text-gray-500 dark:text-gray-400">ID: {payment.username}</div>
                                                         )}
                                                     </div>
@@ -1000,10 +1001,10 @@ Terima Kasih
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                                    {getAgentName(payment.username)}
+                                                    {getAgentName(payment.username, payment)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                                    {getTechnicianName(payment.username)}
+                                                    {getTechnicianName(payment.username, payment)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
                                                     {formatDate(payment.date)}

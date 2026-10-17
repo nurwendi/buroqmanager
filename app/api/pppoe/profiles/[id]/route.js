@@ -7,6 +7,9 @@ export async function PUT(request, { params }) {
     try {
         const user = await getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role === 'customer') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
 
         const config = await getConfig();
         const connectionId = getUserConnectionId(user, config);
@@ -47,6 +50,9 @@ export async function DELETE(request, { params }) {
     try {
         const user = await getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role === 'customer') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
 
         const config = await getConfig();
         const connectionId = getUserConnectionId(user, config);

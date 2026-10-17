@@ -9,8 +9,8 @@ export async function GET(request, { params }) {
     try {
         const user = await getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        if (user.role !== 'superadmin' && user.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        if (user.role !== 'superadmin') {
+            return NextResponse.json({ error: 'Forbidden: Only Superadmin can download system backups' }, { status: 403 });
         }
 
         const { filename } = await params;
@@ -39,8 +39,8 @@ export async function POST(request, { params }) {
     try {
         const user = await getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        if (user.role !== 'superadmin' && user.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        if (user.role !== 'superadmin') {
+            return NextResponse.json({ error: 'Forbidden: Only Superadmin can restore system backups' }, { status: 403 });
         }
 
         const { filename } = await params;
@@ -61,8 +61,8 @@ export async function DELETE(request, { params }) {
     try {
         const user = await getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        if (user.role !== 'superadmin' && user.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        if (user.role !== 'superadmin') {
+            return NextResponse.json({ error: 'Forbidden: Only Superadmin can delete system backups' }, { status: 403 });
         }
 
         const { filename } = await params;

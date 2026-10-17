@@ -19,19 +19,32 @@ export async function PUT(request, { params }) {
 
         const user = await getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (user.role === 'customer') {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
         const config = await getConfig();
+        const effectiveOwnerId = user.role === 'admin' ? user.id : user.ownerId;
         let connectionId = getUserConnectionId(user, config);
 
         let targetId = id;
         if (id && id.includes('_')) {
             const parts = id.split('_');
-            connectionId = parts[0];
+            const requestedConnId = parts[0];
             targetId = parts.slice(1).join('_');
+            if (user.role === 'superadmin') {
+                connectionId = requestedConnId;
+            } else {
+                const conn = config.connections?.find(c => c.id === requestedConnId && c.ownerId === effectiveOwnerId);
+                if (!conn) {
+                    return NextResponse.json({ error: "Forbidden: Router access denied" }, { status: 403 });
+                }
+                connectionId = conn.id;
+            }
         }
 
         // Fallback Logic (Same as POST)
-        if (!connectionId && user?.ownerId) {
-            const ownerConn = config.connections?.find(c => c.ownerId === user.ownerId);
+        if (!connectionId && effectiveOwnerId) {
+            const ownerConn = config.connections?.find(c => c.ownerId === effectiveOwnerId);
             if (ownerConn) connectionId = ownerConn.id;
         }
         if (!connectionId && user?.role === 'superadmin' && config.connections?.length > 0) {
@@ -122,19 +135,32 @@ export async function DELETE(request, { params }) {
 
         const user = await getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (user.role === 'customer') {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
         const config = await getConfig();
+        const effectiveOwnerId = user.role === 'admin' ? user.id : user.ownerId;
         let connectionId = getUserConnectionId(user, config);
 
         let targetId = id;
         if (id && id.includes('_')) {
             const parts = id.split('_');
-            connectionId = parts[0];
+            const requestedConnId = parts[0];
             targetId = parts.slice(1).join('_');
+            if (user.role === 'superadmin') {
+                connectionId = requestedConnId;
+            } else {
+                const conn = config.connections?.find(c => c.id === requestedConnId && c.ownerId === effectiveOwnerId);
+                if (!conn) {
+                    return NextResponse.json({ error: "Forbidden: Router access denied" }, { status: 403 });
+                }
+                connectionId = conn.id;
+            }
         }
 
         // Fallback Logic (Same as POST)
-        if (!connectionId && user?.ownerId) {
-            const ownerConn = config.connections?.find(c => c.ownerId === user.ownerId);
+        if (!connectionId && effectiveOwnerId) {
+            const ownerConn = config.connections?.find(c => c.ownerId === effectiveOwnerId);
             if (ownerConn) connectionId = ownerConn.id;
         }
         if (!connectionId && user?.role === 'superadmin' && config.connections?.length > 0) {

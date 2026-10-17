@@ -41,6 +41,41 @@ export async function GET(request) {
     }
 }
 
+async function generateStaffId(db, ownerId, ownerPrefixInput = null) {
+    let ownerPrefix = ownerPrefixInput;
+    if (!ownerPrefix && ownerId) {
+        const owner = await db.user.findUnique({
+            where: { id: ownerId },
+            select: { agentNumber: true }
+        });
+        ownerPrefix = owner?.agentNumber;
+    }
+    if (!ownerPrefix || ownerPrefix.trim() === '') {
+        ownerPrefix = '01';
+    }
+
+    const existingStaff = await db.user.findMany({
+        where: {
+            ownerId,
+            agentNumber: { startsWith: ownerPrefix }
+        },
+        select: { agentNumber: true }
+    });
+
+    let maxSeq = 0;
+    for (const u of existingStaff) {
+        if (u.agentNumber && u.agentNumber.length > ownerPrefix.length) {
+            const seqPart = u.agentNumber.substring(ownerPrefix.length);
+            const seq = parseInt(seqPart, 10);
+            if (!isNaN(seq) && seq > maxSeq) {
+                maxSeq = seq;
+            }
+        }
+    }
+
+    return `${ownerPrefix}${String(maxSeq + 1).padStart(3, '0')}`;
+}
+
 export async function POST(request) {
     try {
         const currentUser = await getUserFromRequest(request);
@@ -55,6 +90,12 @@ export async function POST(request) {
         const body = await request.json();
         const { username, password, fullName, phone, address, role, agentNumber, radiusPool } = body;
 
+        if (body.role === 'viewer') {
+            return NextResponse.json({ error: 'Role viewer sudah tidak digunakan. Gunakan manager, editor, atau staff.' }, { status: 400 });
+        }
+
+        const db = (await import('@/lib/db')).default;
+
         // Security / Logic checks
         if (currentUser.role === 'admin') {
             // Admin cannot create other admins or superadmins
@@ -65,16 +106,20 @@ export async function POST(request) {
             body.ownerId = currentUser.id;
 
             // SCOPED USERNAME LOGIC: username@owner
-            const db = (await import('@/lib/db')).default;
             const adminUser = await db.user.findUnique({
                 where: { id: currentUser.id },
-                select: { username: true }
+                select: { username: true, agentNumber: true }
             });
 
             if (adminUser) {
                 if (!body.username.includes('@')) {
                     body.username = `${body.username}@${adminUser.username}`;
                 }
+            }
+
+            // Auto-generate standardized ID (ownerPrefix + 3-digit sequence) for manager, editor, staff
+            if (!body.agentNumber || !body.agentNumber.trim()) {
+                body.agentNumber = await generateStaffId(db, currentUser.id, adminUser?.agentNumber);
             }
 
         } else if (currentUser.role === 'superadmin') {
@@ -84,7 +129,6 @@ export async function POST(request) {
 
                 // Generate Numeric Admin ID (agentNumber) if not provided
                 if (body.role === 'admin' && !body.agentNumber) {
-                    const db = (await import('@/lib/db')).default;
                     const admins = await db.user.findMany({
                         where: { role: 'admin' },
                         select: { agentNumber: true }
@@ -102,6 +146,9 @@ export async function POST(request) {
             } else {
                 // Staff created by superadmin belongs to superadmin (unless explicit ownerId provided)
                 body.ownerId = body.ownerId || currentUser.id;
+                if (!body.agentNumber || !body.agentNumber.trim()) {
+                    body.agentNumber = await generateStaffId(db, body.ownerId);
+                }
             }
         }
 

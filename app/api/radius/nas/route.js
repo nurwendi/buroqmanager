@@ -13,7 +13,11 @@ export async function GET(request) {
         const nasList = await db.nas.findMany({
             orderBy: { id: 'desc' }
         });
-        return NextResponse.json(nasList);
+        const maskedList = nasList.map(nas => ({
+            ...nas,
+            secret: user.role === 'superadmin' ? nas.secret : '******'
+        }));
+        return NextResponse.json(maskedList);
     } catch (error) {
         console.error("Error fetching NAS:", error);
         return NextResponse.json({ error: 'Failed to fetch NAS list' }, { status: 500 });
@@ -24,7 +28,7 @@ export async function POST(request) {
     try {
         const body = await request.json();
         const user = await getUserFromRequest(request);
-        if (!user || (user.role !== 'superadmin' && user.role !== 'admin')) {
+        if (!user || user.role !== 'superadmin') {
             return unauthorizedResponse();
         }
 
@@ -33,13 +37,18 @@ export async function POST(request) {
             return NextResponse.json({ error: 'nasname (IP) and secret are required' }, { status: 400 });
         }
 
+        const existingNas = body.secret === '******'
+            ? await db.nas.findUnique({ where: { nasname: body.nasname } })
+            : null;
+        const resolvedSecret = body.secret === '******' && existingNas ? existingNas.secret : body.secret;
+
         const newNas = await db.nas.upsert({
             where: { nasname: body.nasname },
             update: {
                 shortname: body.shortname || null,
                 type: body.type || 'other',
                 ports: body.ports ? parseInt(body.ports) : null,
-                secret: body.secret,
+                secret: resolvedSecret,
                 description: body.description || null,
                 community: body.community || null,
                 server: body.server || null
@@ -49,7 +58,7 @@ export async function POST(request) {
                 shortname: body.shortname || null,
                 type: body.type || 'other',
                 ports: body.ports ? parseInt(body.ports) : null,
-                secret: body.secret,
+                secret: resolvedSecret,
                 description: body.description || null,
                 community: body.community || null,
                 server: body.server || null
@@ -66,7 +75,7 @@ export async function POST(request) {
 export async function DELETE(request) {
     try {
         const user = await getUserFromRequest(request);
-        if (!user || (user.role !== 'superadmin' && user.role !== 'admin')) {
+        if (!user || user.role !== 'superadmin') {
             return unauthorizedResponse();
         }
 

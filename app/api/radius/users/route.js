@@ -10,8 +10,27 @@ export async function GET(request) {
             return unauthorizedResponse();
         }
 
+        const where = {};
+        if (user.role !== 'superadmin') {
+            const ownerId = user.role === 'admin' ? user.id : user.ownerId;
+            const customerWhere = { ownerId };
+            if (user.role === 'technician') {
+                customerWhere.technicianId = user.id;
+            }
+            const customers = await db.customer.findMany({
+                where: customerWhere,
+                select: { username: true }
+            });
+            const allowedUsernames = customers.map(c => c.username);
+            if (allowedUsernames.length === 0) {
+                return NextResponse.json([]);
+            }
+            where.username = { in: allowedUsernames };
+        }
+
         // Fetch all users from radcheck (Unique usernames)
         const users = await db.radCheck.findMany({
+            where,
             distinct: ['username'],
             select: { username: true },
             orderBy: { username: 'asc' }
@@ -48,19 +67,19 @@ export async function POST(request) {
             }
         });
 
-        // 2. Add Optional Attributes (Framed-IP-Address, etc in radreply)
+        // 2. Add Optional Attributes (Framed-IP-Address, etc in radreply) in a single batch
         if (attributes && Array.isArray(attributes)) {
-            for (const attr of attributes) {
-                if (attr.name && attr.value) {
-                    await db.radReply.create({
-                        data: {
-                            username,
-                            attribute: attr.name,
-                            op: attr.op || '=',
-                            value: attr.value
-                        }
-                    });
-                }
+            const replyData = attributes
+                .filter(attr => attr.name && attr.value)
+                .map(attr => ({
+                    username,
+                    attribute: attr.name,
+                    op: attr.op || '=',
+                    value: attr.value
+                }));
+
+            if (replyData.length > 0) {
+                await db.radReply.createMany({ data: replyData });
             }
         }
 
@@ -83,6 +102,17 @@ export async function DELETE(request) {
     if (!username) return NextResponse.json({ error: 'Username required' }, { status: 400 });
 
     try {
+        // Verify ownership for non-superadmin before deleting
+        if (user.role !== 'superadmin') {
+            const customer = await db.customer.findFirst({
+                where: { username, ownerId: user.id },
+                select: { id: true }
+            });
+            if (!customer) {
+                return NextResponse.json({ error: 'Forbidden: User does not belong to your tenant' }, { status: 403 });
+            }
+        }
+
         // Transactional delete
         await db.$transaction([
             db.radCheck.deleteMany({ where: { username } }),

@@ -44,18 +44,20 @@ export async function POST(request) {
                 return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
             }
 
-            if (currentPassword !== undefined) {
-                let valid = false;
-                if (customer.password) {
-                    if (customer.password.startsWith('$2')) {
-                        valid = await bcrypt.compare(currentPassword, customer.password);
-                    } else {
-                        valid = currentPassword === customer.password;
-                    }
+            if (!currentPassword) {
+                return NextResponse.json({ error: 'Password saat ini wajib diisi' }, { status: 400 });
+            }
+
+            let valid = false;
+            if (customer.password) {
+                if (customer.password.startsWith('$2')) {
+                    valid = await bcrypt.compare(currentPassword, customer.password);
+                } else {
+                    valid = currentPassword === customer.password;
                 }
-                if (!valid) {
-                    return NextResponse.json({ error: 'Password saat ini salah' }, { status: 400 });
-                }
+            }
+            if (!valid) {
+                return NextResponse.json({ error: 'Password saat ini salah' }, { status: 400 });
             }
 
             const hashed = await bcrypt.hash(newPassword, 10);

@@ -8,7 +8,7 @@ export async function POST(request) {
     try {
         const user = await getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        if (user.role !== 'superadmin' && user.role !== 'admin') {
+        if (user.role !== 'superadmin') {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 

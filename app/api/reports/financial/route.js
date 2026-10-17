@@ -23,30 +23,27 @@ export async function GET(request) {
         const ownerId = isAdmin ? (currentUser.role === 'admin' ? currentUser.id : null) : null;
         const agentId = isAgent ? currentUser.id : null;
 
-        const customersWhere = {};
-        if (ownerId) customersWhere.ownerId = ownerId;
-        if (agentId) customersWhere.agentId = agentId;
-
-        const customers = await db.customer.findMany({
-            where: customersWhere,
-            select: { username: true, customerId: true, name: true, agentId: true }
-        });
-
-        const customerMap = customers.reduce((acc, c) => {
-            acc[c.username] = c;
-            return acc;
-        }, {});
-
         // 1. Fetch all payments for the period
         const where = { month, year };
         if (ownerId) where.ownerId = ownerId;
-        
-        // If agent, we primarily care about payments where they are the agent
-        // or payments linked to their customers.
+
+        // If agent, fetch their customers first to build the OR filter
+        let agentCustomerMap = null;
         if (agentId) {
+            const agentCustomers = await db.customer.findMany({
+                where: {
+                    ...(ownerId ? { ownerId } : {}),
+                    agentId
+                },
+                select: { username: true, customerId: true, name: true, agentId: true }
+            });
+            agentCustomerMap = {};
+            for (const c of agentCustomers) {
+                agentCustomerMap[c.username] = c;
+            }
             where.OR = [
                 { commissions: { some: { userId: agentId } } },
-                { username: { in: customers.map(c => c.username) } }
+                { username: { in: agentCustomers.map(c => c.username) } }
             ];
         }
 
@@ -65,6 +62,22 @@ export async function GET(request) {
                 }
             }
         });
+
+        // Fetch customer details only for usernames present in these payments
+        let customerMap = agentCustomerMap || {};
+        if (!agentCustomerMap && payments.length > 0) {
+            const paymentUsernames = [...new Set(payments.map(p => p.username).filter(Boolean))];
+            const customers = await db.customer.findMany({
+                where: {
+                    ...(ownerId ? { ownerId } : {}),
+                    username: { in: paymentUsernames }
+                },
+                select: { username: true, customerId: true, name: true, agentId: true }
+            });
+            for (const c of customers) {
+                customerMap[c.username] = c;
+            }
+        }
 
         // 2. Aggregate Data
         let totalRevenue = 0;

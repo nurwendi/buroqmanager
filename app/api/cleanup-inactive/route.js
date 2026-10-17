@@ -15,19 +15,22 @@ export async function GET(request) {
         const now = new Date();
         const cutoffDate = new Date(now.setMonth(now.getMonth() - 3));
 
-        // 1. Get all customers
+        const ownerFilter = user.role === 'admin' ? { ownerId: user.id } : {};
+
+        // 1. Get all customers Older than cutoffDate directly from DB
         const customers = await db.customer.findMany({
+            where: {
+                ...ownerFilter,
+                createdAt: { lte: cutoffDate }
+            },
             select: { id: true, username: true, name: true, createdAt: true }
         });
 
+        if (customers.length === 0) {
+            return NextResponse.json([]);
+        }
+
         // 2. Get list of "Active" usernames (Seen in last 3 months or currently online)
-        // Active means: acctstoptime > cutoff OR acctstoptime IS NULL (assuming NULL means online or session not closed properly but recently started)
-        // To be safe, we check acctstarttime > cutoff for active sessions too.
-
-        // Prisma doesn't support sophisticated ORs well with distinct in one go easily, so let's simplify.
-        // Get all usernames from RadAcct where acctstoptime > cutoff OR acctstoptime is NULL
-        // Note: Prisma where clause:
-
         const activeSessions = await db.radAcct.findMany({
             where: {
                 OR: [
@@ -41,31 +44,32 @@ export async function GET(request) {
 
         const activeUsernames = new Set(activeSessions.map(s => s.username));
 
-        // 3. Identification
-        const inactiveUsers = [];
-
-        for (const customer of customers) {
-            // If user is considered active, skip
-            if (activeUsernames.has(customer.username)) continue;
-
-            // If user is NEW (created < 3 months ago) and not seen yet, give them a grace period.
-            // "Offline for 3 months" implies they are older than 3 months.
-            if (new Date(customer.createdAt) > cutoffDate) continue;
-
-            // Find last seen time for display
-            // We know they are not in activeSessions, so their last session must be <= cutoffDate OR they have no sessions.
-            const lastSession = await db.radAcct.findFirst({
-                where: { username: customer.username },
-                orderBy: { acctstoptime: 'desc' },
-                select: { acctstoptime: true }
-            });
-
-            inactiveUsers.push({
-                ...customer,
-                lastSeen: lastSession?.acctstoptime ? lastSession.acctstoptime : 'Never',
-                status: lastSession ? 'Inactive' : 'Never Connected'
-            });
+        // Filter candidate inactive customers
+        const candidateCustomers = customers.filter(c => !activeUsernames.has(c.username));
+        if (candidateCustomers.length === 0) {
+            return NextResponse.json([]);
         }
+
+        // 3. Batch-fetch last seen acctstoptime for all candidates in a single groupBy query
+        const candidateUsernames = candidateCustomers.map(c => c.username);
+        const lastSeenGroups = await db.radAcct.groupBy({
+            by: ['username'],
+            where: { username: { in: candidateUsernames } },
+            _max: { acctstoptime: true }
+        });
+        const lastSeenMap = new Map(
+            lastSeenGroups.map(g => [g.username, g._max?.acctstoptime || null])
+        );
+
+        const inactiveUsers = candidateCustomers.map(customer => {
+            const hasSessionRecord = lastSeenMap.has(customer.username);
+            const lastStopTime = lastSeenMap.get(customer.username);
+            return {
+                ...customer,
+                lastSeen: lastStopTime ? lastStopTime : 'Never',
+                status: hasSessionRecord ? 'Inactive' : 'Never Connected'
+            };
+        });
 
         return NextResponse.json(inactiveUsers);
     } catch (error) {
@@ -84,39 +88,40 @@ export async function POST(request) {
         const body = await request.json();
         const { usernames } = body;
 
-        if (!usernames || !Array.isArray(usernames)) {
+        if (!usernames || !Array.isArray(usernames) || usernames.length === 0) {
             return NextResponse.json({ error: 'Usernames array required' }, { status: 400 });
         }
 
-        const deleted = [];
-        const errors = [];
+        const ownerFilter = user.role === 'admin' ? { ownerId: user.id } : {};
 
-        for (const username of usernames) {
-            try {
-                // Transactional delete?
-                // Radius tables
-                await db.radCheck.deleteMany({ where: { username } });
-                await db.radReply.deleteMany({ where: { username } });
-                await db.radUserGroup.deleteMany({ where: { username } });
-                // We typically DO NOT delete RadAcct to keep historical logs, unless requested.
-                // The prompt says "terhapus" (deleted). I will leave RadAcct for audit, or maybe delete.
-                // Usually billing systems keep logs. I'll keep RadAcct but delete the User/Customer.
-
-                // Customer Table
-                await db.customer.deleteMany({ where: { username } });
-
-                // Note: user might be in `User` table if it's an admin? No, Customer table users are PPPoE.
-                // The `User` table is for system access (admins, agents).
-                // But wait, `Customer` model has `username`.
-
-                deleted.push(username);
-            } catch (err) {
-                console.error(`Failed to delete ${username}:`, err);
-                errors.push({ username, error: err.message });
-            }
+        // Verify ownership if admin
+        let allowedUsernames = usernames;
+        if (user.role === 'admin') {
+            const ownedCusts = await db.customer.findMany({
+                where: { username: { in: usernames }, ownerId: user.id },
+                select: { username: true }
+            });
+            allowedUsernames = ownedCusts.map(c => c.username);
         }
 
-        return NextResponse.json({ success: true, deleted, errors });
+        if (allowedUsernames.length === 0) {
+            return NextResponse.json({ success: true, deleted: [], errors: [] });
+        }
+
+        // Execute batch deletion across Radius & Customer tables in a single transaction
+        await db.$transaction([
+            db.radCheck.deleteMany({ where: { username: { in: allowedUsernames } } }),
+            db.radReply.deleteMany({ where: { username: { in: allowedUsernames } } }),
+            db.radUserGroup.deleteMany({ where: { username: { in: allowedUsernames } } }),
+            db.customer.deleteMany({
+                where: {
+                    username: { in: allowedUsernames },
+                    ...ownerFilter
+                }
+            })
+        ]);
+
+        return NextResponse.json({ success: true, deleted: allowedUsernames, errors: [] });
     } catch (error) {
         console.error("Cleanup delete error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });

@@ -15,6 +15,10 @@ export async function PUT(request, { params }) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
+        if (body.role === 'viewer') {
+            return NextResponse.json({ error: 'Role viewer sudah tidak digunakan. Gunakan manager, editor, atau staff.' }, { status: 400 });
+        }
+
         if (currentUser.role !== 'superadmin' && currentUser.role !== 'admin') {
             if (currentUser.id !== id) {
                 return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -42,6 +46,38 @@ export async function PUT(request, { params }) {
                 return NextResponse.json({ error: 'Forbidden: Cannot escalate role' }, { status: 403 });
             }
             delete body.ownerId;
+        }
+
+        // Auto-generate standardized ID (ownerPrefix + 3-digit sequence) if missing for manager/editor/staff
+        const effectiveRole = body.role || targetUser.role;
+        const effectiveOwnerId = targetUser.ownerId || (currentUser.role === 'admin' ? currentUser.id : null);
+        if (
+            ['manager', 'editor', 'staff'].includes(effectiveRole) &&
+            effectiveOwnerId &&
+            (!targetUser.agentNumber || !targetUser.agentNumber.trim()) &&
+            (!body.agentNumber || !body.agentNumber.trim())
+        ) {
+            const db = (await import('@/lib/db')).default;
+            const owner = await db.user.findUnique({
+                where: { id: effectiveOwnerId },
+                select: { agentNumber: true }
+            });
+            const ownerPrefix = (owner?.agentNumber && owner.agentNumber.trim() !== '') ? owner.agentNumber : '01';
+            const existingStaff = await db.user.findMany({
+                where: {
+                    ownerId: effectiveOwnerId,
+                    agentNumber: { startsWith: ownerPrefix }
+                },
+                select: { agentNumber: true }
+            });
+            let maxSeq = 0;
+            for (const u of existingStaff) {
+                if (u.agentNumber && u.agentNumber.length > ownerPrefix.length) {
+                    const seq = parseInt(u.agentNumber.substring(ownerPrefix.length), 10);
+                    if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+                }
+            }
+            body.agentNumber = `${ownerPrefix}${String(maxSeq + 1).padStart(3, '0')}`;
         }
 
         // Check if username is being changed

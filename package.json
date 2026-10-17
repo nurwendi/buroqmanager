@@ -12,7 +12,8 @@
     "restart:cluster": "pm2 restart ecosystem.config.js",
     "start:node-cluster": "node server.js",
     "lint": "next lint",
-    "db:check": "node scripts/check-db-sync.js"
+    "db:check": "node scripts/check-db-sync.js",
+    "generate:staff-ids": "node scripts/generate-staff-ids.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

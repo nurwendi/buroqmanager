@@ -43,12 +43,12 @@ export default function BottomDock() {
 
     // Desktop Navigation Items (Grouped)
     const desktopNavItems = [
-        { href: '/', icon: Home, hoverIcon: LayoutGrid, label: t('sidebar.dashboard'), roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/', icon: Home, hoverIcon: LayoutGrid, label: t('sidebar.dashboard'), roles: ['superadmin', 'admin', 'manager', 'partner', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/billing', icon: CreditCard, hoverIcon: Wallet, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/reports/financial', icon: Activity, hoverIcon: TrendingUp, label: t('sidebar.reports'), roles: ['admin', 'manager', 'partner', 'staff', 'agent'] },
 
-        { href: '/users', icon: Users, hoverIcon: Route, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/offline', icon: WifiOff, hoverIcon: Network, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/users', icon: Users, hoverIcon: Route, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/offline', icon: WifiOff, hoverIcon: Network, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/profiles', icon: Gauge, hoverIcon: Settings, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
         { href: '/olt', icon: FileText, hoverIcon: Server, label: 'Script OLT ZTE', roles: ['admin', 'manager', 'staff', 'technician'] },
 
@@ -60,8 +60,8 @@ export default function BottomDock() {
         { href: '/genieacs', icon: Wifi, hoverIcon: Router, label: t('sidebar.genieacs'), roles: ['superadmin'] },
         { href: '/backup', icon: Database, hoverIcon: Save, label: t('sidebar.backup'), roles: ['superadmin'] },
         { href: '/invoice-settings', icon: FileText, hoverIcon: FileCheck, label: t('sidebar.invoiceSettings'), roles: ['superadmin'] },
-        { href: '/notifications', icon: Bell, hoverIcon: Bell, label: t('sidebar.notification'), roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/logs', icon: ClipboardList, hoverIcon: MessageSquare, label: t('sidebar.logs'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/notifications', icon: Bell, hoverIcon: Bell, label: t('sidebar.notification'), roles: ['superadmin', 'admin', 'manager', 'partner', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/logs', icon: ClipboardList, hoverIcon: MessageSquare, label: t('sidebar.logs'), roles: ['admin', 'manager', 'partner', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/app-settings', icon: Settings, hoverIcon: SlidersHorizontal, label: t('sidebar.appSettings'), roles: ['superadmin', 'admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
     ].filter(item => {
         return !item.roles || (userRole && item.roles.includes(userRole));
@@ -69,12 +69,12 @@ export default function BottomDock() {
 
     // Mobile/Launcher Navigation Items (Original Full List)
     const mobileLauncherItems = [
-        { href: '/', icon: Home, label: t('sidebar.dashboard'), roles: ['superadmin', 'admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/', icon: Home, label: t('sidebar.dashboard'), roles: ['superadmin', 'admin', 'manager', 'partner', 'customer', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/billing', icon: CreditCard, label: t('sidebar.billing'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/reports/financial', icon: Activity, label: t('sidebar.reports'), roles: ['admin', 'manager', 'partner', 'staff', 'agent'] },
-        { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/logs', icon: ClipboardList, label: t('sidebar.logs'), roles: ['admin', 'manager', 'partner', 'viewer', 'customer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/offline', icon: WifiOff, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/logs', icon: ClipboardList, label: t('sidebar.logs'), roles: ['admin', 'manager', 'partner', 'customer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/offline', icon: WifiOff, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/profiles', icon: Network, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
         { href: '/olt', icon: FileText, label: 'Script OLT ZTE', roles: ['admin', 'manager', 'staff', 'technician'] },
         { href: '/system-users', icon: UserCog, label: t('sidebar.systemUsers'), roles: ['admin'] },

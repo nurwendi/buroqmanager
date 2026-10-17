@@ -1,11 +1,16 @@
-
 import { NextResponse } from 'next/server';
 import os from 'os';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || !['superadmin', 'admin', 'manager', 'technician'].includes(user.role)) {
+            return unauthorizedResponse();
+        }
+
         const cpus = os.cpus();
         const memoryTotal = os.totalmem();
         const memoryFree = os.freemem();

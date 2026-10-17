@@ -32,9 +32,18 @@ export async function POST(request) {
         }
 
         let updatedCount = 0;
+        const toCreate = [];
+        const toUpdate = [];
+        const seenUsernames = new Set();
+
+        const bcrypt = (await import('bcryptjs')).default;
+        const defaultPasswordHash = await bcrypt.hash('buroq', 10);
 
         for (const user of users) {
             const username = user.name;
+            if (!username || seenUsernames.has(username)) continue;
+            seenUsernames.add(username);
+
             const existing = customerMap.get(username);
 
             if (!existing || !existing.customerId) {
@@ -42,24 +51,40 @@ export async function POST(request) {
                 const newCustomerId = String(maxId);
 
                 if (existing) {
-                    await db.customer.update({
-                        where: { id: existing.id },
-                        data: { customerId: newCustomerId }
-                    });
+                    toUpdate.push({ id: existing.id, customerId: newCustomerId });
                 } else {
-                    await db.customer.create({
-                        data: {
-                            username,
-                            name: username,
-                            customerId: newCustomerId,
-                            agentId: null,
-                            ownerId: ownerId
-                        }
+                    toCreate.push({
+                        username,
+                        name: '',
+                        customerId: newCustomerId,
+                        password: defaultPasswordHash,
+                        agentId: null,
+                        ownerId: ownerId
                     });
                 }
 
                 updatedCount++;
             }
+        }
+
+        const CHUNK_SIZE = 1000;
+        for (let i = 0; i < toCreate.length; i += CHUNK_SIZE) {
+            await db.customer.createMany({
+                data: toCreate.slice(i, i + CHUNK_SIZE),
+                skipDuplicates: true
+            });
+        }
+
+        for (let i = 0; i < toUpdate.length; i += 50) {
+            const chunk = toUpdate.slice(i, i + 50);
+            await Promise.all(
+                chunk.map(item =>
+                    db.customer.update({
+                        where: { id: item.id },
+                        data: { customerId: item.customerId }
+                    })
+                )
+            );
         }
 
         return NextResponse.json({

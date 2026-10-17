@@ -64,8 +64,12 @@ export async function GET(request) {
                 const scanPromise = (async () => {
                     const client = await getMikrotikClient(conn.id);
                     return Promise.all([
-                        client.write('/ppp/active/print'),
-                        client.write('/interface/print')
+                        client.write('/ppp/active/print', [
+                            '.proplist=.id,name,service,caller-id,address,uptime,encoding,session-id'
+                        ]),
+                        client.write('/interface/print', [
+                            '.proplist=name,rx-byte,tx-byte'
+                        ])
                     ]);
                 })();
                 

@@ -2,11 +2,19 @@ import { NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
 import path from "path";
 import db from "@/lib/db";
+import { getUserFromRequest, unauthorizedResponse } from "@/lib/api-auth";
 
 const SETTING_KEY = "app_settings";
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico"]);
 
 export async function POST(request) {
   try {
+    const user = await getUserFromRequest(request);
+    if (!user || (user.role !== "superadmin" && user.role !== "admin")) {
+      return unauthorizedResponse();
+    }
+
     const formData = await request.formData();
     const file = formData.get("file");
     const type = formData.get("type"); // 'logo', 'favicon', or 'background'
@@ -15,7 +23,15 @@ export async function POST(request) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
+    const ext = path.extname(file.name || "").toLowerCase();
+    if (!ALLOWED_EXTENSIONS.has(ext)) {
+      return NextResponse.json({ error: "Invalid image format" }, { status: 400 });
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer());
+    if (buffer.length > MAX_UPLOAD_BYTES) {
+      return NextResponse.json({ error: "File size exceeds 5MB limit" }, { status: 400 });
+    }
 
     // Determine filename and path based on type
     let filename;

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 const SETTING_KEY = 'app_preferences';
 
@@ -45,6 +46,11 @@ export async function GET() {
 
 export async function POST(request) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user || (user.role !== 'superadmin' && user.role !== 'admin')) {
+            return unauthorizedResponse();
+        }
+
         const newPreferences = await request.json();
         const currentPreferences = await getPreferences();
 

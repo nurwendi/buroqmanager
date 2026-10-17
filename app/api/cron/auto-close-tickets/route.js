@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { getUserFromRequest } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
+        const secret = searchParams.get('key') || request.headers.get('x-cron-secret') || request.headers.get('authorization')?.replace('Bearer ', '');
+        const hasValidSecret = Boolean(process.env.CRON_SECRET && secret === process.env.CRON_SECRET);
+        const user = hasValidSecret ? null : await getUserFromRequest(request);
+
+        if (!hasValidSecret && (!user || (user.role !== 'superadmin' && user.role !== 'admin'))) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const daysParam = searchParams.get('days') || '3'; // Default to 3 days
         const days = parseInt(daysParam, 10);
         
@@ -20,7 +29,8 @@ export async function GET(request) {
         const ticketsToClose = await db.ticket.findMany({
             where: {
                 status: { in: ['open', 'in_progress'] },
-                updatedAt: { lt: cutoffDate }
+                updatedAt: { lt: cutoffDate },
+                ...(user && user.role === 'admin' ? { ownerId: user.id } : {})
             },
             include: {
                 messages: {

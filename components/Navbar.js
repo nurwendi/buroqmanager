@@ -104,9 +104,9 @@ export default function Navbar() {
     ].filter(item => !item.roles || (userRole && item.roles.includes(userRole)));
 
     const pppoeItems = [
-        { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/active', icon: Activity, label: t('sidebar.activeConnections'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
-        { href: '/offline', icon: WifiOff, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'viewer', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/users', icon: Users, label: t('sidebar.users'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/active', icon: Activity, label: t('sidebar.activeConnections'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
+        { href: '/offline', icon: WifiOff, label: t('sidebar.offline'), roles: ['admin', 'manager', 'partner', 'staff', 'editor', 'agent', 'technician'] },
         { href: '/profiles', icon: Settings, label: t('sidebar.profiles'), roles: ['admin', 'manager'] },
         { href: '/drop-users', icon: ShieldAlert, label: t('sidebar.dropIsolir'), roles: ['admin', 'manager'] },
         { href: '/olt', icon: FileText, label: 'Script OLT ZTE', roles: ['admin', 'manager', 'staff', 'technician'] },

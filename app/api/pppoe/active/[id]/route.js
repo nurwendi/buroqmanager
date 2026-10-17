@@ -7,6 +7,9 @@ export async function DELETE(request, { params }) {
     try {
         const user = await getUserFromRequest(request);
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (user.role === 'customer') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
 
         const { id } = await params;
 
@@ -15,13 +18,23 @@ export async function DELETE(request, { params }) {
         }
 
         const config = await getConfig();
+        const effectiveOwnerId = user.role === 'admin' ? user.id : user.ownerId;
         let connectionId = getUserConnectionId(user, config);
         let targetId = id;
 
         if (id && id.includes('_')) {
             const parts = id.split('_');
-            connectionId = parts[0];
+            const requestedConnId = parts[0];
             targetId = parts.slice(1).join('_');
+            if (user.role === 'superadmin') {
+                connectionId = requestedConnId;
+            } else {
+                const conn = config.connections?.find(c => c.id === requestedConnId && c.ownerId === effectiveOwnerId);
+                if (!conn) {
+                    return NextResponse.json({ error: 'Forbidden: Router access denied' }, { status: 403 });
+                }
+                connectionId = conn.id;
+            }
         }
 
         const client = await getMikrotikClient(connectionId);

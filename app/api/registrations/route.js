@@ -18,9 +18,15 @@ export async function GET(request) {
             else if (user.role !== 'admin') where.ownerId = 'nothing';
 
             // Restrict Staff/Agent to only their own registrations
-            // Editor is EXEMPT from this (can see all pending to approve)
-            if (['staff', 'agent', 'technician'].includes(user.role)) {
+            // Technicians can also see activation requests assigned to them or unassigned in their tenant
+            if (['staff', 'agent'].includes(user.role) && !user.isTechnician) {
                 where.agentId = user.id;
+            } else if (user.role === 'technician' || user.isTechnician) {
+                where.OR = [
+                    { agentId: user.id },
+                    { technicianId: user.id },
+                    { type: 'activation' }
+                ];
             }
         }
 
@@ -153,11 +159,6 @@ export async function POST(request) {
         }
 
         // --- APPROVE / REJECT ---
-        // Only admin, superadmin, or manager can approve/reject registrations
-        if (!['admin', 'superadmin', 'manager'].includes(user.role)) {
-            return NextResponse.json({ error: "Only admins can approve or reject registrations" }, { status: 403 });
-        }
-
         // 'username' here matches the 'username' field in Registration model (which is the Key)
         if (!username || !action) {
             return NextResponse.json({ error: "Request ID (username) and action are required" }, { status: 400 });
@@ -175,6 +176,19 @@ export async function POST(request) {
             return NextResponse.json({ error: "Request not found or not pending" }, { status: 404 });
         }
 
+        const isAdminOrEditor = ['admin', 'superadmin', 'manager', 'editor'].includes(user.role);
+        const isAssignedStaffApprovingActivation =
+            registration.type === 'activation' &&
+            (
+                registration.technicianId === user.id ||
+                registration.agentId === user.id ||
+                ((user.role === 'technician' || user.isTechnician || user.isAgent || user.role === 'staff') && !registration.technicianId && !registration.agentId)
+            );
+
+        if (!isAdminOrEditor && !isAssignedStaffApprovingActivation) {
+            return NextResponse.json({ error: "Forbidden: Anda tidak memiliki izin untuk mengonfirmasi permintaan ini" }, { status: 403 });
+        }
+
         if (action === 'reject') {
             await db.registration.update({
                 where: { id: registration.id },
@@ -184,17 +198,19 @@ export async function POST(request) {
             await db.registration.delete({ where: { id: registration.id } });
 
             // Notify Agent
-            try {
-                const { sendNotification } = await import('@/lib/notifications-db');
-                await sendNotification({
-                    title: 'Pendaftaran Ditolak',
-                    message: `Permintaan ${registration.type} untuk ${registration.name || registration.username} telah ditolak.`,
-                    type: 'error',
-                    ownerId: registration.ownerId,
-                    recipients: [{ userId: registration.agentId }]
-                });
-            } catch (notifError) {
-                console.error('Failed to send rejection notification:', notifError);
+            if (registration.agentId) {
+                try {
+                    const { sendNotification } = await import('@/lib/notifications-db');
+                    await sendNotification({
+                        title: 'Permintaan Ditolak',
+                        message: `Permintaan ${registration.type} untuk ${registration.name || registration.username} telah ditolak.`,
+                        type: 'error',
+                        ownerId: registration.ownerId,
+                        recipients: [{ userId: registration.agentId }]
+                    });
+                } catch (notifError) {
+                    console.error('Failed to send rejection notification:', notifError);
+                }
             }
 
             return NextResponse.json({ success: true, message: "Request rejected" });
@@ -241,7 +257,9 @@ export async function POST(request) {
                 if (!finalData.password) {
                     return NextResponse.json({ error: "Password is required" }, { status: 400 });
                 }
-                const passwordHash = require('bcryptjs').hashSync(finalData.password, 10);
+                const bcrypt = (await import('bcryptjs')).default;
+                // Default customer portal password is 'buroq' (must be changed on first login)
+                const defaultCustomerPasswordHash = await bcrypt.hash('buroq', 10);
 
                 let newCustomer;
                 try {
@@ -251,7 +269,7 @@ export async function POST(request) {
                             data: {
                                 username: finalData.username,
                                 customerId: generatedId,
-                                password: passwordHash, // Save hashed password to Customer table
+                                password: defaultCustomerPasswordHash, // Default portal password 'buroq'
                                 name: finalData.name || '',
                                 phone: finalData.phone || '',
                                 identityNumber: finalData.identityNumber || null,
@@ -341,6 +359,7 @@ export async function POST(request) {
 
                 await db.registration.update({ where: { id: registration.id }, data: { status: 'approved' } });
                 await db.registration.delete({ where: { id: registration.id } });
+                globalThis._routerCache?.clear();
 
                 // Notify Agent & Customer
                 try {
@@ -487,7 +506,85 @@ export async function POST(request) {
                 }
 
                 await db.registration.delete({ where: { id: registration.id } });
+                globalThis._routerCache?.clear();
                 return NextResponse.json({ success: true, message: "Edit request approved and executed" });
+
+            } else if (requestType === 'activation') {
+                const targetUsername = registration.targetUsername;
+                let newValues = registration.newValues ? JSON.parse(registration.newValues) : {};
+
+                if (updatedData) {
+                    newValues = { ...newValues, ...updatedData };
+                }
+
+                const existingCustomer = await db.customer.findFirst({
+                    where: {
+                        username: targetUsername,
+                        ...(registration.ownerId ? { ownerId: registration.ownerId } : {})
+                    }
+                });
+
+                if (!existingCustomer) {
+                    return NextResponse.json({ error: "Data pelanggan tidak ditemukan" }, { status: 404 });
+                }
+
+                // Resolve single unified Staff ID (Sales & Teknisi combined)
+                const unifiedStaffId =
+                    newValues.technicianId ||
+                    newValues.agentId ||
+                    registration.technicianId ||
+                    registration.agentId ||
+                    existingCustomer.technicianId ||
+                    existingCustomer.agentId ||
+                    (['staff', 'technician', 'agent'].includes(user.role) || user.isTechnician || user.isAgent ? user.id : null);
+
+                if (!unifiedStaffId) {
+                    return NextResponse.json({
+                        error: "Petugas (Sales / Teknisi) penanggung jawab wajib dipilih dan tidak boleh kosong sebelum menyetujui aktivasi."
+                    }, { status: 400 });
+                }
+
+                let finalPasswordHash = newValues.customerPasswordHash || existingCustomer.password;
+                if (updatedData?.newPassword && updatedData.newPassword.trim() !== '') {
+                    const bcrypt = (await import('bcryptjs')).default;
+                    finalPasswordHash = await bcrypt.hash(updatedData.newPassword.trim(), 10);
+                }
+
+                const updatedCustomer = await db.customer.update({
+                    where: { id: existingCustomer.id },
+                    data: {
+                        name: newValues.name ?? existingCustomer.name,
+                        email: newValues.email ?? existingCustomer.email,
+                        phone: newValues.phone ?? existingCustomer.phone,
+                        identityNumber: newValues.identityNumber !== undefined ? newValues.identityNumber : existingCustomer.identityNumber,
+                        address: newValues.address ?? existingCustomer.address,
+                        coordinates: newValues.coordinates ?? existingCustomer.coordinates,
+                        comment: newValues.comment ?? existingCustomer.comment,
+                        agentId: unifiedStaffId,
+                        technicianId: unifiedStaffId,
+                        password: finalPasswordHash
+                    }
+                });
+
+                await db.registration.delete({ where: { id: registration.id } });
+
+                try {
+                    const { sendNotification } = await import('@/lib/notifications-db');
+                    await sendNotification({
+                        title: 'Akun Anda Telah Aktif!',
+                        message: `Identitas akun Anda (${updatedCustomer.customerId}) telah dikonfirmasi oleh petugas. Anda kini dapat masuk menggunakan Nomor Pelanggan atau Email beserta password baru Anda.`,
+                        type: 'success',
+                        ownerId: registration.ownerId,
+                        recipients: [{ customerId: updatedCustomer.id }]
+                    });
+                } catch (notifErr) {
+                    console.error('[RegApprove Activation] Notification error:', notifErr.message);
+                }
+
+                return NextResponse.json({
+                    success: true,
+                    message: "Aktivasi identitas pelanggan berhasil dikonfirmasi"
+                });
 
             } else if (requestType === 'delete') {
                 const targetUsername = registration.targetUsername;
@@ -586,6 +683,7 @@ export async function POST(request) {
                         await tx.registration.delete({ where: { id: registration.id } });
                     });
 
+                    globalThis._routerCache?.clear();
                     console.log(`[RegApprove] Successfully deleted customer: ${targetUsername}`);
                     return NextResponse.json({ success: true, message: "Permintaan hapus disetujui dan data pelanggan telah dibersihkan" });
                 } catch (dbErr) {

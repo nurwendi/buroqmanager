@@ -4,6 +4,45 @@ import { getUserFromRequest } from '@/lib/api-auth';
 import db from '@/lib/db';
 import os from 'os';
 
+let lastCpuSnapshot = os.cpus();
+let lastCpuCalc = { serverCpuLoad: 0, serverCpus: lastCpuSnapshot.map(() => 0), timestamp: Date.now() };
+
+function getServerCpuMetrics() {
+    const now = Date.now();
+    const currentCpus = os.cpus();
+    // Only recalculate if at least 250ms has elapsed since last snapshot
+    if (now - lastCpuCalc.timestamp < 250 && lastCpuCalc.serverCpus.length === currentCpus.length) {
+        return lastCpuCalc;
+    }
+
+    let totalIdle = 0, totalTick = 0;
+    const serverCpus = [];
+    for (let i = 0; i < currentCpus.length; i++) {
+        const cpu1 = lastCpuSnapshot[i] || currentCpus[i];
+        const cpu2 = currentCpus[i];
+
+        const idle = cpu2.times.idle - cpu1.times.idle;
+        let tick = 0;
+        for (const type in cpu1.times) {
+            tick += cpu2.times[type] - cpu1.times[type];
+        }
+
+        const coreLoad = tick > 0 ? Math.round(((tick - idle) / tick) * 100) : (lastCpuCalc.serverCpus[i] || 0);
+        serverCpus.push(coreLoad);
+
+        totalIdle += idle;
+        totalTick += tick;
+    }
+
+    const serverCpuLoad = totalTick > 0
+        ? Math.round(((totalTick - totalIdle) / totalTick) * 100)
+        : lastCpuCalc.serverCpuLoad;
+
+    lastCpuSnapshot = currentCpus;
+    lastCpuCalc = { serverCpuLoad, serverCpus, timestamp: now };
+    return lastCpuCalc;
+}
+
 export async function GET(request) {
     try {
         const currentUser = await getUserFromRequest(request);
@@ -11,8 +50,8 @@ export async function GET(request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const config = await (await import('@/lib/config')).getConfig();
-        const { getUserConnectionId } = await import('@/lib/config');
+        const { getConfig, getUserConnectionId } = await import('@/lib/config');
+        const config = await getConfig();
         const connectionId = getUserConnectionId(currentUser, config);
 
         // Fallback: If no connection ID for staff/user, try owner's connection
@@ -27,30 +66,8 @@ export async function GET(request) {
             effectiveConnectionId = config.connections[0].id;
         }
 
-        // Calculate Server CPU Load (Delta over 200ms)
-        const startCpus = os.cpus();
-        await new Promise(resolve => setTimeout(resolve, 200));
-        const endCpus = os.cpus();
-
-        let totalIdle = 0, totalTick = 0;
-        const serverCpus = [];
-        for (let i = 0; i < startCpus.length; i++) {
-            const cpu1 = startCpus[i];
-            const cpu2 = endCpus[i];
-
-            const idle = cpu2.times.idle - cpu1.times.idle;
-            let tick = 0;
-            for (let type in cpu1.times) {
-                tick += cpu2.times[type] - cpu1.times[type];
-            }
-            
-            const coreLoad = tick > 0 ? Math.round(((tick - idle) / tick) * 100) : 0;
-            serverCpus.push(coreLoad);
-            
-            totalIdle += idle;
-            totalTick += tick;
-        }
-        const serverCpuLoad = totalTick > 0 ? Math.round(((totalTick - totalIdle) / totalTick) * 100) : 0;
+        // Calculate Server CPU Load instantly using non-blocking delta snapshot
+        const { serverCpuLoad, serverCpus } = getServerCpuMetrics();
         const serverMemoryTotal = os.totalmem();
         const serverMemoryFree = os.freemem();
         const serverMemoryUsed = serverMemoryTotal - serverMemoryFree;

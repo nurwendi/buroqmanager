@@ -11,7 +11,7 @@ model User {
   id                     String                  @id @default(cuid())
   username               String                  @unique
   passwordHash           String
-  role                   String                  @default("viewer")
+  role                   String                  @default("staff")
   isTechnician           Boolean                 @default(false)
   isAgent                Boolean                 @default(false)
   agentRate              Float                   @default(0)
@@ -155,6 +155,7 @@ model Log {
   @@index([ownerId, createdAt])
   @@index([username])
   @@index([createdAt])
+  @@index([mikrotikId])
 }
 
 model Registration {
@@ -359,8 +360,8 @@ model NotificationRecipient {
   notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
   user           User?        @relation("NotificationUserRecipient", fields: [userId], references: [id])
 
-  @@index([userId])
-  @@index([customerId])
+  @@index([userId, isRead])
+  @@index([customerId, isRead])
   @@index([notificationId])
 }
 
@@ -386,6 +387,7 @@ model Ticket {
   @@index([customerId])
   @@index([technicianId])
   @@index([status])
+  @@index([ownerId, status, updatedAt])
 }
 
 model TicketMessage {

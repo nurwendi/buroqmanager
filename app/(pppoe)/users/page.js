@@ -458,20 +458,23 @@ export default function UsersPage() {
     const handleReview = (reg) => {
         setSelectedRegistration(reg);
 
-        if (reg.type === 'edit') {
+        if (reg.type === 'edit' || reg.type === 'activation') {
             const values = typeof reg.newValues === 'string' ? JSON.parse(reg.newValues) : (reg.newValues || {});
+            const unifiedStaffId = values.technicianId || values.agentId || reg.technicianId || reg.agentId || (reg.type === 'activation' && (currentUser?.isTechnician || currentUser?.isAgent) ? currentUser.id : '');
             setReviewFormData({
-                username: values.username || '',
+                username: values.username || reg.targetUsername || '',
                 password: values.password || '',
                 profile: values.profile || '',
                 service: values.service || 'pppoe',
-                name: values.name || '',
-                address: values.address || '',
-                phone: values.phone || '',
-                agentId: values.agentId || '',
-                technicianId: values.technicianId || '',
-                coordinates: values.coordinates || '',
-                comment: values.comment || ''
+                name: values.name || reg.name || '',
+                email: values.email || '',
+                identityNumber: values.identityNumber || reg.identityNumber || '',
+                address: values.address || reg.address || '',
+                phone: values.phone || reg.phone || '',
+                agentId: reg.type === 'activation' ? unifiedStaffId : (values.agentId || reg.agentId || ''),
+                technicianId: reg.type === 'activation' ? unifiedStaffId : (values.technicianId || reg.technicianId || ''),
+                coordinates: values.coordinates || reg.coordinates || '',
+                comment: values.comment || reg.comment || ''
             });
         } else if (reg.type === 'delete') {
             setReviewFormData({});
@@ -496,6 +499,13 @@ export default function UsersPage() {
     };
 
     const handleRegistrationAction = async (username, action) => {
+        if (action === 'approve' && selectedRegistration?.type === 'activation') {
+            const unifiedStaffId = reviewFormData.technicianId || reviewFormData.agentId;
+            if (!unifiedStaffId) {
+                alert('Peringatan: Petugas (Sales / Teknisi) wajib dipilih sebelum menyetujui aktivasi pelanggan!');
+                return;
+            }
+        }
         if (!confirm(`Are you sure you want to ${action} this registration?`)) return;
 
         try {
@@ -656,14 +666,15 @@ export default function UsersPage() {
         if (!formData.profile || formData.profile === '' || formData.profile === 'default') missingFields.push(t('users.profile'));
         if (!formData.customerName) missingFields.push(t('users.fullName'));
         if (!formData.customerAddress) missingFields.push(t('users.address'));
-        // Determine effective Agent/Tech IDs based on role
-        const effectiveAgentId = userRole === 'agent' ? currentUserId : formData.agentId;
-        const effectiveTechnicianId = userRole === 'technician' ? currentUserId : formData.technicianId;
+        // Determine effective Unified Staff ID (Sales / Technician)
+        const selectedStaffId = formData.technicianId || formData.agentId || (['staff', 'agent', 'technician'].includes(userRole) ? currentUserId : '');
+        const effectiveAgentId = selectedStaffId;
+        const effectiveTechnicianId = selectedStaffId;
 
         if (missingFields.length === 0) {
-            // Check specific role-based requirements
-            if (!effectiveAgentId && ['superadmin', 'admin', 'manager', 'agent'].includes(userRole)) missingFields.push(t('users.agent'));
-            if (!effectiveTechnicianId && ['superadmin', 'admin', 'manager', 'technician'].includes(userRole)) missingFields.push(t('users.technician'));
+            if (!selectedStaffId && ['superadmin', 'admin', 'manager', 'staff', 'agent', 'technician'].includes(userRole)) {
+                missingFields.push('Petugas Penanggung Jawab (Sales / Teknisi)');
+            }
         }
 
         if (missingFields.length > 0) {
@@ -837,8 +848,6 @@ export default function UsersPage() {
                 handleCloseModal();
                 fetchUsers();
                 fetchCustomersData();
-                fetchUsers();
-                fetchCustomersData();
             } else {
                 const data = await res.json();
                 alert(t('messages.failedToSaveUser') + ': ' + (data.error || t('messages.unknownError')));
@@ -1007,21 +1016,29 @@ export default function UsersPage() {
         return customersDataLowerCase[username.toLowerCase()]?.name || username;
     };
 
+    const systemUsersMap = useMemo(() => new Map((systemUsers || []).map(u => [u.id, u])), [systemUsers]);
     const getPartnerName = (username) => {
         const customer = customersDataLowerCase[username.toLowerCase()];
         if (!customer) return '-';
 
         const agentId = customer.agentId;
         const technicianId = customer.technicianId;
-        const parts = [];
 
+        if (agentId && technicianId && agentId === technicianId) {
+            const staff = systemUsersMap.get(agentId);
+            if (staff) {
+                return `${staff.agentNumber ? `[${staff.agentNumber}] ` : ''}${staff.fullName || staff.username}`;
+            }
+        }
+
+        const parts = [];
         if (agentId) {
-            const agent = systemUsers.find(u => u.id === agentId);
-            if (agent) parts.push(`${t('pppoe.agentLabel')}: ${agent.fullName || agent.username}`);
+            const agent = systemUsersMap.get(agentId);
+            if (agent) parts.push(`${t('pppoe.agentLabel')}: ${agent.agentNumber ? `[${agent.agentNumber}] ` : ''}${agent.fullName || agent.username}`);
         }
         if (technicianId) {
-            const tech = systemUsers.find(u => u.id === technicianId);
-            if (tech) parts.push(`${t('pppoe.techLabel')}: ${tech.fullName || tech.username}`);
+            const tech = systemUsersMap.get(technicianId);
+            if (tech) parts.push(`${t('pppoe.techLabel')}: ${tech.agentNumber ? `[${tech.agentNumber}] ` : ''}${tech.fullName || tech.username}`);
         }
 
         return parts.length > 0 ? parts.join(', ') : '-';
@@ -1096,8 +1113,8 @@ export default function UsersPage() {
 
     // Compute accurate online count for local users (exclude RADIUS/other router sessions not in our list)
     const onlineUsersCount = useMemo(() => {
-        return users.filter(user => activeConnections.some(c => c.name === user.name)).length;
-    }, [users, activeConnections]);
+        return users.filter(user => activeConnectionsMap.has(user.name) || user._active).length;
+    }, [users, activeConnectionsMap]);
 
     return (
         <div className="space-y-6">
@@ -1143,23 +1160,26 @@ export default function UsersPage() {
                 </button>
             </div>
 
-            {/* Pending Registrations (Admin & Staff) */}
-            {((userRole === 'admin' || userRole === 'editor' || userRole === 'staff') && pendingRegistrations.length > 0) && (
+            {/* Pending Registrations (Admin, Editor, Staff, Technician) */}
+            {((['superadmin', 'admin', 'manager', 'editor', 'staff', 'technician'].includes(userRole) || currentUser?.isTechnician) && pendingRegistrations.length > 0) && (
                 <div className="bg-yellow-50/30 dark:bg-yellow-900/30 backdrop-blur-xl border border-yellow-200/50 dark:border-yellow-800/50 rounded-xl p-4 md:p-6 shadow-lg">
                     <h2 className="text-lg md:text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-4 flex items-center gap-2">
                         <Clock className="text-yellow-600 dark:text-yellow-400" size={20} /> {t('pppoe.pendingRegistrations')}
                         <span className="ml-1 px-2 py-0.5 bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 rounded-full text-sm font-semibold">
-                            {pendingRegistrations.filter(reg => userRole === 'admin' || userRole === 'editor' || (userRole === 'staff' && reg.agentId === currentUserId)).length}
+                            {pendingRegistrations.filter(reg => ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || (userRole === 'technician' || currentUser?.isTechnician ? (reg.type === 'activation' || reg.technicianId === currentUserId || reg.agentId === currentUserId) : reg.agentId === currentUserId)).length}
                         </span>
                     </h2>
 
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-3">
                         {pendingRegistrations
-                            .filter(reg => userRole === 'admin' || userRole === 'editor' || (userRole === 'staff' && reg.agentId === currentUserId))
+                            .filter(reg => ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || (userRole === 'technician' || currentUser?.isTechnician ? (reg.type === 'activation' || reg.technicianId === currentUserId || reg.agentId === currentUserId) : reg.agentId === currentUserId))
                             .map((reg) => {
                                 const agent = systemUsers.find(u => u.id === reg.agentId);
-                                const typeBadge = reg.type === 'edit'
+                                const canReviewReg = ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || ((userRole === 'technician' || currentUser?.isTechnician) && reg.type === 'activation');
+                                const typeBadge = reg.type === 'activation'
+                                    ? { label: 'Aktivasi Identitas', cls: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' }
+                                    : reg.type === 'edit'
                                     ? { label: t('common.edit'), cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' }
                                     : reg.type === 'delete'
                                     ? { label: t('common.delete'), cls: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300' }
@@ -1175,12 +1195,12 @@ export default function UsersPage() {
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 text-xs mb-3">
                                             <div>
-                                                <div className="text-gray-400 mb-0.5">{t('users.profile')}</div>
-                                                <div className="font-medium text-gray-700 dark:text-gray-200">{reg.registrationData?.profile || '-'}</div>
+                                                <div className="text-gray-400 mb-0.5">{t('users.phone')}</div>
+                                                <div className="font-medium text-gray-700 dark:text-gray-200">{reg.phone || reg.registrationData?.profile || '-'}</div>
                                             </div>
                                             <div>
-                                                <div className="text-gray-400 mb-0.5">{t('users.service')}</div>
-                                                <div className="font-medium text-gray-700 dark:text-gray-200">{reg.registrationData?.service || '-'}</div>
+                                                <div className="text-gray-400 mb-0.5">{t('users.address')}</div>
+                                                <div className="font-medium text-gray-700 dark:text-gray-200 truncate">{reg.address || reg.registrationData?.service || '-'}</div>
                                             </div>
                                             <div>
                                                 <div className="text-gray-400 mb-0.5">{t('users.agent')}</div>
@@ -1191,7 +1211,7 @@ export default function UsersPage() {
                                                 <div className="font-medium text-yellow-600 dark:text-yellow-400">{t('pppoe.pendingReview')}</div>
                                             </div>
                                         </div>
-                                        {(userRole === 'admin' || userRole === 'editor') && (
+                                        {canReviewReg && (
                                             <button
                                                 onClick={() => handleReview(reg)}
                                                 className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
@@ -1213,46 +1233,51 @@ export default function UsersPage() {
                                     <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.type')}</th>
                                     <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.fullName')}</th>
                                     <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.agent')}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.profile')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.phone')} / {t('users.profile')}</th>
                                     <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.status')}</th>
-                                    {(userRole === 'admin' || userRole === 'editor') && (
+                                    {(['superadmin', 'admin', 'manager', 'editor', 'technician'].includes(userRole) || currentUser?.isTechnician) && (
                                         <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.actions')}</th>
                                     )}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                 {pendingRegistrations
-                                    .filter(reg => userRole === 'admin' || userRole === 'editor' || (userRole === 'staff' && reg.agentId === currentUserId))
-                                    .map((reg) => (
-                                        <tr key={reg.username} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">{reg.targetUsername || reg.username}</td>
-                                            <td className="px-5 py-3.5 whitespace-nowrap">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${reg.type === 'delete' ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300' : reg.type === 'edit' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'}`}>
-                                                    {reg.type === 'edit' ? t('common.edit') : reg.type === 'delete' ? t('common.delete') : t('pppoe.register')}
-                                                </span>
-                                            </td>
-                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{reg.name || '-'}</td>
-                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                                                {(() => { const a = systemUsers.find(u => u.id === reg.agentId); return a ? (a.fullName || a.username) : '-'; })()}
-                                            </td>
-                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                                                {reg.registrationData?.profile} / {reg.registrationData?.service}
-                                            </td>
-                                            <td className="px-5 py-3.5 whitespace-nowrap text-sm text-yellow-600 dark:text-yellow-400 font-medium">
-                                                {t('pppoe.pendingReview')}
-                                            </td>
-                                            {(userRole === 'admin' || userRole === 'editor') && (
-                                                <td className="px-5 py-3.5 whitespace-nowrap text-sm font-medium">
-                                                    <button
-                                                        onClick={() => handleReview(reg)}
-                                                        className="flex items-center gap-1.5 px-3 py-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors text-xs font-semibold"
-                                                    >
-                                                        <Edit2 size={14} /> {t('common.review')}
-                                                    </button>
+                                    .filter(reg => ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || (userRole === 'technician' || currentUser?.isTechnician ? (reg.type === 'activation' || reg.technicianId === currentUserId || reg.agentId === currentUserId) : reg.agentId === currentUserId))
+                                    .map((reg) => {
+                                        const canReviewReg = ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || ((userRole === 'technician' || currentUser?.isTechnician) && reg.type === 'activation');
+                                        return (
+                                            <tr key={reg.username} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                                                <td className="px-5 py-3.5 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">{reg.targetUsername || reg.username}</td>
+                                                <td className="px-5 py-3.5 whitespace-nowrap">
+                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${reg.type === 'activation' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300' : reg.type === 'delete' ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300' : reg.type === 'edit' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300'}`}>
+                                                        {reg.type === 'activation' ? 'Aktivasi Identitas' : reg.type === 'edit' ? t('common.edit') : reg.type === 'delete' ? t('common.delete') : t('pppoe.register')}
+                                                    </span>
                                                 </td>
-                                            )}
-                                        </tr>
-                                    ))}
+                                                <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{reg.name || '-'}</td>
+                                                <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                                    {(() => { const a = systemUsers.find(u => u.id === reg.agentId); return a ? (a.fullName || a.username) : '-'; })()}
+                                                </td>
+                                                <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                                                    {reg.type === 'activation' ? (reg.phone || '-') : `${reg.registrationData?.profile || '-'} / ${reg.registrationData?.service || '-'}`}
+                                                </td>
+                                                <td className="px-5 py-3.5 whitespace-nowrap text-sm text-yellow-600 dark:text-yellow-400 font-medium">
+                                                    {t('pppoe.pendingReview')}
+                                                </td>
+                                                {(['superadmin', 'admin', 'manager', 'editor', 'technician'].includes(userRole) || currentUser?.isTechnician) && (
+                                                    <td className="px-5 py-3.5 whitespace-nowrap text-sm font-medium">
+                                                        {canReviewReg && (
+                                                            <button
+                                                                onClick={() => handleReview(reg)}
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors text-xs font-semibold"
+                                                            >
+                                                                <Edit2 size={14} /> {t('common.review')}
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        );
+                                    })}
                             </tbody>
                         </table>
                     </div>
@@ -2105,37 +2130,29 @@ export default function UsersPage() {
                                     </div>
                                 </div>
 
-                                {/* Agent and Technician Selection - Restricted to Admin/Manager */}
+                                {/* Unified Staff (Sales / Technician) Selection - Restricted to Admin/Manager */}
                                 {['superadmin', 'admin', 'manager'].includes(userRole) && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.agent')} <span className="text-red-500">*</span></label>
-                                            <select
-                                                required
-                                                value={formData.agentId}
-                                                onChange={(e) => setFormData({ ...formData, agentId: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                            >
-                                                <option value="">{t('users.selectAgent')}</option>
-                                                {systemUsers.filter(u => u.isAgent).map(user => (
-                                                    <option key={user.id} value={user.id}>{user.username}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('users.technician')} <span className="text-red-500">*</span></label>
-                                            <select
-                                                required
-                                                value={formData.technicianId}
-                                                onChange={(e) => setFormData({ ...formData, technicianId: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                            >
-                                                <option value="">{t('users.selectTechnician')}</option>
-                                                {systemUsers.filter(u => u.isTechnician).map(user => (
-                                                    <option key={user.id} value={user.id}>{user.username}</option>
-                                                ))}
-                                            </select>
-                                        </div>
+                                    <div className="mt-4">
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            Petugas Penanggung Jawab (Sales / Teknisi) <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            required
+                                            value={formData.technicianId || formData.agentId || ''}
+                                            onChange={(e) => setFormData({
+                                                ...formData,
+                                                agentId: e.target.value,
+                                                technicianId: e.target.value
+                                            })}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                        >
+                                            <option value="">-- Pilih Petugas (Sales / Teknisi) --</option>
+                                            {systemUsers.filter(u => u.isTechnician || u.isAgent || ['staff', 'editor', 'manager'].includes(u.role)).map(user => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.agentNumber ? `[${user.agentNumber}] ` : ''}{user.fullName || user.username}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                 )}
 
@@ -2177,6 +2194,7 @@ export default function UsersPage() {
                             <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white flex items-center gap-2">
                                 <Shield size={24} className="text-blue-600" />
                                 {selectedRegistration.type === 'delete' ? t('pppoe.reviewDelete') :
+                                    selectedRegistration.type === 'activation' ? 'Konfirmasi Aktivasi & Identitas Pelanggan' :
                                     selectedRegistration.type === 'edit' ? t('pppoe.reviewEdit') :
                                         t('pppoe.reviewRegistration')}
                             </h2>
@@ -2217,111 +2235,113 @@ export default function UsersPage() {
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    {/* PPPoE Details */}
-                                    <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                                        <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('pppoe.pppoeAccount')}</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.username')}</label>
-                                                <input
-                                                    type="text"
-                                                    value={reviewFormData.username}
-                                                    onChange={(e) => setReviewFormData({ ...reviewFormData, username: e.target.value })}
-                                                    className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.password')}</label>
-                                                <input
-                                                    type="text"
-                                                    value={reviewFormData.password}
-                                                    onChange={(e) => setReviewFormData({ ...reviewFormData, password: e.target.value })}
-                                                    className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.profile')}</label>
-                                                <div className="relative" ref={reviewProfileDropdownRef}>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowReviewProfileDropdown(!showReviewProfileDropdown)}
-                                                        className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white flex items-center justify-between min-h-[30px]"
-                                                    >
-                                                        <span className={!reviewFormData.profile ? "text-gray-400 dark:text-gray-500" : ""}>
-                                                            {reviewFormData.profile || t('users.selectProfile')}
-                                                        </span>
-                                                        <ChevronDown size={14} className={`transition-transform duration-200 ${showReviewProfileDropdown ? 'rotate-180' : ''}`} />
-                                                    </button>
-                                                    <AnimatePresence>
-                                                        {showReviewProfileDropdown && (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, y: -10 }}
-                                                                animate={{ opacity: 1, y: 0 }}
-                                                                exit={{ opacity: 0, y: -10 }}
-                                                                className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-xl max-h-48 overflow-y-auto"
-                                                            >
-                                                                {profiles.map(p => {
-                                                                    const price = p.comment?.toLowerCase().includes('price:') 
-                                                                        ? p.comment.split('price:')[1].split(',')[0].trim() 
-                                                                        : 0;
-                                                                    return (
-                                                                        <button
-                                                                            key={p.name}
-                                                                            type="button"
-                                                                            onClick={() => {
-                                                                                setReviewFormData({ ...reviewFormData, profile: p.name });
-                                                                                setShowReviewProfileDropdown(false);
-                                                                            }}
-                                                                            className={`w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-between items-center ${reviewFormData.profile === p.name ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}
-                                                                        >
-                                                                            <span className="truncate mr-2">{p.name}</span>
-                                                                            {price > 0 && <span className="text-[10px] opacity-70 whitespace-nowrap">{formatCurrency(price)}</span>}
-                                                                        </button>
-                                                                    );
-                                                                })}
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
+                                    {/* PPPoE Details (Hidden for Customer Self-Activation) */}
+                                    {selectedRegistration.type !== 'activation' && (
+                                        <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                                            <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('pppoe.pppoeAccount')}</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.username')}</label>
+                                                    <input
+                                                        type="text"
+                                                        value={reviewFormData.username}
+                                                        onChange={(e) => setReviewFormData({ ...reviewFormData, username: e.target.value })}
+                                                        className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
+                                                    />
                                                 </div>
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.service')}</label>
-                                                <select
-                                                    value={reviewFormData.service}
-                                                    onChange={(e) => setReviewFormData({ ...reviewFormData, service: e.target.value })}
-                                                    className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
-                                                >
-                                                    <option value="pppoe">pppoe</option>
-                                                    <option value="hotspot">hotspot</option>
-                                                </select>
-                                            </div>
-                                            <div className="md:col-span-2 mt-2 pt-2 border-t dark:border-gray-600">
-                                                <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">{t('users.targetRouters')}</label>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
-                                                    {connections.map(conn => (
-                                                        <label key={conn.id} className="flex items-center space-x-2 p-2 border dark:border-gray-600 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={(reviewFormData.routerIds || []).includes(conn.id)}
-                                                                onChange={(e) => {
-                                                                    const current = reviewFormData.routerIds || [];
-                                                                    const newIds = e.target.checked
-                                                                        ? [...current, conn.id]
-                                                                        : current.filter(id => id !== conn.id);
-                                                                    setReviewFormData({ ...reviewFormData, routerIds: newIds });
-                                                                }}
-                                                                className="rounded text-blue-600 focus:ring-blue-500"
-                                                            />
-                                                            <div>
-                                                                <div className="text-xs font-bold text-gray-700 dark:text-gray-300">{conn.name}</div>
-                                                                <div className="text-[10px] text-gray-500">{conn.host}</div>
-                                                            </div>
-                                                        </label>
-                                                    ))}
+                                                <div>
+                                                    <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.password')}</label>
+                                                    <input
+                                                        type="text"
+                                                        value={reviewFormData.password}
+                                                        onChange={(e) => setReviewFormData({ ...reviewFormData, password: e.target.value })}
+                                                        className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.profile')}</label>
+                                                    <div className="relative" ref={reviewProfileDropdownRef}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowReviewProfileDropdown(!showReviewProfileDropdown)}
+                                                            className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white flex items-center justify-between min-h-[30px]"
+                                                        >
+                                                            <span className={!reviewFormData.profile ? "text-gray-400 dark:text-gray-500" : ""}>
+                                                                {reviewFormData.profile || t('users.selectProfile')}
+                                                            </span>
+                                                            <ChevronDown size={14} className={`transition-transform duration-200 ${showReviewProfileDropdown ? 'rotate-180' : ''}`} />
+                                                        </button>
+                                                        <AnimatePresence>
+                                                            {showReviewProfileDropdown && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, y: -10 }}
+                                                                    animate={{ opacity: 1, y: 0 }}
+                                                                    exit={{ opacity: 0, y: -10 }}
+                                                                    className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-xl max-h-48 overflow-y-auto"
+                                                                >
+                                                                    {profiles.map(p => {
+                                                                        const price = p.comment?.toLowerCase().includes('price:') 
+                                                                            ? p.comment.split('price:')[1].split(',')[0].trim() 
+                                                                            : 0;
+                                                                        return (
+                                                                            <button
+                                                                                key={p.name}
+                                                                                type="button"
+                                                                                onClick={() => {
+                                                                                    setReviewFormData({ ...reviewFormData, profile: p.name });
+                                                                                    setShowReviewProfileDropdown(false);
+                                                                                }}
+                                                                                className={`w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-between items-center ${reviewFormData.profile === p.name ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}
+                                                                            >
+                                                                                <span className="truncate mr-2">{p.name}</span>
+                                                                                {price > 0 && <span className="text-[10px] opacity-70 whitespace-nowrap">{formatCurrency(price)}</span>}
+                                                                            </button>
+                                                                        );
+                                                                    })}
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs text-gray-500 dark:text-gray-400">{t('users.service')}</label>
+                                                    <select
+                                                        value={reviewFormData.service}
+                                                        onChange={(e) => setReviewFormData({ ...reviewFormData, service: e.target.value })}
+                                                        className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
+                                                    >
+                                                        <option value="pppoe">pppoe</option>
+                                                        <option value="hotspot">hotspot</option>
+                                                    </select>
+                                                </div>
+                                                <div className="md:col-span-2 mt-2 pt-2 border-t dark:border-gray-600">
+                                                    <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">{t('users.targetRouters')}</label>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                                                        {connections.map(conn => (
+                                                            <label key={conn.id} className="flex items-center space-x-2 p-2 border dark:border-gray-600 rounded cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={(reviewFormData.routerIds || []).includes(conn.id)}
+                                                                    onChange={(e) => {
+                                                                        const current = reviewFormData.routerIds || [];
+                                                                        const newIds = e.target.checked
+                                                                            ? [...current, conn.id]
+                                                                            : current.filter(id => id !== conn.id);
+                                                                        setReviewFormData({ ...reviewFormData, routerIds: newIds });
+                                                                    }}
+                                                                    className="rounded text-blue-600 focus:ring-blue-500"
+                                                                />
+                                                                <div>
+                                                                    <div className="text-xs font-bold text-gray-700 dark:text-gray-300">{conn.name}</div>
+                                                                    <div className="text-[10px] text-gray-500">{conn.host}</div>
+                                                                </div>
+                                                            </label>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    )}
 
                                     {/* Customer Details */}
                                     <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
@@ -2342,6 +2362,24 @@ export default function UsersPage() {
                                                     type="text"
                                                     value={reviewFormData.phone}
                                                     onChange={(e) => setReviewFormData({ ...reviewFormData, phone: e.target.value })}
+                                                    className="w-full px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('users.emailAddress')}</label>
+                                                <input
+                                                    type="email"
+                                                    value={reviewFormData.email || ''}
+                                                    onChange={(e) => setReviewFormData({ ...reviewFormData, email: e.target.value })}
+                                                    className="w-full px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{t('users.identityNumber')}</label>
+                                                <input
+                                                    type="text"
+                                                    value={reviewFormData.identityNumber || ''}
+                                                    onChange={(e) => setReviewFormData({ ...reviewFormData, identityNumber: e.target.value })}
                                                     className="w-full px-3 py-1.5 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                                 />
                                             </div>
@@ -2378,34 +2416,72 @@ export default function UsersPage() {
 
                                     <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
                                         <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">{t('pppoe.registrationInfo')}</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {selectedRegistration.type === 'activation' ? (
                                             <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">{t('pppoe.registeredBy')}</label>
+                                                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">
+                                                    Petugas Penanggung Jawab (Sales / Teknisi) <span className="text-red-500">*</span>
+                                                </label>
                                                 <select
-                                                    value={reviewFormData.agentId}
-                                                    onChange={(e) => setReviewFormData({ ...reviewFormData, agentId: e.target.value })}
-                                                    className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
+                                                    value={reviewFormData.technicianId || reviewFormData.agentId || ''}
+                                                    onChange={(e) => setReviewFormData({
+                                                        ...reviewFormData,
+                                                        agentId: e.target.value,
+                                                        technicianId: e.target.value
+                                                    })}
+                                                    required
+                                                    className={`w-full px-3 py-2 text-sm bg-white dark:bg-gray-700 border rounded-lg text-gray-900 dark:text-white ${
+                                                        !(reviewFormData.technicianId || reviewFormData.agentId)
+                                                            ? 'border-red-400 focus:ring-red-500'
+                                                            : 'border-emerald-500 focus:ring-emerald-500'
+                                                    }`}
                                                 >
-                                                    <option value="">{t('pppoe.noAgent')}</option>
-                                                    {systemUsers.filter(u => u.isAgent).map(user => (
-                                                        <option key={user.id} value={user.id}>{user.username}</option>
+                                                    <option value="">-- Pilih Petugas (Wajib Diisi) --</option>
+                                                    {systemUsers.filter(u => u.isTechnician || u.isAgent || ['staff', 'editor', 'manager'].includes(u.role)).map(user => (
+                                                        <option key={user.id} value={user.id}>
+                                                            {user.agentNumber ? `[${user.agentNumber}] ` : ''}{user.fullName || user.username}
+                                                        </option>
                                                     ))}
                                                 </select>
+                                                {!(reviewFormData.technicianId || reviewFormData.agentId) && (
+                                                    <p className="mt-1.5 text-xs text-red-600 dark:text-red-400 font-medium">
+                                                        ⚠️ Wajib dipilih! Aktivasi tidak dapat disetujui tanpa Petugas (Sales / Teknisi) penanggung jawab.
+                                                    </p>
+                                                )}
                                             </div>
-                                            <div>
-                                                <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">{t('users.technician')}</label>
-                                                <select
-                                                    value={reviewFormData.technicianId}
-                                                    onChange={(e) => setReviewFormData({ ...reviewFormData, technicianId: e.target.value })}
-                                                    className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
-                                                >
-                                                    <option value="">{t('users.selectTechnician')}</option>
-                                                    {systemUsers.filter(u => u.isTechnician).map(user => (
-                                                        <option key={user.id} value={user.id}>{user.username}</option>
-                                                    ))}
-                                                </select>
+                                        ) : (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">{t('pppoe.registeredBy')}</label>
+                                                    <select
+                                                        value={reviewFormData.agentId}
+                                                        onChange={(e) => setReviewFormData({ ...reviewFormData, agentId: e.target.value })}
+                                                        className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
+                                                    >
+                                                        <option value="">{t('pppoe.noAgent')}</option>
+                                                        {systemUsers.filter(u => u.isAgent).map(user => (
+                                                            <option key={user.id} value={user.id}>
+                                                                {user.agentNumber ? `[${user.agentNumber}] ` : ''}{user.fullName || user.username}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">{t('users.technician')}</label>
+                                                    <select
+                                                        value={reviewFormData.technicianId}
+                                                        onChange={(e) => setReviewFormData({ ...reviewFormData, technicianId: e.target.value })}
+                                                        className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
+                                                    >
+                                                        <option value="">{t('users.selectTechnician')}</option>
+                                                        {systemUsers.filter(u => u.isTechnician).map(user => (
+                                                            <option key={user.id} value={user.id}>
+                                                                {user.agentNumber ? `[${user.agentNumber}] ` : ''}{user.fullName || user.username}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                         <div className="mt-3 text-xs text-gray-500 flex justify-end">
                                             {t('common.date')}: {new Date().toLocaleDateString()}
                                         </div>
@@ -2427,7 +2503,8 @@ export default function UsersPage() {
                                         </button>
                                         <button
                                             onClick={() => handleRegistrationAction(selectedRegistration.username, 'approve')}
-                                            className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2"
+                                            disabled={selectedRegistration.type === 'activation' && !(reviewFormData.technicianId || reviewFormData.agentId)}
+                                            className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center gap-2"
                                         >
                                             <CheckCircle size={18} /> {t('pppoe.approve')}
                                         </button>
@@ -2464,29 +2541,23 @@ export default function UsersPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('pppoe.assignAgent')}</label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Petugas Penanggung Jawab (Sales / Teknisi)
+                                    </label>
                                     <select
-                                        value={bulkEditData.agentId}
-                                        onChange={(e) => setBulkEditData({ ...bulkEditData, agentId: e.target.value })}
+                                        value={bulkEditData.technicianId || bulkEditData.agentId || ''}
+                                        onChange={(e) => setBulkEditData({
+                                            ...bulkEditData,
+                                            agentId: e.target.value,
+                                            technicianId: e.target.value
+                                        })}
                                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                     >
                                         <option value="">{t('pppoe.noChange')}</option>
-                                        {systemUsers.filter(u => u.isAgent).map(u => (
-                                            <option key={u.id} value={u.id}>{u.fullName || u.username}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('pppoe.assignTechnician')}</label>
-                                    <select
-                                        value={bulkEditData.technicianId}
-                                        onChange={(e) => setBulkEditData({ ...bulkEditData, technicianId: e.target.value })}
-                                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                    >
-                                        <option value="">{t('pppoe.noChange')}</option>
-                                        {systemUsers.filter(u => u.isTechnician).map(u => (
-                                            <option key={u.id} value={u.id}>{u.fullName || u.username}</option>
+                                        {systemUsers.filter(u => u.isTechnician || u.isAgent || ['staff', 'editor', 'manager'].includes(u.role)).map(u => (
+                                            <option key={u.id} value={u.id}>
+                                                {u.agentNumber ? `[${u.agentNumber}] ` : ''}{u.fullName || u.username}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>

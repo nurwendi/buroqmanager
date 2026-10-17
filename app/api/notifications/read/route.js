@@ -23,9 +23,11 @@ export async function POST(request) {
             return NextResponse.json({ error: 'recipientId is required' }, { status: 400 });
         }
 
-        // Verification: Optional check if recipientId belongs to this user?
-        // For simplicity, we just mark it.
-        await markAsRead(recipientId);
+        if (user.role === 'customer') {
+            await markAsRead(recipientId, null, user.id);
+        } else {
+            await markAsRead(recipientId, user.id, null);
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

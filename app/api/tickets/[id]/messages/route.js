@@ -22,6 +22,12 @@ export async function GET(request, { params }) {
         if (user.role === 'customer' && ticket.customerId !== user.id) {
             return NextResponse.json({ error: 'Access denied' }, { status: 403 });
         }
+        if (user.role !== 'superadmin' && user.role !== 'customer') {
+            const effectiveOwnerId = user.role === 'admin' ? user.id : user.ownerId;
+            if (ticket.ownerId && effectiveOwnerId && ticket.ownerId !== effectiveOwnerId) {
+                return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+            }
+        }
 
         const messages = await db.ticketMessage.findMany({
             where: { ticketId },
@@ -79,6 +85,13 @@ export async function POST(request, { params }) {
 
         if (!ticket) {
             return NextResponse.json({ error: 'Ticket not found' }, { status: 404 });
+        }
+
+        if (user.role !== 'superadmin' && user.role !== 'customer') {
+            const effectiveOwnerId = user.role === 'admin' ? user.id : user.ownerId;
+            if (ticket.ownerId && effectiveOwnerId && ticket.ownerId !== effectiveOwnerId) {
+                return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+            }
         }
 
         // Determine sender type and name

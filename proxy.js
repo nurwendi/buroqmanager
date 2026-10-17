@@ -103,7 +103,7 @@ export async function proxy(request) {
         return NextResponse.next();
     }
 
-    // Other Roles (agent, technician, staff, viewer)
+    // Other Roles (agent, technician, staff)
     const restrictedPaths = [
         '/settings',
         '/system-users',

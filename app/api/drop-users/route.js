@@ -7,23 +7,28 @@ import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
-async function getUsersWithUnpaidInvoices() {
+async function getUsersWithUnpaidInvoices(ownerId = null) {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
-    const customers = await db.customer.findMany({
-        select: { username: true, name: true } // Fetch name too for UI
-    });
+    const ownerFilter = ownerId ? { ownerId } : {};
 
-    const paidInvoices = await db.payment.findMany({
-        where: {
-            month: currentMonth,
-            year: currentYear,
-            status: 'completed'
-        },
-        select: { username: true }
-    });
+    const [customers, paidInvoices] = await Promise.all([
+        db.customer.findMany({
+            where: ownerFilter,
+            select: { username: true, name: true }
+        }),
+        db.payment.findMany({
+            where: {
+                ...ownerFilter,
+                month: currentMonth,
+                year: currentYear,
+                status: 'completed'
+            },
+            select: { username: true }
+        })
+    ]);
 
     const paidUsernames = new Set(paidInvoices.map(p => p.username));
 
@@ -42,11 +47,15 @@ export async function GET(request) {
             return unauthorizedResponse();
         }
 
-        const client = await getMikrotikClient();
+        const ownerId = currentUser.role === 'admin' ? currentUser.id : null;
+        const { getConfig, getUserConnectionId } = await import('@/lib/config');
+        const config = await getConfig();
+        const connId = getUserConnectionId(currentUser, config);
+        const client = await getMikrotikClient(connId);
 
         // 1. Get Unpaid Users from DB
-        const unpaidUsersList = await getUsersWithUnpaidInvoices();
-        const unpaidUsernames = new Set(unpaidUsersList.map(u => u.username));
+        const unpaidUsersList = await getUsersWithUnpaidInvoices(ownerId);
+        const unpaidUserMap = new Map(unpaidUsersList.map(u => [u.username, u]));
 
         // 2. Get All PPP Secrets from Mikrotik to check status
         // We need this to see who is ALREADY dropped vs who NEEDS drop
@@ -74,12 +83,11 @@ export async function GET(request) {
                 });
             } else {
                 // If NOT dropped, check if they are in the unpaid list
-                if (unpaidUsernames.has(secret.name)) {
-                    // Match with DB name
-                    const dbUser = unpaidUsersList.find(u => u.username === secret.name);
+                const dbUser = unpaidUserMap.get(secret.name);
+                if (dbUser) {
                     usersToDrop.push({
                         username: secret.name,
-                        name: dbUser ? dbUser.name : secret.name,
+                        name: dbUser.name || secret.name,
                         currentProfile: secret.profile,
                         id: secret['.id']
                     });

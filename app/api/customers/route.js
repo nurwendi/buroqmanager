@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getUserFromRequest } from '@/lib/api-auth';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 import db from '@/lib/db';
 
 import { generateCustomerId } from '@/lib/customer-utils';
@@ -8,6 +8,9 @@ export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
         const isLite = searchParams.get('lite') === 'true';
+        const search = (searchParams.get('search') || '').trim();
+        const limitParam = searchParams.get('limit');
+        const limit = limitParam && !isNaN(parseInt(limitParam)) ? parseInt(limitParam) : null;
         const user = await getUserFromRequest(request);
 
         if (!user) {
@@ -33,12 +36,27 @@ export async function GET(request) {
                     where.ownerId = user.ownerId;
                 }
             } else {
-                // Fallback (e.g. viewer)
+                // Fallback for other tenant roles
                 if (user.ownerId) where.ownerId = user.ownerId;
             }
         }
 
+        if (search) {
+            const searchFilter = {
+                OR: [
+                    { username: { contains: search, mode: 'insensitive' } },
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { customerId: { contains: search, mode: 'insensitive' } },
+                    { phone: { contains: search, mode: 'insensitive' } }
+                ]
+            };
+            where = Object.keys(where).length > 0 ? { AND: [where, searchFilter] } : searchFilter;
+        }
+
         const queryOptions = { where };
+        if (limit) {
+            queryOptions.take = limit;
+        }
 
         if (isLite) {
             queryOptions.select = {
@@ -217,13 +235,16 @@ export async function POST(request) {
         // Manual Upsert to avoid Prisma Unique Constraint nuances with Compound Keys
         // (Using already resolved 'existing' from the top of the function)
 
-        // Hash password if provided and not already hashed
-        let storedPassword = password || undefined;
-        if (password) {
-            const bcrypt = await import('bcryptjs');
-            if (!password.startsWith('$2a$') && !password.startsWith('$2b$')) {
-                storedPassword = await bcrypt.hash(password, 10);
-            }
+        // Customer portal password is separate from PPPoE password.
+        // For new customers, default portal password is 'buroq' unless body.customerPassword is explicitly set.
+        const bcrypt = (await import('bcryptjs')).default;
+        let storedPassword = undefined;
+        if (body.customerPassword) {
+            storedPassword = (!body.customerPassword.startsWith('$2a$') && !body.customerPassword.startsWith('$2b$'))
+                ? await bcrypt.hash(body.customerPassword, 10)
+                : body.customerPassword;
+        } else if (!existing || !existing.password) {
+            storedPassword = await bcrypt.hash('buroq', 10);
         }
 
         let customer;
@@ -243,7 +264,7 @@ export async function POST(request) {
                     ownerId: ownerId,
                     coordinates: coordinates || undefined,
                     comment: comment || undefined,
-                    password: storedPassword,
+                    ...(storedPassword ? { password: storedPassword } : {}),
                     profileId: effectiveProfileId || undefined
                 }
             });

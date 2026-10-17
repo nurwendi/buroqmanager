@@ -96,7 +96,7 @@ export default function SystemUsersPage() {
         setFormData({
             username: user.username || '',
             password: '',
-            role: user.role || 'viewer',
+            role: (!user.role || user.role === 'viewer') ? 'staff' : user.role,
             isAgent: user.isAgent || false,
             isTechnician: user.isTechnician || false,
             agentRate: user.agentRate || 0,
@@ -162,6 +162,31 @@ export default function SystemUsersPage() {
         resetForm();
     };
 
+    const [generatingIds, setGeneratingIds] = useState(false);
+
+    const handleGenerateIds = async () => {
+        if (generatingIds) return;
+        setGeneratingIds(true);
+        try {
+            const res = await fetch('/api/admin/users/generate-ids', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message || 'Berhasil men-generate ID Staf.');
+                fetchUsers();
+            } else {
+                alert(data.error || 'Gagal men-generate ID Staf.');
+            }
+        } catch (err) {
+            alert('Terjadi kesalahan saat men-generate ID Staf.');
+        } finally {
+            setGeneratingIds(false);
+        }
+    };
+
     const getRoleBadgeColor = (role) => {
         switch (role) {
             case 'admin': return 'bg-purple-100 text-purple-800';
@@ -179,34 +204,45 @@ export default function SystemUsersPage() {
                 description="Kelola pengguna sistem, staf lapangan, agen pemasaran, dan teknisi beserta komisi masing-masing."
                 icon={Users}
             >
-                <button
-                    onClick={() => {
-                        setEditMode(false);
-                        const defaultRole = currentUserRole === 'superadmin' ? 'admin' : 'staff';
-                        setFormData({ 
-                            username: '', 
-                            password: '', 
-                            role: defaultRole, 
-                            isAgent: false, 
-                            isTechnician: false, 
-                            agentRate: 0, 
-                            technicianRate: 0, 
-                            prefix: '',
-                            fullName: '',
-                            phone: '',
-                            address: '',
-                            agentNumber: ''
-                        });
-                        setShowModal(true);
-                    }}
-                    className="bg-accent/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs sm:text-sm font-semibold border border-accent-500/30"
-                >
-                    <Plus size={16} /> {t('systemUsers.addUser')}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleGenerateIds}
+                        disabled={generatingIds}
+                        className="bg-white/20 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:bg-white/30 transition-all shadow-md text-xs sm:text-sm font-semibold border border-white/30 disabled:opacity-50"
+                        title="Generate ID otomatis (OwnerID + 3 digit) untuk staf yang belum memiliki ID"
+                    >
+                        <Shield size={16} />
+                        <span>{generatingIds ? 'Memproses...' : 'Generate ID Staf'}</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            setEditMode(false);
+                            const defaultRole = currentUserRole === 'superadmin' ? 'admin' : 'staff';
+                            setFormData({ 
+                                username: '', 
+                                password: '', 
+                                role: defaultRole, 
+                                isAgent: false, 
+                                isTechnician: false, 
+                                agentRate: 0, 
+                                technicianRate: 0, 
+                                prefix: '',
+                                fullName: '',
+                                phone: '',
+                                address: '',
+                                agentNumber: ''
+                            });
+                            setShowModal(true);
+                        }}
+                        className="bg-accent/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs sm:text-sm font-semibold border border-accent-500/30"
+                    >
+                        <Plus size={16} /> {t('systemUsers.addUser')}
+                    </button>
+                </div>
             </HeaderBanner>
 
             {/* Mobile Controls Section */}
-            <div className="flex flex-col gap-3 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
+            <div className="flex flex-col gap-2 p-4 bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-xl border border-white/20 dark:border-white/5 md:hidden mb-6 print:hidden">
                 <button
                     onClick={() => {
                         setEditMode(false);
@@ -232,6 +268,14 @@ export default function SystemUsersPage() {
                     <Plus size={14} />
                     <span>{t('systemUsers.addUser')}</span>
                 </button>
+                <button
+                    onClick={handleGenerateIds}
+                    disabled={generatingIds}
+                    className="w-full bg-blue-600/80 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 hover:opacity-90 transition-all shadow-md text-xs font-semibold disabled:opacity-50"
+                >
+                    <Shield size={14} />
+                    <span>{generatingIds ? 'Memproses...' : 'Generate ID Staf'}</span>
+                </button>
             </div>
 
             <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl overflow-hidden border border-white/20 dark:border-white/5">
@@ -253,7 +297,14 @@ export default function SystemUsersPage() {
                                             <User size={18} className="text-blue-600 dark:text-blue-400" />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-gray-900 dark:text-white text-[15px]">{user.username}</div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-bold text-gray-900 dark:text-white text-[15px]">{user.username}</span>
+                                                {user.agentNumber && (
+                                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                                        ID: {user.agentNumber}
+                                                    </span>
+                                                )}
+                                            </div>
                                             {user.fullName && <div className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">{user.fullName}</div>}
                                         </div>
                                     </div>
@@ -280,8 +331,7 @@ export default function SystemUsersPage() {
                                         {user.role === 'admin' ? t('systemUsers.adminOwner') :
                                             user.role === 'manager' ? t('systemUsers.managerNoUsers') :
                                                 user.role === 'editor' ? t('systemUsers.editorCanEdit') :
-                                                    user.role === 'staff' ? t('systemUsers.staffAgentTech') :
-                                                        user.role === 'viewer' ? t('systemUsers.viewerReadOnly') : user.role}
+                                                    user.role === 'staff' ? t('systemUsers.staffAgentTech') : user.role}
                                     </span>
                                     {user.isAgent && (
                                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
@@ -300,7 +350,10 @@ export default function SystemUsersPage() {
                                         <p className="text-[9px] text-gray-500 uppercase font-bold mb-0.5">{t('systemUsers.owner') || 'Owner'}</p>
                                         <p className="text-[12px] font-bold text-gray-700 dark:text-gray-300">{user.ownerName || '-'}</p>
                                     </div>
-                                    <div className="hidden"></div>
+                                    <div className="p-2 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-800/30">
+                                        <p className="text-[9px] text-blue-600 dark:text-blue-400 uppercase font-bold mb-0.5">ID Pengguna</p>
+                                        <p className="text-[12px] font-mono font-bold text-blue-700 dark:text-blue-300">{user.agentNumber || '-'}</p>
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2 mb-3">
@@ -343,6 +396,7 @@ export default function SystemUsersPage() {
                         <thead className="bg-black/5 dark:bg-white/5">
                             <tr>
                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.username')}</th>
+                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID Pengguna</th>
                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.role')}</th>
                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.owner') || 'Owner'}</th>
                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('systemUsers.businessRoles')}</th>
@@ -353,9 +407,9 @@ export default function SystemUsersPage() {
                         </thead>
                         <tbody className="bg-transparent divide-y divide-gray-200/50 dark:divide-white/10">
                             {loading ? (
-                                <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('messages.loading')}</td></tr>
+                                <tr><td colSpan="8" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('messages.loading')}</td></tr>
                             ) : users.length === 0 ? (
-                                <tr><td colSpan="6" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('systemUsers.noUsers')}</td></tr>
+                                <tr><td colSpan="8" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">{t('systemUsers.noUsers')}</td></tr>
                             ) : (
                                 users.map((user) => (
                                     <tr key={user.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors group">
@@ -371,13 +425,21 @@ export default function SystemUsersPage() {
                                                 </div>
                                             </div>
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {user.agentNumber ? (
+                                                <span className="px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                                    {user.agentNumber}
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-400 text-xs">-</span>
+                                            )}
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
                                                 {user.role === 'admin' ? t('systemUsers.adminOwner') :
                                                     user.role === 'manager' ? t('systemUsers.managerNoUsers') :
                                                         user.role === 'editor' ? t('systemUsers.editorCanEdit') :
-                                                            user.role === 'staff' ? t('systemUsers.staffAgentTech') :
-                                                                user.role === 'viewer' ? t('systemUsers.viewerReadOnly') : user.role}
+                                                            user.role === 'staff' ? t('systemUsers.staffAgentTech') : user.role}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -410,9 +472,6 @@ export default function SystemUsersPage() {
                                                 )}
                                                 {!user.isAgent && !user.isTechnician && (
                                                     <span className="text-gray-400 dark:text-gray-500">-</span>
-                                                )}
-                                                {user.agentNumber && (
-                                                    <span className="text-xs text-blue-600 font-bold">{t('systemUsers.id')}: {user.agentNumber}</span>
                                                 )}
                                             </div>
                                         </td>
@@ -510,13 +569,13 @@ export default function SystemUsersPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">{t('systemUsers.agentNumber')}</label>
+                                        <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">ID Staf / Manajer / Editor</label>
                                         <input
                                             type="text"
                                             value={formData.agentNumber ?? ''}
                                             onChange={(e) => setFormData({ ...formData, agentNumber: e.target.value })}
-                                            className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                                            placeholder={t('systemUsers.agentNumberPlaceholder')}
+                                            className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none font-mono"
+                                            placeholder="Otomatis (mis: 01001)"
                                         />
                                     </div>
                                 </div>
@@ -557,6 +616,7 @@ export default function SystemUsersPage() {
                                         ) : (
                                             <>
                                                 <option value="manager">{t('systemUsers.managerNoUsers')}</option>
+                                                <option value="editor">{t('systemUsers.editorCanEdit')}</option>
                                                 <option value="staff">{t('systemUsers.staffAgentTech')}</option>
                                             </>
                                         )}

@@ -1,9 +1,25 @@
 import { NextResponse } from 'next/server';
 import { getMikrotikClient } from '@/lib/mikrotik';
-export async function GET() {
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
+import { getConfig, getUserConnectionId } from '@/lib/config';
+
+export async function GET(request) {
     try {
-        const client = await getMikrotikClient();
-        const interfaces = await client.write('/interface/print');
+        const user = await getUserFromRequest(request);
+        if (!user || user.role === 'customer') {
+            return unauthorizedResponse();
+        }
+
+        const config = await getConfig();
+        const connectionId = getUserConnectionId(user, config);
+        if (!connectionId && user.role !== 'superadmin') {
+            return NextResponse.json([]);
+        }
+
+        const client = await getMikrotikClient(connectionId);
+        const interfaces = await client.write('/interface/print', [
+            '.proplist=name,type,running,disabled'
+        ]);
 
         // Return only necessary fields
         const simplifiedInterfaces = interfaces.map(iface => ({

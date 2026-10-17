@@ -17,9 +17,25 @@ export async function GET(request) {
         let take = 100;
 
         if (type === 'online') {
-            where = {
-                acctstoptime: null
-            };
+            where.acctstoptime = null;
+        }
+
+        // Multi-tenant isolation: scope non-superadmin to their own customer usernames
+        if (user.role !== 'superadmin') {
+            const ownerId = user.role === 'admin' ? user.id : user.ownerId;
+            const customerWhere = { ownerId };
+            if (user.role === 'technician') {
+                customerWhere.technicianId = user.id;
+            }
+            const customers = await db.customer.findMany({
+                where: customerWhere,
+                select: { username: true }
+            });
+            const allowedUsernames = customers.map(c => c.username);
+            if (allowedUsernames.length === 0) {
+                return NextResponse.json([]);
+            }
+            where.username = { in: allowedUsernames };
         }
 
         // Determine ordering based on context

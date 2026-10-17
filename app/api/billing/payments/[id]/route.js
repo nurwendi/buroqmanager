@@ -5,7 +5,7 @@ import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 export async function PUT(request, { params }) {
     try {
         const user = await getUserFromRequest(request);
-        if (!user || user.role === 'customer' || user.role === 'viewer') {
+        if (!user || user.role === 'customer') {
             return unauthorizedResponse();
         }
 

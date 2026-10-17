@@ -41,15 +41,17 @@ export async function POST(request) {
         }
 
         // 4. Batch-generate Customer IDs and insert in chunks of 1000
+        const bcrypt = (await import('bcryptjs')).default;
+        const defaultPasswordHash = await bcrypt.hash('buroq', 10);
         const batchCustomerIds = await generateCustomerIdsBatch(ownerId, virtuals.length);
         const customersToCreate = virtuals.map((u, idx) => ({
             username: u.name,
             customerId: batchCustomerIds[idx],
-            name: u.name,
-            address: '-',
-            phone: '-',
+            name: '',
+            address: '',
+            phone: '',
             ownerId: ownerId,
-            password: u.password || '',
+            password: defaultPasswordHash,
             comment: u.comment || ''
         }));
 

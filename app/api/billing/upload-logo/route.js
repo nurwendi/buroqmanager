@@ -17,8 +17,17 @@ export async function POST(request) {
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
+        const allowedExts = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
+        const ext = path.extname(file.name || '').toLowerCase();
+        if (!allowedExts.includes(ext)) {
+            return NextResponse.json({ error: 'Only PNG, JPG, WEBP, and GIF images are allowed' }, { status: 400 });
+        }
+
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
+        if (buffer.length > 5 * 1024 * 1024) {
+            return NextResponse.json({ error: 'File size exceeds 5MB limit' }, { status: 400 });
+        }
 
         // Save to public/uploads directory
         const uploadDir = path.join(process.cwd(), 'public', 'uploads');
@@ -28,7 +37,7 @@ export async function POST(request) {
             // Ignore if exists
         }
 
-        const filename = `logo-${Date.now()}${path.extname(file.name)}`;
+        const filename = `logo-${Date.now()}${ext}`;
         const filepath = path.join(uploadDir, filename);
 
         await writeFile(filepath, buffer);

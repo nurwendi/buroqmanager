@@ -1,49 +1,48 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { getUserFromRequest } from '@/lib/api-auth';
+import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
 import { sendPaymentReceiptEmail } from '@/lib/email';
 
-// Helper to calculate commissions
+// Helper to calculate commissions in a single query
 async function calculateCommissions(amount, username, ownerId = null) {
     const commissionsData = [];
 
-    // Use findFirst because username is not unique globally anymore
     const where = { username };
     if (ownerId) {
         where.ownerId = ownerId;
     }
 
-    const customer = await db.customer.findFirst({ where });
+    const customer = await db.customer.findFirst({
+        where,
+        include: {
+            agent: { select: { id: true, username: true, role: true, isAgent: true, agentRate: true } },
+            technician: { select: { id: true, username: true, role: true, isTechnician: true, technicianRate: true } }
+        }
+    });
 
     if (customer) {
-        if (customer.agentId) {
-            const agent = await db.user.findUnique({ where: { id: customer.agentId } });
-            // Allow if isAgent is true OR role is 'staff' (so staff acting as agent get commission)
-            if (agent && (agent.isAgent || agent.role === 'staff') && agent.agentRate > 0) {
-                const commissionAmount = (amount * agent.agentRate) / 100;
-                commissionsData.push({
-                    userId: agent.id,
-                    username: agent.username,
-                    role: 'agent',
-                    rate: agent.agentRate,
-                    amount: commissionAmount
-                });
-            }
+        const agent = customer.agent;
+        if (agent && (agent.isAgent || agent.role === 'staff') && agent.agentRate > 0) {
+            const commissionAmount = (amount * agent.agentRate) / 100;
+            commissionsData.push({
+                userId: agent.id,
+                username: agent.username,
+                role: 'agent',
+                rate: agent.agentRate,
+                amount: commissionAmount
+            });
         }
 
-        if (customer.technicianId) {
-            const technician = await db.user.findUnique({ where: { id: customer.technicianId } });
-            // Allow if isTechnician is true OR role is 'staff'
-            if (technician && (technician.isTechnician || technician.role === 'staff') && technician.technicianRate > 0) {
-                const commissionAmount = (amount * technician.technicianRate) / 100;
-                commissionsData.push({
-                    userId: technician.id,
-                    username: technician.username,
-                    role: 'technician',
-                    rate: technician.technicianRate,
-                    amount: commissionAmount
-                });
-            }
+        const technician = customer.technician;
+        if (technician && (technician.isTechnician || technician.role === 'staff') && technician.technicianRate > 0) {
+            const commissionAmount = (amount * technician.technicianRate) / 100;
+            commissionsData.push({
+                userId: technician.id,
+                username: technician.username,
+                role: 'technician',
+                rate: technician.technicianRate,
+                amount: commissionAmount
+            });
         }
     }
 
@@ -149,7 +148,14 @@ export async function GET(request) {
                 username: { in: userNames },
                 ...(where.ownerId ? { ownerId: where.ownerId } : {})
             },
-            select: { username: true, name: true, customerId: true }
+            select: {
+                username: true,
+                name: true,
+                customerId: true,
+                phone: true,
+                agent: { select: { username: true, fullName: true } },
+                technician: { select: { username: true, fullName: true } }
+            }
         })
         : [];
     
@@ -160,12 +166,16 @@ export async function GET(request) {
 
     const enrichedPayments = payments.map(p => {
         const agentComm = p.commissions.find(c => c.role === 'agent');
+        const techComm = p.commissions.find(c => c.role === 'technician');
         const customer = customerObjMap.get(p.username);
         return {
             ...p,
             customerName: customer?.name || p.username,
             customerId: customer?.customerId || '-',
-            agentFullName: agentComm?.user?.fullName || agentComm?.username || '-'
+            customerPhone: customer?.phone || '',
+            agentName: customer?.agent?.username || agentComm?.username || '-',
+            agentFullName: agentComm?.user?.fullName || customer?.agent?.fullName || agentComm?.username || '-',
+            technicianName: customer?.technician?.username || techComm?.username || '-'
         };
     });
 
@@ -175,7 +185,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const user = await getUserFromRequest(request);
-        if (!user || user.role === 'customer' || user.role === 'viewer') {
+        if (!user || user.role === 'customer') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
@@ -390,42 +400,95 @@ export async function PATCH(request) {
             return NextResponse.json({ error: 'Status is required' }, { status: 400 });
         }
 
+        const ownerFilter = user.role !== 'superadmin'
+            ? { ownerId: user.role === 'admin' ? user.id : user.ownerId }
+            : {};
+
         let updatedCount = 0;
 
         if (status === 'completed') {
-            // Bulk Mark Paid - Needs commission calculation
-            // Fetch all payments first
+            // Bulk Mark Paid - Batch fetch pending payments
             const payments = await db.payment.findMany({
-                where: { id: { in: ids } }
+                where: {
+                    id: { in: ids },
+                    status: { not: 'completed' },
+                    ...ownerFilter
+                },
+                select: { id: true, amount: true, username: true, ownerId: true }
             });
 
-            for (const payment of payments) {
-                // Determine if we should process it
-                // We process if it's not completed OR if we want to ensure commissions are present?
-                // Standard behavior: Only update pending to completed.
-                // Re-calculating completed ones might be risky if already paid out.
-                if (payment.status !== 'completed') {
-                    // Use payment.ownerId if available to scope commission calc
-                    const commissionsData = await calculateCommissions(payment.amount, payment.username, payment.ownerId);
+            if (payments.length > 0) {
+                const paymentIds = payments.map(p => p.id);
+                const usernames = [...new Set(payments.map(p => p.username))];
 
-                    await db.payment.update({
-                        where: { id: payment.id },
-                        data: {
-                            status: status,
-                            date: new Date(), // Update payment date to now
-                            commissions: {
-                                deleteMany: {},
-                                create: commissionsData
-                            }
+                // Batch-fetch customers with their agent & technician rates in 1 query
+                const customers = await db.customer.findMany({
+                    where: {
+                        username: { in: usernames },
+                        ...ownerFilter
+                    },
+                    include: {
+                        agent: { select: { id: true, username: true, role: true, isAgent: true, agentRate: true } },
+                        technician: { select: { id: true, username: true, role: true, isTechnician: true, technicianRate: true } }
+                    }
+                });
+
+                const customerMap = new Map(
+                    customers.map(c => [`${c.ownerId || ''}:${c.username}`, c])
+                );
+
+                const allCommissionsToCreate = [];
+
+                for (const payment of payments) {
+                    const customer = customerMap.get(`${payment.ownerId || ''}:${payment.username}`)
+                        || customers.find(c => c.username === payment.username);
+
+                    if (customer) {
+                        const agent = customer.agent;
+                        if (agent && (agent.isAgent || agent.role === 'staff') && agent.agentRate > 0) {
+                            allCommissionsToCreate.push({
+                                paymentId: payment.id,
+                                userId: agent.id,
+                                username: agent.username,
+                                role: 'agent',
+                                rate: agent.agentRate,
+                                amount: (payment.amount * agent.agentRate) / 100
+                            });
                         }
-                    });
-                    updatedCount++;
+
+                        const technician = customer.technician;
+                        if (technician && (technician.isTechnician || technician.role === 'staff') && technician.technicianRate > 0) {
+                            allCommissionsToCreate.push({
+                                paymentId: payment.id,
+                                userId: technician.id,
+                                username: technician.username,
+                                role: 'technician',
+                                rate: technician.technicianRate,
+                                amount: (payment.amount * technician.technicianRate) / 100
+                            });
+                        }
+                    }
                 }
+
+                await db.$transaction([
+                    db.payment.updateMany({
+                        where: { id: { in: paymentIds } },
+                        data: { status: 'completed', date: new Date() }
+                    }),
+                    db.commission.deleteMany({
+                        where: { paymentId: { in: paymentIds } }
+                    }),
+                    ...(allCommissionsToCreate.length > 0
+                        ? [db.commission.createMany({ data: allCommissionsToCreate })]
+                        : [])
+                ]);
+
+                updatedCount = payments.length;
             }
         } else {
             // Normal update (e.g. to 'pending' or 'cancelled')
             const result = await db.payment.updateMany({
-                where: { id: { in: ids } },
+                where: { id: { in: ids }, ...ownerFilter },
                 data: { status: status }
             });
             updatedCount = result.count;
@@ -433,7 +496,8 @@ export async function PATCH(request) {
 
         return NextResponse.json({
             success: true,
-            message: `Successfully processed payments`
+            updatedCount,
+            message: `Successfully processed ${updatedCount} payments`
         });
 
     } catch (error) {

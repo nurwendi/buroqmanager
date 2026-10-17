@@ -1,22 +1,17 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import db from '@/lib/db';
 import { getUserFromRequest, unauthorizedResponse } from '@/lib/api-auth';
-
-const prisma = new PrismaClient();
 
 export async function GET(request) {
     try {
         const user = await getUserFromRequest(request);
-        if (!user) {
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
             return unauthorizedResponse();
         }
 
-        // Only admins/owners should access this
-        // If we want to be strict: if (user.role === 'customer') return unauthorizedResponse();
-
         const ownerId = user.id; // Configuration is attached to the logged-in admin
 
-        const config = await prisma.paymentGatewayConfig.findUnique({
+        const config = await db.paymentGatewayConfig.findUnique({
             where: { ownerId: ownerId },
         });
 
@@ -41,28 +36,39 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const user = await getUserFromRequest(request);
-        if (!user) {
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
             return unauthorizedResponse();
         }
 
         const { merchantId, clientKey, serverKey, isSandbox, provider } = await request.json();
         const ownerId = user.id;
 
+        const existing = await db.paymentGatewayConfig.findUnique({
+            where: { ownerId }
+        });
+
+        const resolvedClientKey = clientKey && clientKey.includes('***') && existing
+            ? existing.clientKey
+            : clientKey;
+        const resolvedServerKey = serverKey && serverKey.includes('***') && existing
+            ? existing.serverKey
+            : serverKey;
+
         // Upsert the configuration
-        const config = await prisma.paymentGatewayConfig.upsert({
+        await db.paymentGatewayConfig.upsert({
             where: { ownerId: ownerId },
             update: {
                 merchantId,
-                clientKey,
-                serverKey,
+                clientKey: resolvedClientKey,
+                serverKey: resolvedServerKey,
                 isSandbox,
                 provider: provider || 'midtrans',
             },
             create: {
                 ownerId,
                 merchantId,
-                clientKey,
-                serverKey,
+                clientKey: resolvedClientKey || '',
+                serverKey: resolvedServerKey || '',
                 isSandbox,
                 provider: provider || 'midtrans',
             },
