@@ -22,7 +22,11 @@ export default function LoginPage() {
             .then(res => res.json())
             .then(data => {
                 if (data.logoUrl) setLogoUrl(data.logoUrl);
-                if (data.loginBgUrl) setLoginBgUrl(data.loginBgUrl);
+                if (data.loginBgUseBing) {
+                    setLoginBgUrl('/api/bing-wallpaper');
+                } else if (data.loginBgUrl) {
+                    setLoginBgUrl(data.loginBgUrl);
+                }
             })
             .catch(() => {});
     }, []);

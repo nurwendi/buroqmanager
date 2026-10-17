@@ -25,56 +25,52 @@ export async function POST(request) {
         console.log(`[API] Bulk updating ${usernames.length} customers. Agent: ${agentId}, Tech: ${technicianId}`);
 
         // 1. Fetch current ownerId
-        const ownerId = user.role === 'admin' ? user.id : user.ownerId; // Should be admin's ID
+        const ownerId = user.role === 'admin' ? user.id : user.ownerId;
 
-        const results = [];
-        for (const username of usernames) {
-            // Check if customer exists for this owner
-            const existing = await db.customer.findFirst({
-                where: {
-                    username: username,
-                    ownerId: ownerId
-                }
+        const updateData = {};
+        if (agentId !== undefined) updateData.agentId = agentId || null;
+        if (technicianId !== undefined) updateData.technicianId = technicianId || null;
+
+        // 2. Find existing customers in a single query
+        const existingCustomers = await db.customer.findMany({
+            where: {
+                username: { in: usernames },
+                ...(ownerId ? { ownerId } : {})
+            },
+            select: { id: true, username: true }
+        });
+
+        const existingUsernames = new Set(existingCustomers.map(c => c.username));
+        const existingIds = existingCustomers.map(c => c.id);
+
+        // 3. Batch update existing customers
+        if (existingIds.length > 0 && Object.keys(updateData).length > 0) {
+            await db.customer.updateMany({
+                where: { id: { in: existingIds } },
+                data: updateData
             });
+        }
 
-            if (existing) {
-                // Update
-                await db.customer.update({
-                    where: { id: existing.id },
-                    data: {
-                        agentId: agentId === undefined ? undefined : (agentId || null),
-                        technicianId: technicianId === undefined ? undefined : (technicianId || null)
-                    }
+        // 4. Batch create missing customers
+        const missingUsernames = usernames.filter(u => !existingUsernames.has(u));
+        if (missingUsernames.length > 0) {
+            const { generateCustomerIdsBatch } = await import('@/lib/customer-utils');
+            const newIds = await generateCustomerIdsBatch(ownerId, missingUsernames.length);
+            const createData = missingUsernames.map((username, idx) => ({
+                username,
+                ownerId: ownerId,
+                customerId: newIds[idx] || `CUST-${Date.now()}-${idx}`,
+                agentId: agentId || null,
+                technicianId: technicianId || null,
+                name: username
+            }));
+
+            const CHUNK_SIZE = 1000;
+            for (let i = 0; i < createData.length; i += CHUNK_SIZE) {
+                await db.customer.createMany({
+                    data: createData.slice(i, i + CHUNK_SIZE),
+                    skipDuplicates: true
                 });
-                results.push({ username, status: 'updated' });
-            } else {
-                // Create
-                // Generate a customerId if possible, or leave it to default if DB handles it? 
-                // Schema says customerId is String @unique. We usually generate it.
-                // Let's use a simple generator or timestamp if not provided.
-                // Actually, let's try to query max or just random for now if not strictly sequential.
-                // In app/api/customers/route.js we generated it. Let's do a simple one.
-
-                // For bulk causing collisions, maybe just Random? 
-                // Better: username + timestamp? No, customerId is visible.
-                // Let's rely on cuid() if schema allows or just a timestamp suffix.
-
-                // WAIT: If we create here, we might miss other data. 
-                // But this is bulk assignment. 
-                // Let's try to match existing logic: 
-                const newCustomerId = `CUST-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-                await db.customer.create({
-                    data: {
-                        username,
-                        ownerId: ownerId,
-                        customerId: newCustomerId, // Ensure this exists
-                        agentId: agentId || null,
-                        technicianId: technicianId || null,
-                        name: username // Default name to username
-                    }
-                });
-                results.push({ username, status: 'created' });
             }
         }
 

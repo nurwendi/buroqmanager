@@ -163,13 +163,48 @@ export async function GET(request) {
             }
         }
 
+        const routerCache = globalThis._routerCache || (globalThis._routerCache = new Map());
+        const SECRET_CACHE_TTL_MS = 300000; // 5 minutes for secrets
+        const ACTIVE_CACHE_TTL_MS = 15000;  // 15 seconds for active sessions
+
         const pppoeStats = await Promise.all(targetConnections.map(async (conn) => {
             try {
-                const client = await getMikrotikClient(conn.id);
-                const [activeConnections, allSecrets] = await Promise.all([
-                    client.write('/ppp/active/print'),
-                    client.write('/ppp/secret/print')
-                ]);
+                const nowMs = Date.now();
+                const cachedData = routerCache.get(conn.id);
+                let allSecrets, activeConnections;
+
+                if (
+                    cachedData &&
+                    cachedData.secrets &&
+                    nowMs - cachedData.timestamp < SECRET_CACHE_TTL_MS &&
+                    cachedData.active &&
+                    nowMs - (cachedData.activeTimestamp || cachedData.timestamp) < ACTIVE_CACHE_TTL_MS
+                ) {
+                    allSecrets = cachedData.secrets;
+                    activeConnections = cachedData.active;
+                } else {
+                    const client = await getMikrotikClient(conn.id);
+                    if (cachedData && cachedData.secrets && nowMs - cachedData.timestamp < SECRET_CACHE_TTL_MS) {
+                        allSecrets = cachedData.secrets;
+                        activeConnections = await client.write('/ppp/active/print');
+                        routerCache.set(conn.id, {
+                            ...cachedData,
+                            active: activeConnections,
+                            activeTimestamp: nowMs
+                        });
+                    } else {
+                        [activeConnections, allSecrets] = await Promise.all([
+                            client.write('/ppp/active/print'),
+                            client.write('/ppp/secret/print')
+                        ]);
+                        routerCache.set(conn.id, {
+                            timestamp: nowMs,
+                            activeTimestamp: nowMs,
+                            secrets: allSecrets,
+                            active: activeConnections
+                        });
+                    }
+                }
                 
                 const activeMap = new Set(activeConnections.map(a => a.name));
                 let myTotalUsers = 0;

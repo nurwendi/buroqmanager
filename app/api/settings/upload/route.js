@@ -53,6 +53,7 @@ export async function POST(request) {
       settings.dashboardBgUrl = `/${filename}?t=${Date.now()}`;
     } else if (type === "loginbg") {
       settings.loginBgUrl = `/${filename}?t=${Date.now()}`;
+      settings.loginBgUseBing = false;
     }
 
     // Save updated settings

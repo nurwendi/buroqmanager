@@ -75,35 +75,32 @@ export async function GET(request: Request) {
             month: currentMonth,
             year: currentYear,
             method: { not: 'EXPENSE' },
+            status: 'completed'
         };
 
-        const payments = await db.payment.findMany({
-            where: {
-                ...paymentWhereClauseMonth,
-                status: 'completed'
-            },
-            include: {
-                commissions: true
-            }
-        });
+        const [grossRevAgg, staffCommAgg, totalUnpaidRaw] = await Promise.all([
+            db.payment.aggregate({
+                _sum: { amount: true },
+                where: paymentWhereClauseMonth
+            }),
+            db.commission.aggregate({
+                _sum: { amount: true },
+                where: { payment: paymentWhereClauseMonth }
+            }),
+            db.payment.aggregate({
+                _sum: { amount: true },
+                where: {
+                    ...baseWhere,
+                    status: 'pending',
+                    method: { not: 'EXPENSE' }
+                }
+            })
+        ]);
 
-        const grossRevenue = payments.reduce((sum, p) => sum + Number(p.amount), 0);
-        const staffCommission = payments.reduce((sum, p) => {
-            const paymentCommission = (p.commissions || []).reduce((cSum, c) => cSum + Number(c.amount), 0);
-            return sum + paymentCommission;
-        }, 0);
+        const grossRevenue = Number(grossRevAgg._sum.amount || 0);
+        const staffCommission = Number(staffCommAgg._sum.amount || 0);
         const netRevenue = grossRevenue - staffCommission;
         const monthlyRevenue = grossRevenue; // Backward compatibility
-
-        // Calculate Unpaid (Piutang) - GLOBAL scope (all months)
-        const totalUnpaidRaw = await db.payment.aggregate({
-            _sum: { amount: true },
-            where: {
-                ...baseWhere,
-                status: 'pending',
-                method: { not: 'EXPENSE' }
-            }
-        });
         const totalUnpaid = Number(totalUnpaidRaw._sum.amount || 0);
 
         // 3. Get Routers & Real-time PPPoE Active Count

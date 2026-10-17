@@ -57,16 +57,16 @@ export async function GET(request) {
             customerWhere = { ownerId: effectiveOwnerId || 'impossible_id' };
         }
 
-        const myCustomers = await db.customer.findMany({
-            where: customerWhere,
-            select: { username: true }
-        });
-        const allowedUsernames = myCustomers.map(c => c.username);
-
+        const isAgentRole = ['agent', 'partner', 'staff', 'editor'].includes(role);
         let paymentWhere = {};
+
         if (role !== 'superadmin') {
-            const isAgentRole = ['agent', 'partner', 'staff', 'editor'].includes(role);
             if (isAgentRole) {
+                const myCustomers = await db.customer.findMany({
+                    where: customerWhere,
+                    select: { username: true }
+                });
+                const allowedUsernames = myCustomers.map(c => c.username);
                 paymentWhere = {
                     OR: [
                         { username: { in: allowedUsernames } },
@@ -74,11 +74,16 @@ export async function GET(request) {
                     ],
                     ownerId: currentUser.ownerId
                 };
-            } else if (role === 'admin') {
+            } else if (role === 'admin' || role === 'manager') {
                 paymentWhere = {
-                    ownerId: effectiveOwnerId
+                    ownerId: role === 'manager' && currentUser.ownerId ? currentUser.ownerId : effectiveOwnerId
                 };
             } else {
+                const myCustomers = await db.customer.findMany({
+                    where: customerWhere,
+                    select: { username: true }
+                });
+                const allowedUsernames = myCustomers.map(c => c.username);
                 paymentWhere = {
                     username: { in: allowedUsernames },
                     ownerId: effectiveOwnerId
@@ -91,98 +96,132 @@ export async function GET(request) {
             }
         }
 
-        const payments = await db.payment.findMany({ 
-            where: paymentWhere,
-            include: { commissions: true }
-        });
-
-        const totalRevenue = payments
-            .filter(p => p.status === 'completed')
-            .reduce((sum, p) => sum + Number(p.amount), 0);
-
         // Use Asia/Jakarta timezone for date calculations
         const now = new Date();
         const dFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jakarta', year: 'numeric', month: 'numeric', day: 'numeric' });
         const parts = dFmt.formatToParts(now);
         const currentMonth = parseInt(parts.find(p => p.type === 'month').value) - 1;
         const currentYear = parseInt(parts.find(p => p.type === 'year').value);
-        const todayStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${parts.find(p => p.type === 'day').value.padStart(2, '0')}`;
+        const currentDay = parseInt(parts.find(p => p.type === 'day').value);
 
-        const todaysRevenue = payments
-            .filter(p => {
-                if (p.status !== 'completed') return false;
-                const pDate = new Date(p.date);
-                const pParts = dFmt.formatToParts(pDate);
-                const pDayStr = `${pParts.find(px => px.type === 'year').value}-${String(parseInt(pParts.find(px => px.type === 'month').value)).padStart(2, '0')}-${pParts.find(px => px.type === 'day').value.padStart(2, '0')}`;
-                return pDayStr === todayStr;
-            })
-            .reduce((sum, p) => sum + Number(p.amount), 0);
+        // Today boundaries in Asia/Jakarta (+07:00)
+        const todayStartStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}T00:00:00+07:00`;
+        const todayStart = new Date(todayStartStr);
+        const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
-        const thisMonthPayments = payments.filter(p => {
-            return p.status === 'completed' && 
-                   p.method !== 'EXPENSE' &&
-                   p.month === currentMonth && 
-                   p.year === currentYear;
-        });
-
-        const grossRevenue = thisMonthPayments.reduce((sum, p) => sum + Number(p.amount), 0);
-        
-        // Calculate total staff commission (all commissions deducted from gross revenue)
-        // For agent/staff role: also compute their personal commission for display purposes
-        const staffCommission = thisMonthPayments.reduce((sum, p) => {
-            const totalComm = (p.commissions || []).reduce((cSum, c) => cSum + Number(c.amount), 0);
-            return sum + totalComm;
-        }, 0);
-
-        // Personal commission (for staff/agent individual view — available as a separate field)
-        const myCommission = thisMonthPayments.reduce((sum, p) => {
-            const myComm = (p.commissions || []).find(c => c.userId === currentUser.id);
-            return sum + (myComm ? Number(myComm.amount) : 0);
-        }, 0);
-
-        const netRevenue = grossRevenue - staffCommission;
-        const thisMonthRevenue = grossRevenue; // Backward compatibility
-
-
-        const pendingCount = payments.filter(p => p.status === 'pending').length;
-
-        const totalUnpaid = payments
-            .filter(p => p.status === 'pending')
-            .reduce((sum, p) => sum + Number(p.amount), 0);
-
-        // --- NEW: Calculate 6-month historical revenue for chart ---
-        const monthlyRevenue = [];
+        // 6-month chart target months
+        const targetMonths = [];
         for (let i = 5; i >= 0; i--) {
             const targetDate = new Date(now);
             targetDate.setMonth(now.getMonth() - i);
             const tParts = dFmt.formatToParts(targetDate);
             const tMonth = parseInt(tParts.find(px => px.type === 'month').value) - 1;
             const tYear = parseInt(tParts.find(px => px.type === 'year').value);
-            
-            const monthTotal = payments
-                .filter(p => {
-                    return p.status === 'completed' && p.month === tMonth && p.year === tYear;
-                })
-                .reduce((sum, p) => sum + Number(p.amount), 0);
-
-            // Format month name (e.g. "Jan", "Feb")
             const monthName = targetDate.toLocaleString('id-ID', { month: 'short' });
-            monthlyRevenue.push({ name: monthName, revenue: monthTotal });
+            targetMonths.push({ month: tMonth, year: tYear, name: monthName });
         }
 
-        // --- NEW: Top 5 Recent Transactions ---
-        // Sort descending by date and grab first 5 completed
-        const recentPayments = payments
-            .filter(p => p.status === 'completed')
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
-            .slice(0, 5);
+        const thisMonthWhere = {
+            ...paymentWhere,
+            status: 'completed',
+            method: { not: 'EXPENSE' },
+            month: currentMonth,
+            year: currentYear
+        };
+
+        const [
+            totalRevAgg,
+            todaysRevAgg,
+            thisMonthRevAgg,
+            staffCommAgg,
+            myCommAgg,
+            pendingAgg,
+            totalTxCount,
+            recentPayments,
+            totalCustomersCount,
+            ...chartMonthAggs
+        ] = await Promise.all([
+            db.payment.aggregate({
+                _sum: { amount: true },
+                where: { ...paymentWhere, status: 'completed' }
+            }),
+            db.payment.aggregate({
+                _sum: { amount: true },
+                where: {
+                    ...paymentWhere,
+                    status: 'completed',
+                    date: { gte: todayStart, lt: todayEnd }
+                }
+            }),
+            db.payment.aggregate({
+                _sum: { amount: true },
+                where: thisMonthWhere
+            }),
+            db.commission.aggregate({
+                _sum: { amount: true },
+                where: { payment: thisMonthWhere }
+            }),
+            db.commission.aggregate({
+                _sum: { amount: true },
+                where: { userId: currentUser.id, payment: thisMonthWhere }
+            }),
+            db.payment.aggregate({
+                _sum: { amount: true },
+                _count: { _all: true },
+                where: { ...paymentWhere, status: 'pending' }
+            }),
+            db.payment.count({ where: paymentWhere }),
+            db.payment.findMany({
+                where: { ...paymentWhere, status: 'completed' },
+                orderBy: { date: 'desc' },
+                take: 5,
+                select: {
+                    id: true,
+                    invoiceNumber: true,
+                    username: true,
+                    amount: true,
+                    date: true,
+                    method: true,
+                    notes: true
+                }
+            }),
+            db.customer.count({ where: customerWhere }),
+            ...targetMonths.map(tm =>
+                db.payment.aggregate({
+                    _sum: { amount: true },
+                    where: {
+                        ...paymentWhere,
+                        status: 'completed',
+                        month: tm.month,
+                        year: tm.year
+                    }
+                })
+            )
+        ]);
+
+        const totalRevenue = Number(totalRevAgg._sum.amount || 0);
+        const todaysRevenue = Number(todaysRevAgg._sum.amount || 0);
+        const grossRevenue = Number(thisMonthRevAgg._sum.amount || 0);
+        const staffCommission = Number(staffCommAgg._sum.amount || 0);
+        const myCommission = Number(myCommAgg._sum.amount || 0);
+        const netRevenue = grossRevenue - staffCommission;
+        const thisMonthRevenue = grossRevenue;
+        const pendingCount = pendingAgg._count._all || 0;
+        const totalUnpaid = Number(pendingAgg._sum.amount || 0);
+
+        const monthlyRevenue = targetMonths.map((tm, idx) => ({
+            name: tm.name,
+            revenue: Number(chartMonthAggs[idx]?._sum?.amount || 0)
+        }));
 
         // Fetch customer names for these 5 recent payments
         const recentUsernames = [...new Set(recentPayments.map(p => p.username))];
-        const recentCustomers = await db.customer.findMany({
-            where: { username: { in: recentUsernames } },
-            select: { username: true, name: true }
-        });
+        const recentCustomers = recentUsernames.length > 0
+            ? await db.customer.findMany({
+                where: { username: { in: recentUsernames } },
+                select: { username: true, name: true }
+            })
+            : [];
         const customerMap = recentCustomers.reduce((acc, curr) => {
             acc[curr.username] = curr.name;
             return acc;
@@ -199,7 +238,6 @@ export async function GET(request) {
         }));
 
         const activeCustomers = 0; // Handled client-side via live Mikrotik query or ignored
-        const totalCustomersCount = await db.customer.count({ where: customerWhere });
 
         return NextResponse.json({
             totalRevenue,
@@ -211,7 +249,7 @@ export async function GET(request) {
             todaysRevenue,
             pendingCount,
             totalUnpaid,
-            totalTransactions: payments.length,
+            totalTransactions: totalTxCount,
             monthlyRevenue,
             recentTransactions,
             pppoeActive: activeCustomers,

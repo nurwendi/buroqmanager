@@ -112,6 +112,7 @@ export default function AppSettingsPage() {
     logoUrl: "",
     dashboardBgUrl: "",
     loginBgUrl: "",
+    loginBgUseBing: false,
     adminUsername: "",
     adminPassword: "",
     newPassword: "",
@@ -219,12 +220,16 @@ export default function AppSettingsPage() {
       const res = await fetch("/api/app-settings");
       if (res.ok) {
         const data = await res.json();
+        const useBing = Boolean(
+          data.loginBgUseBing || data.loginBgUrl === "/api/bing-wallpaper"
+        );
         setSettings((prev) => ({
           ...prev,
           appName: data.appName || "Mikrotik Manager",
           logoUrl: data.logoUrl || "",
           dashboardBgUrl: data.dashboardBgUrl || "",
-          loginBgUrl: data.loginBgUrl || "",
+          loginBgUrl: useBing ? "/api/bing-wallpaper" : data.loginBgUrl || "",
+          loginBgUseBing: useBing,
         }));
       }
     } catch (error) {
@@ -316,7 +321,10 @@ export default function AppSettingsPage() {
           appName: settings.appName,
           logoUrl: settings.logoUrl,
           dashboardBgUrl: settings.dashboardBgUrl,
-          loginBgUrl: settings.loginBgUrl,
+          loginBgUrl: settings.loginBgUseBing
+            ? "/api/bing-wallpaper"
+            : settings.loginBgUrl,
+          loginBgUseBing: settings.loginBgUseBing,
         }),
       });
 
@@ -352,6 +360,8 @@ export default function AppSettingsPage() {
             ? "Logo"
             : type === "background"
             ? t("appSettings.dashboardBackground")
+            : type === "loginbg"
+            ? "Background Login"
             : "Favicon";
         setMessage({
           type: "success",
@@ -359,9 +369,7 @@ export default function AppSettingsPage() {
         });
 
         // If logo or background, update the preview by reloading or letting user do it
-        if (type === "logo" || type === "background") {
-          // Assuming the upload API saves it to a predictable path or returns the path
-          // For now, just reload to see changes as the previous code did
+        if (type === "logo" || type === "background" || type === "loginbg") {
           setTimeout(() => window.location.reload(), 1000);
         }
       } else {
@@ -941,52 +949,103 @@ export default function AppSettingsPage() {
                   </div>
 
                   <div className="mb-6 space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Upload Gambar Background Login
+                    {/* Bing Daily Wallpaper Toggle */}
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/50">
+                      <div className="space-y-0.5 pr-4">
+                        <div className="flex items-center gap-2">
+                          <Globe size={16} className="text-blue-600 dark:text-blue-400" />
+                          <span className="text-sm font-medium text-gray-800 dark:text-white">
+                            Gunakan Bing Daily Wallpaper
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Background halaman login akan berganti secara otomatis setiap hari mengikuti Bing Daily Wallpaper.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={Boolean(settings.loginBgUseBing)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setSettings((prev) => ({
+                              ...prev,
+                              loginBgUseBing: checked,
+                              loginBgUrl: checked
+                                ? "/api/bing-wallpaper"
+                                : prev.loginBgUrl === "/api/bing-wallpaper"
+                                ? ""
+                                : prev.loginBgUrl,
+                            }));
+                          }}
+                        />
+                        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green-500/40 dark:bg-gray-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
                       </label>
-                      <input
-                        type="file"
-                        accept="image/png, image/jpeg, image/webp"
-                        onChange={(e) => handleFileUpload(e, "loginbg")}
-                        className="block w-full text-sm text-gray-500
-                                file:mr-4 file:py-2 file:px-4
-                                file:rounded-full file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-green-50 file:text-green-700
-                                hover:file:bg-green-100 dark:file:bg-green-900/40 dark:file:text-green-300"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Ukuran disarankan: 1920×1080px atau lebih. Format: PNG, JPG, WebP.
-                      </p>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Atau gunakan URL gambar
-                      </label>
-                      <input
-                        type="text"
-                        value={settings.loginBgUrl}
-                        onChange={(e) =>
-                          setSettings({ ...settings, loginBgUrl: e.target.value })
-                        }
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder="/login-bg.png atau https://..."
-                      />
-                    </div>
+                    {!settings.loginBgUseBing && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Upload Gambar Background Login
+                          </label>
+                          <input
+                            type="file"
+                            accept="image/png, image/jpeg, image/webp"
+                            onChange={(e) => handleFileUpload(e, "loginbg")}
+                            className="block w-full text-sm text-gray-500
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-full file:border-0
+                                    file:text-sm file:font-semibold
+                                    file:bg-green-50 file:text-green-700
+                                    hover:file:bg-green-100 dark:file:bg-green-900/40 dark:file:text-green-300"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Ukuran disarankan: 1920×1080px atau lebih. Format: PNG, JPG, WebP.
+                          </p>
+                        </div>
 
-                    {settings.loginBgUrl && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Atau gunakan URL gambar
+                          </label>
+                          <input
+                            type="text"
+                            value={settings.loginBgUrl}
+                            onChange={(e) =>
+                              setSettings({
+                                ...settings,
+                                loginBgUrl: e.target.value,
+                                loginBgUseBing: false,
+                              })
+                            }
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            placeholder="/login-bg.png atau https://..."
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {(settings.loginBgUseBing || settings.loginBgUrl) && (
                       <div className="mt-4">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Preview
+                          {settings.loginBgUseBing
+                            ? "Preview Bing Daily Wallpaper Hari Ini"
+                            : "Preview"}
                         </label>
                         <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-700/50">
                           <img
-                            src={settings.loginBgUrl}
+                            src={
+                              settings.loginBgUseBing
+                                ? "/api/bing-wallpaper"
+                                : settings.loginBgUrl
+                            }
                             alt="Login Background preview"
                             className="w-full h-32 object-cover object-center"
-                            onError={(e) => { e.target.style.display = 'none'; }}
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                            }}
                           />
                         </div>
                       </div>

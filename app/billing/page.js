@@ -72,20 +72,23 @@ export default function BillingPage() {
     }, [showModal, formData.username]);
 
     useEffect(() => {
-        fetchData();
         fetchUsers();
         fetchSystemUsers();
         fetchProfiles();
         fetchSettings();
         fetchCustomersData();
         fetchUserRole();
+    }, []);
+
+    useEffect(() => {
+        fetchData();
     }, [selectedMonth, selectedYear]); // Re-fetch when month/year changes
 
     const fetchData = async () => {
         setLoading(true);
         try {
             const [paymentsRes, statsRes, agentStatsRes] = await Promise.all([
-                fetch('/api/billing/payments'),
+                fetch(`/api/billing/payments?month=${selectedMonth}&year=${selectedYear}`),
                 fetch('/api/billing/stats'),
                 fetch(`/api/billing/stats/agent?month=${selectedMonth}&year=${selectedYear}`) // Fetch agent stats
             ]);
@@ -254,16 +257,18 @@ export default function BillingPage() {
 
 
     const filteredPayments = payments.filter(p => {
-        const customerName = customersData[p.username]?.name || '';
+        const customerName = p.customerName || customersData[p.username]?.name || '';
         const searchLower = searchTerm.toLowerCase();
-        const pDate = new Date(p.date);
+        const pMonth = p.month !== undefined ? p.month : new Date(p.date).getMonth();
+        const pYear = p.year !== undefined ? p.year : new Date(p.date).getFullYear();
 
         // Filter by selected month/year
-        const matchesMonth = pDate.getMonth() === selectedMonth && pDate.getFullYear() === selectedYear;
+        const matchesMonth = pMonth === selectedMonth && pYear === selectedYear;
 
         // Filter by search term
         const matchesSearch = (p.username || '').toLowerCase().includes(searchLower) ||
             (customerName || '').toLowerCase().includes(searchLower) ||
+            (p.invoiceNumber || '').toLowerCase().includes(searchLower) ||
             (p.notes || '').toLowerCase().includes(searchLower);
 
         return matchesMonth && matchesSearch;
@@ -272,14 +277,19 @@ export default function BillingPage() {
     const getAvailableMonths = () => {
         const months = new Set();
 
-        // Always include current month
+        // Always include current month and past 12 months so user can switch months anytime
         const now = new Date();
-        months.add(`${now.getFullYear()}-${now.getMonth()}`);
+        for (let i = 0; i < 12; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            months.add(`${d.getFullYear()}-${String(d.getMonth()).padStart(2, '0')}`);
+        }
+        months.add(`${selectedYear}-${String(selectedMonth).padStart(2, '0')}`);
 
-        // Add all months from payments
+        // Add any months present in loaded payments
         payments.forEach(p => {
-            const date = new Date(p.date);
-            months.add(`${date.getFullYear()}-${date.getMonth()}`);
+            const m = p.month !== undefined ? p.month : new Date(p.date).getMonth();
+            const y = p.year !== undefined ? p.year : new Date(p.date).getFullYear();
+            months.add(`${y}-${String(m).padStart(2, '0')}`);
         });
 
         return Array.from(months).sort().reverse().map(m => {
@@ -290,8 +300,9 @@ export default function BillingPage() {
 
     const getMonthStats = () => {
         const monthPayments = payments.filter(p => {
-            const pDate = new Date(p.date);
-            return pDate.getMonth() === selectedMonth && pDate.getFullYear() === selectedYear;
+            const pMonth = p.month !== undefined ? p.month : new Date(p.date).getMonth();
+            const pYear = p.year !== undefined ? p.year : new Date(p.date).getFullYear();
+            return pMonth === selectedMonth && pYear === selectedYear;
         });
 
         const totalRevenue = monthPayments
@@ -308,6 +319,16 @@ export default function BillingPage() {
             totalTransactions: monthPayments.length,
             pendingCount: monthPayments.filter(p => p.status !== 'completed').length
         };
+    };
+
+    const fetchCustomersData = async () => {
+        try {
+            const res = await fetch('/api/customers?lite=true');
+            const data = await res.json();
+            setCustomersData(data);
+        } catch (error) {
+            console.error('Failed to fetch customers data', error);
+        }
     };
 
     const formatCurrency = (amount) => {
@@ -337,16 +358,6 @@ export default function BillingPage() {
         } catch (error) {
             console.error('Failed to fetch customer details', error);
             setCustomerDetails({ name: '', address: '', phone: '' });
-        }
-    };
-
-    const fetchCustomersData = async () => {
-        try {
-            const res = await fetch('/api/customers');
-            const data = await res.json();
-            setCustomersData(data);
-        } catch (error) {
-            console.error('Failed to fetch customers data', error);
         }
     };
 

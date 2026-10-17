@@ -24,6 +24,8 @@ export async function GET(request) {
                 return NextResponse.json({ error: 'Year is required for yearly stats' }, { status: 400 });
             }
 
+            const targetYear = parseInt(year);
+
             // Initialize 12 months data
             const yearlyData = Array.from({ length: 12 }, (_, i) => ({
                 name: new Date(0, i).toLocaleString('id-ID', { month: 'short' }),
@@ -33,12 +35,11 @@ export async function GET(request) {
                 paidCount: 0
             }));
 
-            // Fetch payments for the year
+            // Fetch payments for the year using indexed year + status
             let where = {
-                date: {
-                    gte: new Date(`${year}-01-01`),
-                    lt: new Date(`${parseInt(year) + 1}-01-01`)
-                }
+                year: targetYear,
+                status: 'completed',
+                method: { notIn: ['EXPENSE', 'expense'] }
             };
 
             // Filter by Owner
@@ -46,62 +47,70 @@ export async function GET(request) {
                 const ownerId = currentUser.role === 'admin' ? currentUser.id : currentUser.ownerId;
                 if (ownerId) where.ownerId = ownerId;
                 else if (currentUser.role !== 'admin') {
-                    // unowned staff?
                     where.ownerId = 'nothing';
                 }
             }
 
-            const payments = await db.payment.findMany({
-                where,
-                include: { commissions: true }
-            });
+            if (currentUser.role === 'admin' || currentUser.role === 'superadmin') {
+                const [monthRevGroups, commissions] = await Promise.all([
+                    db.payment.groupBy({
+                        by: ['month'],
+                        _sum: { amount: true },
+                        _count: { _all: true },
+                        where
+                    }),
+                    db.commission.findMany({
+                        where: { payment: where },
+                        select: { amount: true, payment: { select: { month: true } } }
+                    })
+                ]);
 
-            // Iterate and Aggregate
-            for (const p of payments) {
-                const pDate = new Date(p.date); // or use p.month if reliable
-                const mIndex = pDate.getMonth();
-
-                if (p.status === 'completed' && p.method !== 'EXPENSE' && p.method !== 'expense') {
-                    const amount = parseFloat(p.amount);
-
-                    if (currentUser.role === 'admin') {
-                        yearlyData[mIndex].revenue += amount;
-                        // Sum commissions
-                        const commTotal = p.commissions.reduce((sum, c) => sum + c.amount, 0);
-                        yearlyData[mIndex].commission += commTotal;
+                for (const g of monthRevGroups) {
+                    if (g.month >= 0 && g.month < 12) {
+                        yearlyData[g.month].revenue = Number(g._sum.amount || 0);
+                        yearlyData[g.month].paidCount = g._count._all || 0;
                     }
-                    else {
-                        // Partner view (Agent/Tech)
-                        // Check if this user received commission on this payment
-                        const myCommission = p.commissions.find(c => c.userId === currentUser.id);
-                        if (myCommission) {
-                            yearlyData[mIndex].commission += myCommission.amount;
-                            // Count revenue if I am the primary reason (e.g. agent).
-                            // If I am technician, do I count revenue?
-                            // Logic in original code:
-                            // Agent: revenue += amount
-                            // Tech: revenue += amount ONLY if not already counted (i.e. if not also agent)
+                }
 
-                            if (myCommission.role === 'agent') {
-                                yearlyData[mIndex].revenue += amount;
-                                yearlyData[mIndex].paidCount += 1;
-                            } else if (myCommission.role === 'technician') {
-                                // Check if I am also the agent for this txn? 
-                                // The commissions list has all.
-                                const isAlsoAgent = p.commissions.some(c => c.userId === currentUser.id && c.role === 'agent');
-                                if (!isAlsoAgent) {
-                                    yearlyData[mIndex].revenue += amount;
-                                    yearlyData[mIndex].paidCount += 1;
-                                }
-                            }
+                for (const c of commissions) {
+                    const m = c.payment?.month;
+                    if (m !== undefined && m >= 0 && m < 12) {
+                        yearlyData[m].commission += Number(c.amount || 0);
+                    }
+                }
+            } else {
+                const myCommissions = await db.commission.findMany({
+                    where: {
+                        userId: currentUser.id,
+                        payment: where
+                    },
+                    select: {
+                        role: true,
+                        amount: true,
+                        paymentId: true,
+                        payment: {
+                            select: { month: true, amount: true }
                         }
+                    }
+                });
+
+                const countedPaymentIds = new Set();
+                for (const c of myCommissions) {
+                    const mIndex = c.payment?.month;
+                    if (mIndex === undefined || mIndex < 0 || mIndex >= 12) continue;
+
+                    yearlyData[mIndex].commission += Number(c.amount || 0);
+                    if (!countedPaymentIds.has(c.paymentId)) {
+                        yearlyData[mIndex].revenue += Number(c.payment?.amount || 0);
+                        yearlyData[mIndex].paidCount += 1;
+                        countedPaymentIds.add(c.paymentId);
                     }
                 }
             }
 
             return NextResponse.json({
                 role: currentUser.role,
-                year: parseInt(year),
+                year: targetYear,
                 yearlyStats: yearlyData
             });
         }

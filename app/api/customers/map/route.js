@@ -25,7 +25,12 @@ export async function GET(request) {
             }
         }
 
-        const customersList = await db.customer.findMany({
+        where.coordinates = {
+            not: null,
+            contains: ','
+        };
+
+        const withCoords = await db.customer.findMany({
             where,
             select: {
                 username: true,
@@ -33,7 +38,6 @@ export async function GET(request) {
                 phone: true,
                 address: true,
                 coordinates: true,
-                
                 profile: {
                     select: {
                         name: true
@@ -42,8 +46,6 @@ export async function GET(request) {
             }
         });
 
-        // Filter only those that have coordinates
-        const withCoords = customersList.filter(c => c.coordinates && c.coordinates.includes(','));
         return NextResponse.json(withCoords);
     } catch (error) {
         console.error('[API_CUSTOMERS_MAP_GET]', error);

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/api-auth';
 import db from '@/lib/db';
 import { getMikrotikClient } from '@/lib/mikrotik';
-import { generateCustomerId } from '@/lib/customer-utils';
+import { generateCustomerIdsBatch } from '@/lib/customer-utils';
 
 export async function POST(request) {
     try {
@@ -13,9 +13,10 @@ export async function POST(request) {
 
         const ownerId = user.role === 'admin' ? user.id : user.ownerId || user.id;
 
-        // 1. Get all from DB
+        // 1. Get all existing usernames from DB (select only username)
         const dbCustomers = await db.customer.findMany({
-            where: { ownerId }
+            where: { ownerId },
+            select: { username: true }
         });
         const existingUsernames = new Set(dbCustomers.map(c => c.username));
 
@@ -28,38 +29,45 @@ export async function POST(request) {
         }
 
         // 3. Find missing (virtual)
-        const virtuals = mikrotikUsers.filter(u => !existingUsernames.has(u.name));
-        
-        let importedCount = 0;
-        let errors = 0;
+        const virtuals = mikrotikUsers.filter(u => u.name && !existingUsernames.has(u.name));
 
-        // 4. Import them
-        for (const u of virtuals) {
-            try {
-                const newCustomerId = await generateCustomerId(ownerId);
-                await db.customer.create({
-                    data: {
-                        username: u.name,
-                        customerId: newCustomerId,
-                        name: u.name, // Fallback name
-                        address: '-',
-                        phone: '-',
-                        ownerId: ownerId,
-                        password: u.password || '',
-                        comment: u.comment || ''
-                    }
-                });
-                importedCount++;
-            } catch (err) {
-                console.error(`Failed to import virtual user ${u.name}:`, err);
-                errors++;
-            }
+        if (virtuals.length === 0) {
+            return NextResponse.json({
+                success: true,
+                importedCount: 0,
+                errors: 0,
+                message: 'Tidak ada pelanggan virtual baru untuk diimport.'
+            });
+        }
+
+        // 4. Batch-generate Customer IDs and insert in chunks of 1000
+        const batchCustomerIds = await generateCustomerIdsBatch(ownerId, virtuals.length);
+        const customersToCreate = virtuals.map((u, idx) => ({
+            username: u.name,
+            customerId: batchCustomerIds[idx],
+            name: u.name,
+            address: '-',
+            phone: '-',
+            ownerId: ownerId,
+            password: u.password || '',
+            comment: u.comment || ''
+        }));
+
+        let importedCount = 0;
+        const CHUNK_SIZE = 1000;
+        for (let i = 0; i < customersToCreate.length; i += CHUNK_SIZE) {
+            const chunk = customersToCreate.slice(i, i + CHUNK_SIZE);
+            const res = await db.customer.createMany({
+                data: chunk,
+                skipDuplicates: true
+            });
+            importedCount += res.count;
         }
 
         return NextResponse.json({ 
             success: true, 
             importedCount,
-            errors,
+            errors: virtuals.length - importedCount,
             message: `Berhasil mengimport ${importedCount} pelanggan virtual.`
         });
 

@@ -11,7 +11,11 @@ export async function GET() {
     });
 
     if (setting) {
-      return NextResponse.json(JSON.parse(setting.value));
+      const parsed = JSON.parse(setting.value);
+      return NextResponse.json({
+        ...parsed,
+        loginBgUseBing: Boolean(parsed.loginBgUseBing || parsed.loginBgUrl === "/api/bing-wallpaper"),
+      });
     }
 
     // Default
@@ -20,6 +24,7 @@ export async function GET() {
       logoUrl: "",
       dashboardBgUrl: "",
       loginBgUrl: "",
+      loginBgUseBing: false,
     });
   } catch (error) {
     return NextResponse.json(
@@ -37,7 +42,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { appName, logoUrl, dashboardBgUrl, loginBgUrl } = body;
+    const { appName, logoUrl, dashboardBgUrl, loginBgUrl, loginBgUseBing } = body;
 
     // Fetch existing settings to preserve other fields like faviconUrl
     const existingRecord = await db.systemSetting.findUnique({
@@ -49,6 +54,19 @@ export async function POST(request) {
       currentSettings = JSON.parse(existingRecord.value);
     }
 
+    const useBing =
+      loginBgUseBing !== undefined
+        ? Boolean(loginBgUseBing)
+        : Boolean(currentSettings.loginBgUseBing);
+
+    const resolvedLoginBgUrl = useBing
+      ? "/api/bing-wallpaper"
+      : loginBgUrl !== undefined
+      ? loginBgUrl
+      : currentSettings.loginBgUrl === "/api/bing-wallpaper"
+      ? ""
+      : currentSettings.loginBgUrl || "";
+
     const settings = {
       ...currentSettings,
       appName: appName || currentSettings.appName || "Buroq Billing",
@@ -57,10 +75,8 @@ export async function POST(request) {
         dashboardBgUrl !== undefined
           ? dashboardBgUrl
           : currentSettings.dashboardBgUrl || "",
-      loginBgUrl:
-        loginBgUrl !== undefined
-          ? loginBgUrl
-          : currentSettings.loginBgUrl || "",
+      loginBgUrl: resolvedLoginBgUrl,
+      loginBgUseBing: useBing,
     };
 
     await db.systemSetting.upsert({

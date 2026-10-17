@@ -54,6 +54,9 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const username = searchParams.get('username');
     const status = searchParams.get('status');
+    const monthParam = searchParams.get('month');
+    const yearParam = searchParams.get('year');
+    const limitParam = searchParams.get('limit');
     const user = await getUserFromRequest(request);
 
     if (!user) {
@@ -62,6 +65,12 @@ export async function GET(request) {
 
     let where = {};
     if (status) where.status = status;
+    if (monthParam !== null && monthParam !== '' && !isNaN(parseInt(monthParam))) {
+        where.month = parseInt(monthParam);
+    }
+    if (yearParam !== null && yearParam !== '' && !isNaN(parseInt(yearParam))) {
+        where.year = parseInt(yearParam);
+    }
 
     // Filter based on role
     if (user.role === 'customer') {
@@ -100,18 +109,6 @@ export async function GET(request) {
         }
     }
 
-    // ... filtering by username param ...
-
-    // POST Logic for Owner Assignment
-    // Inside POST function...
-    // const customer = await db.customer.findMany({ where: { username: body.username } }); // Changed to findMany likely if ambiguous? No logic here is comments.
-
-    // ...
-    // data: {
-    //    ownerId: customer?.ownerId,
-    //    ...
-    // }
-
     if (username) {
         // combine with existing filtered list if any
         if (where.username && where.username.in) {
@@ -125,7 +122,7 @@ export async function GET(request) {
         }
     }
 
-    const payments = await db.payment.findMany({
+    const queryOptions = {
         where,
         include: { 
             commissions: {
@@ -137,20 +134,33 @@ export async function GET(request) {
             }
         },
         orderBy: { date: 'desc' }
-    });
+    };
+
+    if (limitParam && !isNaN(parseInt(limitParam))) {
+        queryOptions.take = parseInt(limitParam);
+    }
+
+    const payments = await db.payment.findMany(queryOptions);
 
     const userNames = [...new Set(payments.map(p => p.username))];
-    const customers = await db.customer.findMany({
-        where: { username: { in: userNames } },
-        select: { username: true, name: true, customerId: true }
-    });
+    const customers = userNames.length > 0
+        ? await db.customer.findMany({
+            where: {
+                username: { in: userNames },
+                ...(where.ownerId ? { ownerId: where.ownerId } : {})
+            },
+            select: { username: true, name: true, customerId: true }
+        })
+        : [];
     
-    const customerMap = {};
-    customers.forEach(c => { customerMap[c.username] = c.name; });
+    const customerObjMap = new Map();
+    customers.forEach(c => {
+        customerObjMap.set(c.username, c);
+    });
 
     const enrichedPayments = payments.map(p => {
         const agentComm = p.commissions.find(c => c.role === 'agent');
-        const customer = customers.find(c => c.username === p.username);
+        const customer = customerObjMap.get(p.username);
         return {
             ...p,
             customerName: customer?.name || p.username,

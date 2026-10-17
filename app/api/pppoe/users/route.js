@@ -189,13 +189,22 @@ export async function GET(request) {
         const allUsageData = await getAllMonthlyUsage();
         const currentMonth = new Date().toISOString().slice(0, 7);
 
-        const usageMapLowerCase = {};
-        Object.keys(allUsageData).forEach(key => {
-            usageMapLowerCase[key.toLowerCase()] = allUsageData[key];
-        });
+        // Only build a lowercase fallback map if a direct match is missing
+        let usageMapLowerCase = null;
+        const getLowerCaseUsage = (lowerName) => {
+            if (!usageMapLowerCase) {
+                usageMapLowerCase = {};
+                const keys = Object.keys(allUsageData);
+                for (let i = 0; i < keys.length; i++) {
+                    const k = keys[i];
+                    usageMapLowerCase[k.toLowerCase()] = allUsageData[k];
+                }
+            }
+            return usageMapLowerCase[lowerName];
+        };
 
         const usersWithUsage = paginatedUsers.map(u => {
-            const userData = allUsageData[u.name] || usageMapLowerCase[(u.name || '').toLowerCase()];
+            const userData = allUsageData[u.name] || (u.name ? getLowerCaseUsage(u.name.toLowerCase()) : null);
             let usage = { rx: 0, tx: 0 };
 
             if (userData && userData.month === currentMonth) {

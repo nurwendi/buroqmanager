@@ -195,10 +195,12 @@ export default function UsersPage() {
     }, [showModal, editMode]);
 
     // Helper to get active connection for a user
-    const getActiveConnection = (username) => activeConnections.find(c => c.name === username);
+    const activeConnectionsMap = useMemo(() => new Map((activeConnections || []).map(c => [c.name, c])), [activeConnections]);
+    const getActiveConnection = (username) => activeConnectionsMap.get(username);
 
     // Helper to get ACS device for a user
-    const getAcsDevice = (username) => acsDevices.find(d => d.pppoe_user === username);
+    const acsDevicesMap = useMemo(() => new Map((acsDevices || []).map(d => [d.pppoe_user, d])), [acsDevices]);
+    const getAcsDevice = (username) => acsDevicesMap.get(username);
     // State for System Users (Agents/Techs) & Registrations
     const [systemUsers, setSystemUsers] = useState([]);
     const [pendingRegistrations, setPendingRegistrations] = useState([]);
