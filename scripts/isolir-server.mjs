@@ -111,6 +111,50 @@ const server = http.createServer(async (req, res) => {
     const pathname = url.pathname;
 
     // API Routes
+    if (pathname === '/api/app-settings') {
+        try {
+            const setting = await prisma.systemSetting.findUnique({
+                where: { key: 'app_settings' }
+            });
+            if (setting) {
+                const parsed = JSON.parse(setting.value);
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    ...parsed,
+                    loginBgUseBing: Boolean(parsed.loginBgUseBing || parsed.loginBgUrl === "/api/bing-wallpaper")
+                }));
+                return;
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ appName: 'Buroq Billing', logoUrl: '/logo.png' }));
+        } catch (error) {
+            console.error(error);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Internal Server Error' }));
+        }
+        return;
+    }
+
+    if (pathname === '/api/bing-wallpaper') {
+        try {
+            const bingRes = await fetch('https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=id-ID');
+            if (bingRes.ok) {
+                const bingData = await bingRes.json();
+                if (bingData.images && bingData.images.length > 0) {
+                    const imageUrl = `https://www.bing.com${bingData.images[0].url}`;
+                    res.writeHead(302, { Location: imageUrl });
+                    res.end();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.error('Error fetching Bing wallpaper:', e);
+        }
+        res.writeHead(302, { Location: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=1920&q=80' });
+        res.end();
+        return;
+    }
+
     if (pathname === '/api/isolir/contact') {
         try {
             const clientIp = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
