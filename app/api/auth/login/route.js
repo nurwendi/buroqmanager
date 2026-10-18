@@ -62,7 +62,7 @@ export async function POST(request) {
             const db = (await import('@/lib/db')).default;
             const bcrypt = (await import('bcryptjs')).default;
 
-            const customer = await db.customer.findFirst({
+            let customer = await db.customer.findFirst({
                 where: {
                     OR: [
                         { customerId: { equals: trimmedUsername, mode: 'insensitive' } },
@@ -74,6 +74,59 @@ export async function POST(request) {
                     ]
                 }
             });
+
+            // If not found in DB, check directly in Mikrotik routers (on-demand sync for virtual customer)
+            if (!customer) {
+                try {
+                    const { getConfig } = await import('@/lib/config');
+                    const { getMikrotikClient } = await import('@/lib/mikrotik');
+                    const config = await getConfig();
+                    const connections = config.connections || [];
+                    const connIds = connections.length > 0 ? connections.map(c => c.id) : [undefined];
+
+                    let matchedSecret = null;
+                    let matchedOwnerId = null;
+
+                    for (const connId of connIds) {
+                        try {
+                            const client = await getMikrotikClient(connId);
+                            const secrets = await client.write('/ppp/secret/print', [
+                                '?name=' + trimmedUsername
+                            ]);
+                            if (secrets && secrets.length > 0) {
+                                matchedSecret = secrets[0];
+                                const connObj = connections.find(c => c.id === connId);
+                                matchedOwnerId = connObj?.ownerId || null;
+                                break;
+                            }
+                        } catch (err) {
+                            // continue checking next router
+                        }
+                    }
+
+                    if (matchedSecret) {
+                        const { generateCustomerId } = await import('@/lib/customer-utils');
+                        const defaultOwner = matchedOwnerId || (await db.user.findFirst({ where: { role: 'admin' } }))?.id || null;
+                        const newCustomerId = await generateCustomerId(defaultOwner, db);
+                        const defaultHash = await bcrypt.hash('buroq', 10);
+
+                        customer = await db.customer.create({
+                            data: {
+                                customerId: newCustomerId,
+                                username: matchedSecret.name,
+                                name: '',
+                                phone: '',
+                                address: '',
+                                comment: matchedSecret.comment || '',
+                                password: defaultHash,
+                                ownerId: defaultOwner
+                            }
+                        });
+                    }
+                } catch (mtErr) {
+                    console.error('[Login] On-demand Mikrotik customer lookup error:', mtErr.message);
+                }
+            }
 
             if (customer) {
                 let authenticated = false;
