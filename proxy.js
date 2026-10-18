@@ -19,8 +19,12 @@ export async function proxy(request) {
     if (
         pathname === '/api/auth/login' ||
         pathname === '/api/auth/logout' ||
+        // Aktivasi pelanggan pertama kali: belum punya session token,
+        // route memverifikasi activationToken sendiri
+        pathname === '/api/auth/activate' ||
         pathname.startsWith('/api/isolir') ||
         (pathname === '/api/app-settings' && request.method === 'GET') ||
+        (pathname === '/api/bing-wallpaper' && request.method === 'GET') ||
         pathname.startsWith('/api/uploads') ||
         pathname.startsWith('/api/webhooks/midtrans') ||
         pathname.startsWith('/api/cron')
