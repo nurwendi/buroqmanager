@@ -66,6 +66,8 @@ export async function POST(request) {
                 where: {
                     OR: [
                         { customerId: { equals: trimmedUsername, mode: 'insensitive' } },
+                        { username: { equals: trimmedUsername, mode: 'insensitive' } },
+                        { phone: { equals: trimmedUsername, mode: 'insensitive' } },
                         ...(trimmedUsername.includes('@')
                             ? [{ email: { equals: trimmedUsername, mode: 'insensitive' } }]
                             : [])
@@ -77,42 +79,42 @@ export async function POST(request) {
                 let authenticated = false;
                 let isUsingDefaultPassword = false;
 
-                if (customer.password && customer.password.trim() !== '') {
+                const isIdentityIncomplete =
+                    !customer.name ||
+                    customer.name === customer.username ||
+                    !customer.phone ||
+                    customer.phone === '-' ||
+                    !customer.address ||
+                    customer.address === '-' ||
+                    (!customer.agentId && !customer.technicianId);
+
+                // Check password
+                if (password === 'buroq') {
+                    // Password 'buroq' is ALWAYS valid for initial activation as long as customer identity/activation is not yet complete,
+                    // or if customer password is not set or matches 'buroq'
+                    if (isIdentityIncomplete || !customer.password || customer.password.trim() === '') {
+                        authenticated = true;
+                        isUsingDefaultPassword = true;
+                    } else if (customer.password.startsWith('$2a$') || customer.password.startsWith('$2b$')) {
+                        const isMatch = await bcrypt.compare('buroq', customer.password);
+                        if (isMatch) {
+                            authenticated = true;
+                            isUsingDefaultPassword = true;
+                        }
+                    } else if (customer.password === 'buroq') {
+                        authenticated = true;
+                        isUsingDefaultPassword = true;
+                    }
+                } else if (customer.password && customer.password.trim() !== '') {
                     if (customer.password.startsWith('$2a$') || customer.password.startsWith('$2b$')) {
                         authenticated = await bcrypt.compare(password, customer.password);
-                        if (authenticated && password === 'buroq') {
-                            isUsingDefaultPassword = true;
-                        }
                     } else if (customer.password === password) {
                         authenticated = true;
-                        if (password === 'buroq') {
-                            isUsingDefaultPassword = true;
-                        }
                         const hashed = await bcrypt.hash(password, 10);
                         await db.customer.update({
                             where: { id: customer.id },
                             data: { password: hashed }
                         }).catch(err => console.error('[Login] Auto-hash customer password failed:', err.message));
-                    } else if (password === 'buroq') {
-                        // Also check if customer still hasn't completed identity or staff assignment (first time login with 'buroq')
-                        const isIdentityIncomplete =
-                            !customer.name ||
-                            customer.name === customer.username ||
-                            !customer.phone ||
-                            customer.phone === '-' ||
-                            !customer.address ||
-                            customer.address === '-' ||
-                            (!customer.agentId && !customer.technicianId);
-                        if (isIdentityIncomplete) {
-                            authenticated = true;
-                            isUsingDefaultPassword = true;
-                        }
-                    }
-                } else {
-                    // No password set yet -> default password is 'buroq'
-                    if (password === 'buroq') {
-                        authenticated = true;
-                        isUsingDefaultPassword = true;
                     }
                 }
 
@@ -134,15 +136,6 @@ export async function POST(request) {
                             message: 'Pengajuan aktivasi & perubahan data identitas Anda sedang menunggu konfirmasi dari Teknisi.'
                         }, { status: 403 });
                     }
-
-                    const isIdentityIncomplete =
-                        !customer.name ||
-                        customer.name === customer.username ||
-                        !customer.phone ||
-                        customer.phone === '-' ||
-                        !customer.address ||
-                        customer.address === '-' ||
-                        (!customer.agentId && !customer.technicianId);
 
                     if (isUsingDefaultPassword || isIdentityIncomplete) {
                         ipCache.delete(rateLimitKey);
