@@ -225,9 +225,14 @@ async function getContactInfo(clientIp) {
     }
 
     if (pppoeUsername) {
-        const customer = await prisma.customer.findUnique({
-            where: { username: pppoeUsername },
-            include: { agent: true, technician: true }
+        const customer = await prisma.customer.findFirst({
+            where: {
+                OR: [
+                    { username: pppoeUsername },
+                    { customerId: pppoeUsername }
+                ]
+            },
+            include: { agent: true, technician: true, owner: true }
         });
 
         if (customer) {
@@ -239,24 +244,29 @@ async function getContactInfo(clientIp) {
                 contactNumber = customer.technician.phone;
                 contactName = customer.technician.fullName || customer.technician.username;
                 contactRole = 'Teknisi';
+            } else if (customer.owner && customer.owner.phone) {
+                contactNumber = customer.owner.phone;
+                contactName = customer.owner.fullName || customer.owner.username;
+                contactRole = 'Admin';
             }
         }
     }
 
-    // Fallbacks
+    // Fallbacks jika pelanggan belum ada petugas atau nomor HP petugas kosong
     if (!contactNumber) {
-        const editor = await prisma.user.findFirst({ where: { role: 'editor' } });
-        if (editor?.phone) {
-            contactNumber = editor.phone;
-            contactName = editor.fullName || editor.username;
+        // Cek editor / admin / superadmin yang memiliki nomor telepon
+        const staff = await prisma.user.findFirst({
+            where: {
+                role: { in: ['admin', 'superadmin', 'editor', 'manager'] },
+                phone: { not: '' }
+            },
+            orderBy: { createdAt: 'asc' }
+        });
+
+        if (staff && staff.phone) {
+            contactNumber = staff.phone;
+            contactName = staff.fullName || staff.username;
             contactRole = 'Admin';
-        } else {
-            const admin = await prisma.user.findFirst({ where: { role: 'admin' } });
-            if (admin?.phone) {
-                contactNumber = admin.phone;
-                contactName = admin.fullName || admin.username;
-                contactRole = 'Admin';
-            }
         }
     }
 
