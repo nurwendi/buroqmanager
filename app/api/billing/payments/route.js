@@ -22,27 +22,43 @@ async function calculateCommissions(amount, username, ownerId = null) {
 
     if (customer) {
         const agent = customer.agent;
-        if (agent && (agent.isAgent || agent.role === 'staff') && agent.agentRate > 0) {
-            const commissionAmount = (amount * agent.agentRate) / 100;
-            commissionsData.push({
-                userId: agent.id,
-                username: agent.username,
-                role: 'agent',
-                rate: agent.agentRate,
-                amount: commissionAmount
-            });
-        }
-
         const technician = customer.technician;
-        if (technician && (technician.isTechnician || technician.role === 'staff') && technician.technicianRate > 0) {
-            const commissionAmount = (amount * technician.technicianRate) / 100;
-            commissionsData.push({
-                userId: technician.id,
-                username: technician.username,
-                role: 'technician',
-                rate: technician.technicianRate,
-                amount: commissionAmount
-            });
+
+        // If the same staff member is assigned as both Sales (agent) and Technician (unified staff)
+        if (agent && technician && agent.id === technician.id) {
+            const unifiedRate = agent.agentRate > 0 ? agent.agentRate : (technician.technicianRate || 0);
+            if ((agent.isAgent || agent.isTechnician || agent.role === 'staff') && unifiedRate > 0) {
+                const commissionAmount = (amount * unifiedRate) / 100;
+                commissionsData.push({
+                    userId: agent.id,
+                    username: agent.username,
+                    role: 'agent',
+                    rate: unifiedRate,
+                    amount: commissionAmount
+                });
+            }
+        } else {
+            if (agent && (agent.isAgent || agent.role === 'staff') && agent.agentRate > 0) {
+                const commissionAmount = (amount * agent.agentRate) / 100;
+                commissionsData.push({
+                    userId: agent.id,
+                    username: agent.username,
+                    role: 'agent',
+                    rate: agent.agentRate,
+                    amount: commissionAmount
+                });
+            }
+
+            if (technician && (technician.isTechnician || technician.role === 'staff') && technician.technicianRate > 0) {
+                const commissionAmount = (amount * technician.technicianRate) / 100;
+                commissionsData.push({
+                    userId: technician.id,
+                    username: technician.username,
+                    role: 'technician',
+                    rate: technician.technicianRate,
+                    amount: commissionAmount
+                });
+            }
         }
     }
 
@@ -82,24 +98,21 @@ export async function GET(request) {
 
         const allowedUsernames = [];
 
-        // Fetch user's assigned customers
-        if (user.role === 'agent' || user.role === 'staff' || user.role === 'editor') {
-            const agentCusts = await db.customer.findMany({
-                where: { agentId: user.id },
+        // Fetch user's assigned customers (either as agent or technician)
+        if (['agent', 'technician', 'staff', 'editor'].includes(user.role)) {
+            const staffCusts = await db.customer.findMany({
+                where: {
+                    OR: [
+                        { agentId: user.id },
+                        { technicianId: user.id }
+                    ]
+                },
                 select: { username: true }
             });
-            allowedUsernames.push(...agentCusts.map(c => c.username));
+            allowedUsernames.push(...staffCusts.map(c => c.username));
         }
 
-        if (user.role === 'technician') {
-            const techCusts = await db.customer.findMany({
-                where: { technicianId: user.id },
-                select: { username: true }
-            });
-            allowedUsernames.push(...techCusts.map(c => c.username));
-        }
-
-        if (['agent', 'technician'].includes(user.role)) {
+        if (['agent', 'technician', 'staff'].includes(user.role)) {
             if (allowedUsernames.length > 0) {
                 where.username = { in: allowedUsernames };
             } else {

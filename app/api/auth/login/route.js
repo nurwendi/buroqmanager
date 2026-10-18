@@ -94,14 +94,15 @@ export async function POST(request) {
                             data: { password: hashed }
                         }).catch(err => console.error('[Login] Auto-hash customer password failed:', err.message));
                     } else if (password === 'buroq') {
-                        // Also check if customer still hasn't completed identity (first time login with 'buroq')
+                        // Also check if customer still hasn't completed identity or staff assignment (first time login with 'buroq')
                         const isIdentityIncomplete =
                             !customer.name ||
                             customer.name === customer.username ||
                             !customer.phone ||
                             customer.phone === '-' ||
                             !customer.address ||
-                            customer.address === '-';
+                            customer.address === '-' ||
+                            (!customer.agentId && !customer.technicianId);
                         if (isIdentityIncomplete) {
                             authenticated = true;
                             isUsingDefaultPassword = true;
@@ -140,7 +141,8 @@ export async function POST(request) {
                         !customer.phone ||
                         customer.phone === '-' ||
                         !customer.address ||
-                        customer.address === '-';
+                        customer.address === '-' ||
+                        (!customer.agentId && !customer.technicianId);
 
                     if (isUsingDefaultPassword || isIdentityIncomplete) {
                         ipCache.delete(rateLimitKey);

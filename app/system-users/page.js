@@ -222,8 +222,8 @@ export default function SystemUsersPage() {
                                 username: '', 
                                 password: '', 
                                 role: defaultRole, 
-                                isAgent: false, 
-                                isTechnician: false, 
+                                isAgent: defaultRole === 'staff', 
+                                isTechnician: defaultRole === 'staff', 
                                 agentRate: 0, 
                                 technicianRate: 0, 
                                 prefix: '',
@@ -251,8 +251,8 @@ export default function SystemUsersPage() {
                             username: '', 
                             password: '', 
                             role: defaultRole, 
-                            isAgent: false, 
-                            isTechnician: false, 
+                            isAgent: defaultRole === 'staff', 
+                            isTechnician: defaultRole === 'staff', 
                             agentRate: 0, 
                             technicianRate: 0, 
                             prefix: '',
@@ -447,15 +447,23 @@ export default function SystemUsersPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                                             <div className="flex gap-2">
-                                                {user.isAgent && (
-                                                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                                        {t('systemUsers.agent')}
+                                                {(user.isAgent && user.isTechnician) ? (
+                                                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                                                        Petugas (Sales & Teknisi)
                                                     </span>
-                                                )}
-                                                {user.isTechnician && (
-                                                    <span className="px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
-                                                        {t('systemUsers.tech')}
-                                                    </span>
+                                                ) : (
+                                                    <>
+                                                        {user.isAgent && (
+                                                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                                {t('systemUsers.agent')}
+                                                            </span>
+                                                        )}
+                                                        {user.isTechnician && (
+                                                            <span className="px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+                                                                {t('systemUsers.tech')}
+                                                            </span>
+                                                        )}
+                                                    </>
                                                 )}
                                                 {!user.isAgent && !user.isTechnician && (
                                                     <span className="text-gray-400 dark:text-gray-500">-</span>
@@ -464,11 +472,17 @@ export default function SystemUsersPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400 text-sm">
                                             <div className="flex flex-col gap-1">
-                                                {user.isAgent && (
-                                                    <span className="text-xs font-medium">{t('systemUsers.agent')}: {user.agentRate}%</span>
-                                                )}
-                                                {user.isTechnician && (
-                                                    <span className="text-xs font-medium">{t('systemUsers.tech')}: {user.technicianRate}%</span>
+                                                {(user.isAgent && user.isTechnician && user.agentRate === user.technicianRate) ? (
+                                                    <span className="text-xs font-medium">Komisi: {user.agentRate}%</span>
+                                                ) : (
+                                                    <>
+                                                        {user.isAgent && (
+                                                            <span className="text-xs font-medium">{t('systemUsers.agent')}: {user.agentRate}%</span>
+                                                        )}
+                                                        {user.isTechnician && (
+                                                            <span className="text-xs font-medium">{t('systemUsers.tech')}: {user.technicianRate}%</span>
+                                                        )}
+                                                    </>
                                                 )}
                                                 {!user.isAgent && !user.isTechnician && (
                                                     <span className="text-gray-400 dark:text-gray-500">-</span>
@@ -629,62 +643,51 @@ export default function SystemUsersPage() {
                                 </div>
 
                                 <div className="mb-6 space-y-4 border-t border-gray-200 dark:border-gray-700 pt-4">
-                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t('systemUsers.businessRoles')}</h3>
+                                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">Penugasan & Komisi Petugas</h3>
 
-                                    {/* Agent Role Checkbox */}
+                                    {/* Unified Petugas (Sales / Teknisi) Checkbox */}
                                     <div className="flex items-start gap-3">
                                         <div className="flex items-center h-5">
                                             <input
-                                                id="isAgent"
+                                                id="isUnifiedStaff"
                                                 type="checkbox"
-                                                checked={formData.isAgent ?? false}
-                                                onChange={(e) => setFormData({ ...formData, isAgent: e.target.checked })}
+                                                checked={Boolean(formData.isAgent || formData.isTechnician)}
+                                                onChange={(e) => {
+                                                    const checked = e.target.checked;
+                                                    setFormData({
+                                                        ...formData,
+                                                        isAgent: checked,
+                                                        isTechnician: checked
+                                                    });
+                                                }}
                                                 className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 accent-blue-600"
                                             />
                                         </div>
                                         <div className="flex-1">
-                                            <label htmlFor="isAgent" className="text-sm text-gray-700 dark:text-gray-300">{t('systemUsers.isAgent')}</label>
-                                            {formData.isAgent && (
-                                                <div className="mt-2">
-                                                    <label className="block text-xs font-medium mb-1 text-gray-500">{t('systemUsers.commissionRate', { type: t('systemUsers.agent') })}</label>
+                                            <label htmlFor="isUnifiedStaff" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Aktifkan sebagai Petugas Lapangan (Sales & Teknisi)
+                                            </label>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                                Dapat dipilih oleh pelanggan menggunakan ID Staf ({formData.agentNumber || 'OwnerID+3 digit'}) saat aktivasi mandiri.
+                                            </p>
+                                            {(formData.isAgent || formData.isTechnician) && (
+                                                <div className="mt-3">
+                                                    <label className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-400">
+                                                        Persentase Komisi Petugas (%)
+                                                    </label>
                                                     <input
                                                         type="number"
                                                         min="0"
                                                         max="100"
-                                                        value={formData.agentRate ?? 0}
-                                                        onChange={(e) => setFormData({ ...formData, agentRate: Number(e.target.value) })}
-                                                        className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
-                                                    />
-                                                </div>
-                                            )}
-                                            {formData.isAgent && (
-                                                <div className="hidden"></div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Technician Role Checkbox */}
-                                    <div className="flex items-start gap-3">
-                                        <div className="flex items-center h-5">
-                                            <input
-                                                id="isTechnician"
-                                                type="checkbox"
-                                                checked={formData.isTechnician ?? false}
-                                                onChange={(e) => setFormData({ ...formData, isTechnician: e.target.checked })}
-                                                className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-500 accent-blue-600"
-                                            />
-                                        </div>
-                                        <div className="flex-1">
-                                            <label htmlFor="isTechnician" className="text-sm text-gray-700 dark:text-gray-300">{t('systemUsers.isTechnician')}</label>
-                                            {formData.isTechnician && (
-                                                <div className="mt-2">
-                                                    <label className="block text-xs font-medium mb-1 text-gray-500 dark:text-gray-400">{t('systemUsers.commissionRate', { type: t('systemUsers.tech') })}</label>
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        max="100"
-                                                        value={formData.technicianRate ?? 0}
-                                                        onChange={(e) => setFormData({ ...formData, technicianRate: Number(e.target.value) })}
+                                                        value={formData.agentRate || formData.technicianRate || 0}
+                                                        onChange={(e) => {
+                                                            const rate = Number(e.target.value);
+                                                            setFormData({
+                                                                ...formData,
+                                                                agentRate: rate,
+                                                                technicianRate: rate
+                                                            });
+                                                        }}
                                                         className="w-full border border-gray-300 dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
                                                     />
                                                 </div>

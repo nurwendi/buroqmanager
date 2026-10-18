@@ -540,16 +540,26 @@ export default function UsersPage() {
 
 
 
+    const unassignedUsersCount = useMemo(() => {
+        return users.filter(user => {
+            const customer = customersDataLowerCase[user.name.toLowerCase()];
+            return !customer || (!customer.agentId && !customer.technicianId);
+        }).length;
+    }, [users, customersDataLowerCase]);
+
     const filteredUsers = useMemo(() => {
         const searchLower = String(searchTerm).toLowerCase();
 
         return users.filter(user => {
-            // Online filter
+            // Online / Offline / Unassigned filter
             const isActive = activeConnections.some(c => c.name === user.name);
+            const customer = customersDataLowerCase[user.name.toLowerCase()];
+            const isUnassigned = !customer || (!customer.agentId && !customer.technicianId);
+
             if (filterStatus === 'online' && !isActive) return false;
             if (filterStatus === 'offline' && isActive) return false;
+            if (filterStatus === 'unassigned' && !isUnassigned) return false;
 
-            const customer = customersDataLowerCase[user.name.toLowerCase()];
             const customerName = String(customer?.name || '');
             const customerId = String(customer?.customerId || '');
             const userProfile = String(user.profile || '');
@@ -562,7 +572,7 @@ export default function UsersPage() {
                 customerName.toLowerCase().includes(searchLower) ||
                 customerId.toLowerCase().includes(searchLower);
         });
-    }, [users, searchTerm, customersData, filterStatus, activeConnections]);
+    }, [users, searchTerm, customersData, customersDataLowerCase, filterStatus, activeConnections]);
 
 
     const sortData = (key) => {
@@ -1161,22 +1171,22 @@ export default function UsersPage() {
             </div>
 
             {/* Pending Registrations (Admin, Editor, Staff, Technician) */}
-            {((['superadmin', 'admin', 'manager', 'editor', 'staff', 'technician'].includes(userRole) || currentUser?.isTechnician) && pendingRegistrations.length > 0) && (
+            {((['superadmin', 'admin', 'manager', 'editor', 'staff', 'technician'].includes(userRole) || currentUser?.isTechnician || currentUser?.isAgent) && pendingRegistrations.length > 0) && (
                 <div className="bg-yellow-50/30 dark:bg-yellow-900/30 backdrop-blur-xl border border-yellow-200/50 dark:border-yellow-800/50 rounded-xl p-4 md:p-6 shadow-lg">
                     <h2 className="text-lg md:text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-4 flex items-center gap-2">
                         <Clock className="text-yellow-600 dark:text-yellow-400" size={20} /> {t('pppoe.pendingRegistrations')}
                         <span className="ml-1 px-2 py-0.5 bg-yellow-200 dark:bg-yellow-800 text-yellow-900 dark:text-yellow-100 rounded-full text-sm font-semibold">
-                            {pendingRegistrations.filter(reg => ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || (userRole === 'technician' || currentUser?.isTechnician ? (reg.type === 'activation' || reg.technicianId === currentUserId || reg.agentId === currentUserId) : reg.agentId === currentUserId)).length}
+                            {pendingRegistrations.filter(reg => ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || reg.technicianId === currentUserId || reg.agentId === currentUserId || ((userRole === 'technician' || currentUser?.isTechnician) && reg.type === 'activation')).length}
                         </span>
                     </h2>
 
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-3">
                         {pendingRegistrations
-                            .filter(reg => ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || (userRole === 'technician' || currentUser?.isTechnician ? (reg.type === 'activation' || reg.technicianId === currentUserId || reg.agentId === currentUserId) : reg.agentId === currentUserId))
+                            .filter(reg => ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || reg.technicianId === currentUserId || reg.agentId === currentUserId || ((userRole === 'technician' || currentUser?.isTechnician) && reg.type === 'activation'))
                             .map((reg) => {
-                                const agent = systemUsers.find(u => u.id === reg.agentId);
-                                const canReviewReg = ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || ((userRole === 'technician' || currentUser?.isTechnician) && reg.type === 'activation');
+                                const agent = systemUsers.find(u => u.id === (reg.technicianId || reg.agentId));
+                                const canReviewReg = ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || (reg.type === 'activation' && (reg.technicianId === currentUserId || reg.agentId === currentUserId || userRole === 'technician' || currentUser?.isTechnician));
                                 const typeBadge = reg.type === 'activation'
                                     ? { label: 'Aktivasi Identitas', cls: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' }
                                     : reg.type === 'edit'
@@ -1203,8 +1213,8 @@ export default function UsersPage() {
                                                 <div className="font-medium text-gray-700 dark:text-gray-200 truncate">{reg.address || reg.registrationData?.service || '-'}</div>
                                             </div>
                                             <div>
-                                                <div className="text-gray-400 mb-0.5">{t('users.agent')}</div>
-                                                <div className="font-medium text-gray-700 dark:text-gray-200">{agent ? (agent.fullName || agent.username) : '-'}</div>
+                                                <div className="text-gray-400 mb-0.5">Petugas</div>
+                                                <div className="font-medium text-gray-700 dark:text-gray-200">{agent ? `${agent.agentNumber ? `[${agent.agentNumber}] ` : ''}${agent.fullName || agent.username}` : '-'}</div>
                                             </div>
                                             <div>
                                                 <div className="text-gray-400 mb-0.5">{t('common.status')}</div>
@@ -1232,19 +1242,19 @@ export default function UsersPage() {
                                     <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.username')}</th>
                                     <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.type')}</th>
                                     <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.fullName')}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.agent')}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">Petugas</th>
                                     <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('users.phone')} / {t('users.profile')}</th>
                                     <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.status')}</th>
-                                    {(['superadmin', 'admin', 'manager', 'editor', 'technician'].includes(userRole) || currentUser?.isTechnician) && (
+                                    {(['superadmin', 'admin', 'manager', 'editor', 'staff', 'technician'].includes(userRole) || currentUser?.isTechnician || currentUser?.isAgent) && (
                                         <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('common.actions')}</th>
                                     )}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                 {pendingRegistrations
-                                    .filter(reg => ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || (userRole === 'technician' || currentUser?.isTechnician ? (reg.type === 'activation' || reg.technicianId === currentUserId || reg.agentId === currentUserId) : reg.agentId === currentUserId))
+                                    .filter(reg => ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || reg.technicianId === currentUserId || reg.agentId === currentUserId || ((userRole === 'technician' || currentUser?.isTechnician) && reg.type === 'activation'))
                                     .map((reg) => {
-                                        const canReviewReg = ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || ((userRole === 'technician' || currentUser?.isTechnician) && reg.type === 'activation');
+                                        const canReviewReg = ['superadmin', 'admin', 'manager', 'editor'].includes(userRole) || (reg.type === 'activation' && (reg.technicianId === currentUserId || reg.agentId === currentUserId || userRole === 'technician' || currentUser?.isTechnician));
                                         return (
                                             <tr key={reg.username} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                                 <td className="px-5 py-3.5 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">{reg.targetUsername || reg.username}</td>
@@ -1255,7 +1265,7 @@ export default function UsersPage() {
                                                 </td>
                                                 <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">{reg.name || '-'}</td>
                                                 <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                                                    {(() => { const a = systemUsers.find(u => u.id === reg.agentId); return a ? (a.fullName || a.username) : '-'; })()}
+                                                    {(() => { const a = systemUsers.find(u => u.id === (reg.technicianId || reg.agentId)); return a ? `${a.agentNumber ? `[${a.agentNumber}] ` : ''}${a.fullName || a.username}` : '-'; })()}
                                                 </td>
                                                 <td className="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                                                     {reg.type === 'activation' ? (reg.phone || '-') : `${reg.registrationData?.profile || '-'} / ${reg.registrationData?.service || '-'}`}
@@ -1263,7 +1273,7 @@ export default function UsersPage() {
                                                 <td className="px-5 py-3.5 whitespace-nowrap text-sm text-yellow-600 dark:text-yellow-400 font-medium">
                                                     {t('pppoe.pendingReview')}
                                                 </td>
-                                                {(['superadmin', 'admin', 'manager', 'editor', 'technician'].includes(userRole) || currentUser?.isTechnician) && (
+                                                {(['superadmin', 'admin', 'manager', 'editor', 'staff', 'technician'].includes(userRole) || currentUser?.isTechnician || currentUser?.isAgent) && (
                                                     <td className="px-5 py-3.5 whitespace-nowrap text-sm font-medium">
                                                         {canReviewReg && (
                                                             <button
@@ -1290,7 +1300,7 @@ export default function UsersPage() {
                 {/* Stats Cards */}
                 {/* Stats Widget (Unified) */}
                 <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-xl rounded-lg shadow-xl border border-white/20 dark:border-white/5 overflow-hidden">
-                    <div className="grid grid-cols-3 divide-x divide-gray-200/50 dark:divide-gray-700/50">
+                    <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-gray-200/50 dark:divide-gray-700/50">
                         {/* Total */}
                         <button
                             onClick={() => setFilterStatus('all')}
@@ -1361,6 +1371,30 @@ export default function UsersPage() {
 
                             <p className={`text-xl md:text-2xl font-bold transition-colors z-10 ${filterStatus === 'offline' ? 'text-gray-700 dark:text-gray-200' : 'text-gray-600 dark:text-gray-300'}`}>{users.length - onlineUsersCount}</p>
                             <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider z-10">{t('pppoe.offline')}</p>
+                        </button>
+
+                        {/* Unassigned (Tanpa Petugas) */}
+                        <button
+                            onClick={() => setFilterStatus('unassigned')}
+                            className={`p-4 flex flex-col items-center justify-center text-center transition-all duration-200 relative overflow-hidden group
+                                ${filterStatus === 'unassigned'
+                                    ? 'bg-amber-50/80 dark:bg-amber-900/40 ring-2 ring-inset ring-amber-500/50 z-10 scale-[1.02]'
+                                    : 'hover:bg-white/10 dark:hover:bg-white/5 hover:scale-[1.02]'
+                                }`}
+                        >
+                            <AlertTriangle
+                                size={80}
+                                className={`absolute -bottom-4 -right-4 opacity-5 transition-opacity duration-300
+                                    ${filterStatus === 'unassigned' ? 'opacity-10 text-amber-600 dark:text-amber-400' : 'text-gray-400 group-hover:opacity-10'}
+                                `}
+                            />
+
+                            {filterStatus === 'unassigned' && (
+                                <div className="absolute inset-x-0 bottom-0 h-1 bg-amber-500 z-20" />
+                            )}
+
+                            <p className={`text-xl md:text-2xl font-bold transition-colors z-10 ${filterStatus === 'unassigned' ? 'text-amber-700 dark:text-amber-200' : 'text-amber-600 dark:text-amber-400'}`}>{unassignedUsersCount}</p>
+                            <p className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wider z-10">Tanpa Petugas</p>
                         </button>
                     </div>
                 </div>
