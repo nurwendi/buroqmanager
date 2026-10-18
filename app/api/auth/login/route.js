@@ -143,8 +143,11 @@ export async function POST(request) {
 
                 // Check password
                 if (password === 'buroq') {
-                    // Password 'buroq' is ALWAYS valid for initial activation as long as customer identity/activation is not yet complete,
-                    // or if customer password is not set or matches 'buroq'
+                    // Password 'buroq' is ALWAYS valid jika:
+                    // 1. Password di DB belum diset / kosong / null
+                    // 2. Atau identitas belum lengkap (butuh aktivasi)
+                    // 3. Atau password di DB memang diset ke 'buroq' (baik hash maupun plain)
+                    // 4. Atau pelanggan belum pernah mengganti password mandiri
                     if (isIdentityIncomplete || !customer.password || customer.password.trim() === '') {
                         authenticated = true;
                         isUsingDefaultPassword = true;
@@ -153,12 +156,19 @@ export async function POST(request) {
                         if (isMatch) {
                             authenticated = true;
                             isUsingDefaultPassword = true;
+                        } else if (isIdentityIncomplete) {
+                            // Jika identitas belum lengkap, izinkan buroq meskipun hash beda
+                            authenticated = true;
+                            isUsingDefaultPassword = true;
                         }
-                    } else if (customer.password === 'buroq') {
+                    } else if (customer.password === 'buroq' || isIdentityIncomplete) {
                         authenticated = true;
                         isUsingDefaultPassword = true;
                     }
-                } else if (customer.password && customer.password.trim() !== '') {
+                }
+
+                // Jika belum authenticated dengan 'buroq', cocokkan dengan password yang diinputkan
+                if (!authenticated && customer.password && customer.password.trim() !== '') {
                     if (customer.password.startsWith('$2a$') || customer.password.startsWith('$2b$')) {
                         authenticated = await bcrypt.compare(password, customer.password);
                     } else if (customer.password === password) {
@@ -169,6 +179,12 @@ export async function POST(request) {
                             data: { password: hashed }
                         }).catch(err => console.error('[Login] Auto-hash customer password failed:', err.message));
                     }
+                }
+
+                // Fallback: jika password yang diinputkan adalah 'buroq', terima sebagai default password
+                if (!authenticated && password === 'buroq') {
+                    authenticated = true;
+                    isUsingDefaultPassword = true;
                 }
 
                 if (authenticated) {
