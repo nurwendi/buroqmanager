@@ -59,11 +59,19 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Data pelanggan tidak ditemukan.' }, { status: 404 });
         }
 
-        // Validate staffCode against tenant's staff
+        // Validate staffCode against tenant's staff (or tenant admin/owner themselves)
         const cleanStaffCode = staffCode.trim();
+        const staffOwnerCondition = customer.ownerId
+            ? {
+                OR: [
+                    { ownerId: customer.ownerId },
+                    { id: customer.ownerId }
+                ]
+            }
+            : {};
         const staffUser = await db.user.findFirst({
             where: {
-                ...(customer.ownerId ? { ownerId: customer.ownerId } : {}),
+                ...staffOwnerCondition,
                 OR: [
                     { agentNumber: { equals: cleanStaffCode, mode: 'insensitive' } },
                     { username: { equals: cleanStaffCode, mode: 'insensitive' } },

@@ -210,13 +210,19 @@ export async function POST(request) {
                         ipCache.delete(rateLimitKey);
 
                         // Fetch available staff (sales & technicians) for this tenant
+                        // Also include the tenant owner/admin if no sub-staff exist or as fallback
                         const staffWhere = customer.ownerId
                             ? {
-                                ownerId: customer.ownerId,
                                 OR: [
-                                    { isTechnician: true },
-                                    { isAgent: true },
-                                    { role: { in: ['staff', 'technician', 'agent', 'editor', 'manager'] } }
+                                    {
+                                        ownerId: customer.ownerId,
+                                        OR: [
+                                            { isTechnician: true },
+                                            { isAgent: true },
+                                            { role: { in: ['staff', 'technician', 'agent', 'editor', 'manager'] } }
+                                        ]
+                                    },
+                                    { id: customer.ownerId }
                                 ]
                             }
                             : {
